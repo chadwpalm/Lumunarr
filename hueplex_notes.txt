@@ -1,0 +1,3 @@
+HuePlex notes:
+
+1. Need to add verification of bridge and add a username (need for pressing button)
