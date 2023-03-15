@@ -1,3 +1,3 @@
 HuePlex notes:
 
-1. Need to add verification of bridge and add a username (need for pressing button)
+1. Create a method in app.js that will check if the bridge is still active at the current IP.

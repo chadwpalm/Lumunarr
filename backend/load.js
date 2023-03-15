@@ -1,9 +1,12 @@
 var express = require("express");
 var router = express.Router();
 var fs = require("fs");
+var os = require("os");
+var uuid = require("uuid").v4;
 
-router.get("/", function (req, res, next) {
-  var fileData = '{ "connected": "false" }';
+var appVersion = "0.1.0";
+
+var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
   try {
     fileData = fs.readFileSync("/config/settings.js");
     console.info("Settings file read");
@@ -17,9 +20,17 @@ router.get("/", function (req, res, next) {
     }
   }
 
+router.get("/", function (req, res, next) {
+  var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
+  try {
+    fileData = fs.readFileSync("/config/settings.js");
+    console.info("Settings file read");
+  } catch (err) {
+    console.info("Settings file not found");
+  }
+
   console.debug("At request send: ", fileData.toString());
   res.send(fileData);
-  // res.send(info);
 });
 
 module.exports = router;
