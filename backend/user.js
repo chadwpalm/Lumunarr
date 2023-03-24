@@ -20,26 +20,21 @@ router.post("/", async function (req, res, next) {
   let user = new client.users.User();
 
   user.deviceType = `HuePlex#${hostname}`;
-  console.log("Devicetype:", user.deviceType);
+  console.info("Hue Application Name:", user.deviceType);
 
   let flag = 0;
   let startTime = new Date().getTime();
-  let status = "";
 
   while (!flag && new Date().getTime() - startTime < 10000) {
     await client.users
       .create(user)
       .then((user) => {
-        console.log(`New user created - Username: ${user.username}`);
+        console.info(`New bridge user created - Username: ${user.username}`);
         flag = 1;
       })
       .catch((error) => {
-        // console.log(error);
         if (error instanceof huejay.Error && error.type === 101) {
-          // return console.log(`Link button not pressed. Try again...`);
         }
-
-        // console.log(error.stack);
       });
   }
 
@@ -64,9 +59,7 @@ router.post("/", async function (req, res, next) {
     if (err) throw err;
   }
 
-  //   console.debug("At request save: ", fileData.toString());
   res.send(user.username);
-  // res.send(info);
 });
 
 module.exports = router;

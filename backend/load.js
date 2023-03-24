@@ -4,24 +4,30 @@ var fs = require("fs");
 var os = require("os");
 var uuid = require("uuid").v4;
 
-var appVersion = "0.1.0";
+var appVersion = process.env.VERSION.toString();
 
 var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
-  try {
-    fileData = fs.readFileSync("/config/settings.js");
-    console.info("Settings file read");
-  } catch (err) {
-    console.info("File not found, creating!");
-    try {
-      fs.writeFileSync("/config/settings.js", fileData);
-      console.info("Settings file created");
-    } catch (err) {
-      if (err) throw err;
-    }
+try {
+  fileData = fs.readFileSync("/config/settings.js");
+  if (JSON.parse(fileData).version !== appVersion) {
+    console.info("Version updated from", JSON.parse(fileData).version, "to", appVersion);
+    var temp = JSON.parse(fileData);
+    temp.version = appVersion;
+    fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   }
+  console.info("Settings file read");
+} catch (err) {
+  console.info("Settings file not found, creating");
+  try {
+    fs.writeFileSync("/config/settings.js", fileData);
+    console.info("Settings file created");
+  } catch (err) {
+    if (err) throw err;
+  }
+}
 
 router.get("/", function (req, res, next) {
-  var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
+  // var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
   try {
     fileData = fs.readFileSync("/config/settings.js");
     console.info("Settings file read");
@@ -29,7 +35,6 @@ router.get("/", function (req, res, next) {
     console.info("Settings file not found");
   }
 
-  console.debug("At request send: ", fileData.toString());
   res.send(fileData);
 });
 

@@ -257,15 +257,28 @@ export default class App extends Component {
                 show={this.state.show}
                 fullscreen={this.state.fullscreen}
                 onHide={this.handleClose}
-                size="sm"
-                animation={false}
-                backdrop="static"
+                size="lg"
+                animation={true}
               >
                 <Modal.Header closeButton>
                   <Modal.Title>About</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                  <b>Version:</b> {this.state.config.version}
+                  <b>Version:</b> &nbsp;{this.state.config.version}
+                  <br />
+                  <b>Config Dir:</b>&nbsp; /config
+                  <br />
+                  <b>App Dir:</b>&nbsp; /HuePlex
+                  <br />
+                  <b>Docker:</b>&nbsp;
+                  <a href="https://hub.docker.com/repository/docker/chadwpalm/hueplex/general" target="_blank">
+                    chadwpalm/hueplex
+                  </a>
+                  <br />
+                  <b>Source:</b>&nbsp;
+                  <a href="https://github.com/chadwpalm/HuePlex" target="_blank">
+                    github.com/chadwpalm/HuePlex
+                  </a>
                 </Modal.Body>
               </Modal>
               <Row

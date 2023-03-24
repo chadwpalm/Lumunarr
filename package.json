@@ -1,6 +1,5 @@
 {
   "name": "hueplex",
-  "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www"

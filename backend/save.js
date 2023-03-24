@@ -12,9 +12,7 @@ router.post("/", function (req, res, next) {
     if (err) throw err;
   }
 
-  //   console.debug("At request save: ", fileData.toString());
   res.send();
-  // res.send(info);
 });
 
 module.exports = router;

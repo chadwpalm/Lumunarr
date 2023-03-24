@@ -12,15 +12,10 @@ var save = require("./backend/save");
 var user = require("./backend/user.js");
 var discover = require("./backend/discover");
 var thumb = require("./backend/thumb");
-var test = require("./backend/test");
 var client = require("./backend/client");
 var server = require("./backend/server");
 
 var app = express();
-
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
 
 logger.token("customDate", function () {
   var current_ob = new Date();
@@ -39,7 +34,6 @@ app.use("/backend/save", save);
 app.use("/backend/user", user);
 app.use("/backend/discover", discover);
 app.use("/backend/thumb", thumb);
-app.use("/backend/test", test);
 app.use("/backend/client", client);
 app.use("/backend/server", server);
 app.use("/webhook", webhookRouter);
@@ -47,7 +41,6 @@ app.use("/*", uiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  console.log("There was a Vato error");
   next(createError(404));
 });
 
