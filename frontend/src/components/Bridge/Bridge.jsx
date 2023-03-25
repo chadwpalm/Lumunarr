@@ -8,15 +8,6 @@ import BridgeImage from "../../images/Bridge.svg";
 import Form from "react-bootstrap/Form";
 import wait from "../../images/loading-gif.gif";
 
-// import {
-// BrowserRouter as Router,
-//   Switch,
-//   Route,
-// Link,
-//   // useParams,
-//   Redirect,
-// } from "react-router-dom";
-
 export default class Bridge extends Component {
   state = {
     isLoaded: false,
@@ -32,21 +23,12 @@ export default class Bridge extends Component {
   };
   constructor(props) {
     super(props);
-    console.log("Bridge contructor");
 
     this.state.isBridge = this.props.settings.bridge ? true : false;
   }
 
-  componentDidMount() {
-    console.log("Bridge did Mount:", this.state.isBridge);
-  }
-
-  //minipulate config file here
   handleActivate = (name, id, ip) => {
-    console.log("Handle Activate", id, ip);
-
     var settings = { ...this.props.settings };
-    // settings.connected = "true";
     settings.bridge = { name: name, id: id, ip: ip };
 
     var xhr = new XMLHttpRequest();
@@ -54,17 +36,11 @@ export default class Bridge extends Component {
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
-          // request successful
-          // var response = xhr.responseText,
-          //   json = JSON.parse(response);
-
-          // this.props.settings.connected = "true";
           this.props.settings.bridge = { name: name, id: id, ip: ip };
 
           this.setState({
             isBridge: "true",
           });
-          console.log("Inside HA: ", this.state);
         } else {
           // error
           this.setState({
@@ -76,38 +52,28 @@ export default class Bridge extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   };
 
   handleCreateUser = () => {
-    console.log("Handle Create User");
-
     var settings = { ...this.props.settings };
-    // settings.connected = "true";
 
     this.setState({
       isSearching: true,
     });
 
     var xhr = new XMLHttpRequest();
-    // Before;
 
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           // request successful
           var response = xhr.responseText;
-          // json = JSON.parse(response);
-
-          console.log("User:", response);
 
           if (response) {
             if (!this.props.settings.bridge) {
-              console.log("Creating bridge");
               this.props.settings.bridge = {};
             }
-            console.log("Creating user");
             this.props.settings.bridge.user = response;
 
             this.setState({
@@ -120,7 +86,6 @@ export default class Bridge extends Component {
 
             this.props.connection(1);
           } else {
-            console.log("No user, dawg");
             this.setState({
               hasFailed: true,
               isSearching: false,
@@ -137,7 +102,6 @@ export default class Bridge extends Component {
 
     xhr.open("POST", "/backend/user", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("User send string", settings);
     xhr.send(JSON.stringify(settings));
   };
 
@@ -145,18 +109,12 @@ export default class Bridge extends Component {
     var settings = { ...this.props.settings };
 
     delete settings["bridge"];
-    // settings.connected = "false";
 
     var xhr = new XMLHttpRequest();
 
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
-          // request successful
-          // var response = xhr.responseText,
-          //   json = JSON.parse(response);
-
-          // this.props.settings.connected = "false";
           delete this.props.settings["bridge"];
 
           this.setState({
@@ -177,7 +135,6 @@ export default class Bridge extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   };
 
@@ -214,7 +171,6 @@ export default class Bridge extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   };
 
@@ -240,8 +196,6 @@ export default class Bridge extends Component {
             // request successful
             var response = xhr.responseText,
               json = JSON.parse(response);
-
-            console.log("At bridge response", json);
 
             this.setState({
               isLoaded: true,
@@ -274,10 +228,6 @@ export default class Bridge extends Component {
   handleManualSubmit = (e) => {
     e.preventDefault();
     this.setState({ isManual: true });
-    console.log("Data: ", this.state.manual);
-    // this.setState({
-    //   isActive: "true",
-    // });
 
     if (this.props.settings.connected === "false") {
       var xhr = new XMLHttpRequest();
@@ -288,8 +238,6 @@ export default class Bridge extends Component {
             // request successful
             var response = xhr.responseText,
               json = JSON.parse(response);
-
-            console.log("At bridge response", json);
 
             this.setState({
               isLoaded: true,
@@ -314,8 +262,6 @@ export default class Bridge extends Component {
   };
 
   render() {
-    console.log("Bridge did render");
-
     if (this.props.settings.connected === "false") {
       if (this.state.isBridge === false) {
         if (this.state.isActive === false) {
@@ -398,7 +344,6 @@ export default class Bridge extends Component {
             if (this.state.bridges.length === 1) {
               this.handleActivate(this.state.bridges[0].name, this.state.bridges[0].Id, this.state.bridges[0].IP);
             } else {
-              console.log("State of things: ", this.state);
               return (
                 <>
                   <Row style={{ paddingBottom: "10px" }}>
@@ -435,11 +380,6 @@ export default class Bridge extends Component {
                 <Row style={{ paddingBottom: "10px" }}>
                   <h3>Bridge</h3>
                 </Row>
-                {/* <Row style={{ paddingBottom: "10px", marginLeft: "0px" }}>
-                  <Button variant="secondary" size="sm" style={{ width: "100px" }} onClick={this.handleGoBack}>
-                    Back
-                  </Button>
-                </Row> */}
                 <div style={{ paddingBottom: "10px", marginLeft: "0px" }}>
                   <BridgeInfo
                     id={this.props.settings.bridge.id}
@@ -465,9 +405,6 @@ export default class Bridge extends Component {
                     Cancel
                   </Button>
                 </Row>
-                {/* <button
-              onClick={this.handleCreateUser(this.props.settings.bridge.ip)}
-            /> */}
               </>
             );
           } else {
@@ -486,9 +423,6 @@ export default class Bridge extends Component {
                 </div>
                 <h3>Press the bridge button...</h3>
                 <img src={BridgeImage} style={{ width: "200px" }} />
-                {/* <button
-              onClick={this.handleCreateUser(this.props.settings.bridge.ip)}
-            /> */}
               </>
             );
           }

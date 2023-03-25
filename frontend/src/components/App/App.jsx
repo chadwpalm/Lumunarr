@@ -2,28 +2,19 @@ import React from "react";
 import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
 import Logo from "../../images/HuePlexLogo.png";
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
-import bridgecon from "./bridgecon.png";
-import bridgedis from "./bridgedis.png";
 import Device from "../Device/Device";
-import Plex from "../Plex/Plex";
 import Server from "../Server/Server";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { LinkContainer } from "react-router-bootstrap";
-import Offcanvas from "react-bootstrap/Offcanvas";
-import { ProSidebarProvider, Sidebar, Menu, MenuItem } from "react-pro-sidebar";
-import Coffee from "bootstrap-icons/icons/cup-hot.svg";
-import Info from "bootstrap-icons/icons/info-circle.svg";
 import Logout from "bootstrap-icons/icons/box-arrow-right.svg";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 
@@ -39,7 +30,6 @@ export default class App extends Component {
   };
 
   componentDidMount() {
-    console.log("App Did Mount");
     var xhr = new XMLHttpRequest();
 
     xhr.addEventListener("readystatechange", () => {
@@ -48,8 +38,6 @@ export default class App extends Component {
           // request successful
           var response = xhr.responseText,
             json = JSON.parse(response);
-
-          console.log("At app response", json);
 
           this.setState({
             isLoaded: true,
@@ -81,7 +69,6 @@ export default class App extends Component {
   };
 
   handleConnectionChange = (change) => {
-    console.log("Connection Changed:", change);
     change ? this.setState({ isConnected: true }) : this.setState({ isConnected: false });
   };
 
@@ -99,18 +86,12 @@ export default class App extends Component {
   };
 
   handleLogout = () => {
-    console.log("Handle Logout");
-
-    console.log("Initial Settings: ", settings);
-
     var settings = { ...this.state.config };
 
     delete settings["token"];
     delete settings["thumb"];
     delete settings["email"];
     delete settings["username"];
-
-    console.log("After deletions: ", settings);
 
     var xhr = new XMLHttpRequest();
 
@@ -129,16 +110,10 @@ export default class App extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   };
 
   render() {
-    console.log("At app render", this.state.config);
-
-    // if (!this.state.config.plex.token) {
-    //   return <div>Time to log in!</div>;
-    // } else {
     if (!this.state.isLoaded) {
       // is loading
       return (
@@ -195,32 +170,6 @@ export default class App extends Component {
                       </LinkContainer>
                     </Nav>
                     <Nav className="ms-auto">
-                      {/* <Nav.Item>
-                        <img
-                          src={Info}
-                          alt="Info"
-                          width="24"
-                          height="24"
-                          onClick={this.handleOpen}
-                          style={{ cursor: "pointer" }}
-                        />
-                      </Nav.Item>
-                      &nbsp;&nbsp;&nbsp;&nbsp;
-                      <Nav.Item>
-                        <a href="https://www.buymeacoffee.com/hueplex" target={"_blank"}>
-                          <img src={Coffee} alt="Coffee" title="Buy me a coffee" width="24" height="24" />
-                        </a>
-                      </Nav.Item>
-                      &nbsp;&nbsp;&nbsp;&nbsp; */}
-                      {/* <Dropdown
-                        as={
-                          <Image
-                            roundedCircle
-                            src={this.state.config.thumb}
-                            style={{ height: "40px", width: "40px" }}
-                          />
-                        }
-                      ></Dropdown> */}
                       <NavDropdown
                         menuVariant="secondary"
                         id="dropdown-menu-align-end"
@@ -241,7 +190,7 @@ export default class App extends Component {
                         <NavDropdown.Divider />
                         <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
                         <NavDropdown.Item href="https://www.buymeacoffee.com/hueplex" target="_blank">
-                          Support
+                          Donate
                         </NavDropdown.Item>
                         <NavDropdown.Item onClick={this.handleLogout}>
                           <img src={Logout} style={{ verticalAlign: "middle" }} />
@@ -286,6 +235,8 @@ export default class App extends Component {
                   paddingLeft: 30,
                   paddingTop: 30,
                   paddingRight: 30,
+                  borderTop: "solid",
+                  borderTopColor: "#ebaf00",
                 }}
               >
                 <Routes>
@@ -303,27 +254,8 @@ export default class App extends Component {
                       <Route path="*" element={<Navigate replace to="/" />} />
                     </>
                   )}
-
-                  {/* <Route
-                    path="/"
-                    element={
-                      this.state.config.connected === "false" ? (
-                        <div>
-                          <h1>A bridge must be connected for app to work</h1>
-                          <h1>Click bridge menu on top of page</h1>
-                        </div>
-                      ) : (
-                        <div>
-                          <Device settings={this.state.config} />
-                        </div>
-                      )
-                    }
-                  /> */}
                 </Routes>
               </Row>
-              {/* </div> */}
-              {/* </Col>
-            </Row> */}
             </Container>
           </Router>
         );

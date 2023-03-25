@@ -1,7 +1,5 @@
 var express = require("express");
 var router = express.Router();
-var fs = require("fs");
-var huejay = require("huejay");
 var axios = require("axios").default;
 var mdns = require("mdns-js");
 
@@ -22,18 +20,17 @@ browser.on("update", function (data) {
 
 setTimeout(function onTimeout() {
   browser.stop();
-  console.log("Finished searching for bridges");
+  console.info("Finished searching for bridges");
 }, TIMEOUT);
 
 router.post("/", async function (req, res, next) {
-  console.log("Frigg: ", req.body);
   var list = [];
 
   if (!Object.keys(req.body).length) {
     if (ips.length === 0) {
-      console.log("No bridges found using mDNS, using Hue Discovery");
+      console.info("No bridges found using mDNS, using Hue Discovery");
 
-      var url = `https://discovery.meethue.comy`;
+      var url = `https://discovery.meethue.com`;
       await axios
         .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
         .then(function (response) {
@@ -42,23 +39,10 @@ router.post("/", async function (req, res, next) {
           for (const obj of data) {
             ips.push(obj.internalipaddress);
           }
-          // await huejay
-          //   .discover()
-          //   .then((bridges) => {
-          //     for (let bridge of bridges) {
-          //       console.log(bridge);
-          //       let array = `{ "Id":"${bridge.id}", "IP":"${bridge.ip}", "name":"${bridge.name}" }`;
-          //       console.info(array);
-          //       list.push(JSON.parse(array));
-          //     }
-          //   })
-          //   .catch((error) => {
-          //     console.debug(`An error occurred: ${error.message}`);
-          //   });
         })
         .catch(function (error) {
           if (error.request) {
-            console.log("Could not get bridges from Hue Discovery. Try again in 15 minutes");
+            console.error("Could not get bridges from Hue Discovery. Try again in 15 minutes");
           }
         });
     }
@@ -80,7 +64,7 @@ router.post("/", async function (req, res, next) {
       })
       .catch(function (error) {
         if (error.request) {
-          console.log("Bridge not online at", ip);
+          console.error("Bridge not online at", ip);
         }
       });
   }

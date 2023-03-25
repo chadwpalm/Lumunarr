@@ -2,7 +2,6 @@ var express = require("express");
 var router = express.Router();
 var huejay = require("huejay");
 var multer = require("multer");
-var request = require("request");
 var fs = require("fs");
 const { setTimeout } = require("timers/promises");
 
@@ -10,35 +9,8 @@ var upload = multer({ dest: "/tmp/" });
 
 const filePath = "/config/settings.js";
 
-let fileExists = false;
-
 let colors = [0, 8000, 15700, 25500, 45000, 51000, 0];
 
-// try {
-//   var settings = JSON.parse(fs.readFileSync("/config/settings.js"));
-//   var clients = settings.clients;
-//   console.log("Palm1");
-// } catch (err) {
-//   console.info("Config file not found, please run the web app once to create file");
-// }
-
-// fs.watch("/config/settings.js", (event, filename) => {
-//   if (filename && event === "change") {
-//     try {
-//       settings = JSON.parse(fs.readFileSync("/config/settings.js"));
-//       clients = settings.clients;
-//       bridge.host = settings.bridge.ip;
-//       bridge.username = settings.user;
-//       console.log("Palm2");
-//     } catch (err) {
-//       console.info("Config file not found, please run the web app once to create file");
-//     }
-//   }
-// });
-
-// var isNight = new Boolean();
-
-/* GET home page. */
 router.post("/", upload.single("thumb"), async function (req, res, next) {
   var payload = JSON.parse(req.body.payload);
   var settings = JSON.parse(fs.readFileSync(filePath));
@@ -67,14 +39,13 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   light.saturation = 254;
                 }
                 light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
-                // console.log(parseInt(server.lightPlay), light.hue, light.saturation, light.brightness);
                 return bridge.lights.save(light);
               })
               .then(() => {
-                console.log(`Playback started on server by ${payload.Account.title}`);
+                console.info(`Playback started on server by ${payload.Account.title}`);
               })
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
           }
           if (server.behaviorPlay === "2") {
@@ -90,10 +61,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 tBri = light.brightness;
               })
               .then(() => {
-                console.log(`Playback started on server by ${payload.Account.title}`);
+                console.info(`Playback started on server by ${payload.Account.title}`);
               })
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
 
             for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
@@ -105,7 +76,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   return bridge.lights.save(light);
                 })
                 .catch((error) => {
-                  console.log(error.stack);
+                  console.error(error.stack);
                 });
 
               await setTimeout(500);
@@ -122,11 +93,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     light.saturation = 254;
                   }
                   light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
-                  // console.log(parseInt(server.lightPlay), light.hue, light.saturation, light.brightness);
                   return bridge.lights.save(light);
                 })
                 .catch((error) => {
-                  console.log(error.stack);
+                  console.error(error.stack);
                 });
 
               await setTimeout(500);
@@ -143,7 +113,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               })
 
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
           }
         }
@@ -163,14 +133,13 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   light.saturation = 254;
                 }
                 light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
-                // console.log(parseInt(server.lightPlay), light.hue, light.saturation, light.brightness);
                 return bridge.lights.save(light);
               })
               .then(() => {
-                console.log(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
               })
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
           }
           if (server.behaviorNew === "2") {
@@ -186,10 +155,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 tBri = light.brightness;
               })
               .then(() => {
-                console.log(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
               })
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
 
             for (let i = 0; i < parseInt(server.intervalsNew); i++) {
@@ -201,7 +170,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   return bridge.lights.save(light);
                 })
                 .catch((error) => {
-                  console.log(error.stack);
+                  console.error(error.stack);
                 });
 
               await setTimeout(500);
@@ -218,11 +187,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     light.saturation = 254;
                   }
                   light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
-                  // console.log(parseInt(server.lightPlay), light.hue, light.saturation, light.brightness);
                   return bridge.lights.save(light);
                 })
                 .catch((error) => {
-                  console.log(error.stack);
+                  console.error(error.stack);
                 });
 
               await setTimeout(500);
@@ -239,7 +207,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               })
 
               .catch((error) => {
-                console.log(error.stack);
+                console.error(error.stack);
               });
           }
         }
@@ -248,37 +216,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
     if (settings.clients) {
       var clients = settings.clients;
-
-      // var current_ob = new Date();
-      // var date =
-      //   current_ob.getFullYear() +
-      //   "-" +
-      //   (current_ob.getMonth() + 1) +
-      //   "-" +
-      //   (current_ob.getDay() + 1);
-
-      // request(
-      //   "https://api.sunrise-sunset.org/json?lat=37.258330&lng=-121.806010&date=" +
-      //     date +
-      //     "&formatted=0",
-      //   function (error, response, body) {
-      //     if (!error && response.statusCode == 200) {
-      //       var sunTimes = JSON.parse(body);
-      //       var sunrise_ob = new Date(sunTimes.results.sunrise);
-      //       var sunset_ob = new Date(sunTimes.results.sunset);
-      //       if (
-      //         current_ob.getTime() > sunrise_ob.getTime() &&
-      //         current_ob.getTime() < sunset_ob.getTime()
-      //       ) {
-      //         console.log("It's day time!");
-      //         isNight = false;
-      //       } else {
-      //         console.log("It's night time!");
-      //         isNight = true;
-      //       }
-      //     }
-      //   }
-      // );
 
       clients.forEach((client) => {
         if (payload.Player.uuid === client.client.id) {
@@ -289,56 +226,53 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
             ) {
               if (payload.event === "media.play" && client.play !== "None") {
-                // if (client.play === "Off") {
-                //   bridge.groups;
-                // }
                 bridge.scenes
                   .recall(client.play)
                   .then(() => {
-                    console.log(`Play scene was recalled for ${client.media} on ${client.client.name}`);
+                    console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
                   })
                   .catch((error) => {
-                    console.log(error.stack);
+                    console.error(error.stack);
                   });
               }
               if (payload.event === "media.stop" && client.stop !== "None") {
                 bridge.scenes
                   .recall(client.stop)
                   .then(() => {
-                    console.log(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
+                    console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
                   })
                   .catch((error) => {
-                    console.log(error.stack);
+                    console.error(error.stack);
                   });
               }
               if (payload.event === "media.pause" && client.pause !== "None") {
                 bridge.scenes
                   .recall(client.pause)
                   .then(() => {
-                    console.log(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                    console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
                   })
                   .catch((error) => {
-                    console.log(error.stack);
+                    console.error(error.stack);
                   });
               }
               if (payload.event === "media.resume" && client.resume !== "None") {
                 bridge.scenes
                   .recall(client.resume)
                   .then(() => {
-                    console.log(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                    console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
                   })
                   .catch((error) => {
-                    console.log(error.stack);
+                    console.error(error.stack);
                   });
               }
               if (payload.event === "media.scrobble" && client.scrobble !== "None") {
                 bridge.scenes
                   .recall(client.scrobble)
                   .then(() => {
-                    console.log(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                    console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
                   })
                   .catch((error) => {
-                    console.log(error.stack);
+                    console.error(error.stack);
                   });
               }
             }
@@ -356,3 +290,36 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 });
 
 module.exports = router;
+
+//For future use
+
+// var current_ob = new Date();
+// var date =
+//   current_ob.getFullYear() +
+//   "-" +
+//   (current_ob.getMonth() + 1) +
+//   "-" +
+//   (current_ob.getDay() + 1);
+
+// request(
+//   "https://api.sunrise-sunset.org/json?lat=37.258330&lng=-121.806010&date=" +
+//     date +
+//     "&formatted=0",
+//   function (error, response, body) {
+//     if (!error && response.statusCode == 200) {
+//       var sunTimes = JSON.parse(body);
+//       var sunrise_ob = new Date(sunTimes.results.sunrise);
+//       var sunset_ob = new Date(sunTimes.results.sunset);
+//       if (
+//         current_ob.getTime() > sunrise_ob.getTime() &&
+//         current_ob.getTime() < sunset_ob.getTime()
+//       ) {
+//         console.log("It's day time!");
+//         isNight = false;
+//       } else {
+//         console.log("It's night time!");
+//         isNight = true;
+//       }
+//     }
+//   }
+// );

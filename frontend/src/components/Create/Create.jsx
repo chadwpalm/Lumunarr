@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { stringify } from "uuid";
 import Loading from "../../images/loading-gif.gif";
 import crc from "crc-32";
 import Form from "react-bootstrap/Form";
@@ -7,8 +6,6 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
-
-// import styled from "styled-components";
 
 export default class Create extends Component {
   constructor(props) {
@@ -91,13 +88,11 @@ export default class Create extends Component {
           // request successful
           var response = xhr.responseText,
             json = JSON.parse(response);
-          console.log("At Create response");
           this.setState({ userList: json[0] });
           this.setState({ clientList: json[1] });
           this.setState({ sceneList: json[2] });
           this.setState({ isLoading: false });
         } else {
-          console.log("Status Code: ", xhr.status);
           // error
           this.setState({
             isLoaded: true,
@@ -109,13 +104,11 @@ export default class Create extends Component {
     });
     xhr.open("POST", "/backend/client", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   }
 
   handleFormSubmit = (e) => {
     e.preventDefault();
-    console.log("Handle Save");
 
     this.setState({ isDuplicate: false, isIncomplete: false });
 
@@ -188,7 +181,6 @@ export default class Create extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
 
     this.props.saved();

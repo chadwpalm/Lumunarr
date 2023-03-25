@@ -1,8 +1,5 @@
 var express = require("express");
-const { STATUS_CODES } = require("http");
 var router = express.Router();
-var os = require("os");
-var PlexAPI = require("plex-api");
 var axios = require("axios").default;
 var parser = require("xml2json");
 

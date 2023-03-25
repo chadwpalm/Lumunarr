@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import LoginIcon from "bootstrap-icons/icons/box-arrow-in-left.svg";
 import Logo from "../../images/LogoLarge.svg";
@@ -28,8 +27,6 @@ export default class Login extends Component {
       noInternet: false,
       error: null,
     };
-
-    var thumb, email, username;
 
     let clientInformation: IPlexClientDetails = {
       clientIdentifier: `${this.props.settings.uuid}`, // This is a unique identifier used to identify your app with Plex.
@@ -72,10 +69,7 @@ export default class Login extends Component {
       await this.plexOauth
         .checkForAuthToken(this.state.pin)
         .then((authToken) => {
-          // this.setState({ plexToken: String(authToken) });
           token = authToken;
-          // console.log("In the plexOauth:", token);
-          // An auth token will only be null if the user never signs into the hosted UI, or you stop checking for a new one before they can log in
         })
         .catch((err) => {
           throw err;
@@ -83,7 +77,6 @@ export default class Login extends Component {
 
       if (token) {
         this.setState({ gotToken: true });
-        console.log("Token 1: ", token);
         this.handleGetThumb(token);
         this.handleSaveToken(token);
         this.externalWindow.close();
@@ -94,14 +87,12 @@ export default class Login extends Component {
         throw new Error("Window closed without completing login");
       }
     } catch (e) {
-      console.log("Poll execution error: ", e);
       this.externalWindow.close();
     }
   };
 
   handlePlexAuth = async () => {
     this.setState({ gettingToken: true });
-    // if (this.externalWindow == null || this.externalWindow.closed) {
     const y = window.top.outerHeight / 2 + window.top.screenY - 300;
     const x = window.top.outerWidth / 2 + window.top.screenX - 300;
     this.externalWindow = window.open(
@@ -109,27 +100,17 @@ export default class Login extends Component {
       "",
       `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=600, height=600, top=${y}, left=${x}`
     );
-    // } else {
-    //   this.externalWindow.focus();
-    // }
 
     await this.executePoll();
   };
 
   handleSaveToken = (token) => {
-    console.log("Handle Save Token");
-
     var settings = { ...this.props.settings };
-    console.log("Token 2: ", token);
 
     settings.token = token;
     settings.thumb = this.thumb;
     settings.email = this.email;
     settings.username = this.username;
-
-    // this.setState({
-    //   isSearching: true,
-    // });
 
     var xhr = new XMLHttpRequest();
 
@@ -147,7 +128,6 @@ export default class Login extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
 
     this.props.handleLogin();
@@ -155,7 +135,6 @@ export default class Login extends Component {
   };
 
   handleGetThumb = (token) => {
-    console.log("Handling thumb", token);
     var data = {};
     data.token = token;
     var xhr = new XMLHttpRequest();
@@ -170,7 +149,6 @@ export default class Login extends Component {
           this.email = json.email;
           this.username = json.username;
         } else {
-          console.log("Status Code: ", xhr.status);
           // error
         }
       }

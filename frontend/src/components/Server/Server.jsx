@@ -10,7 +10,6 @@ import Loading from "../../images/loading-gif.gif";
 export default class Server extends Component {
   constructor(props) {
     super(props);
-    console.log("Seeeee: ", this.props.settings);
     if (this.props.settings.server) {
       this.state = {
         lightPlay: this.props.settings.server.lightPlay.toString(),
@@ -66,11 +65,9 @@ export default class Server extends Component {
           // request successful
           var response = xhr.responseText,
             json = JSON.parse(response);
-          console.log("At Create response");
           this.setState({ lightList: json });
           this.setState({ isLoading: false });
         } else {
-          console.log("Status Code: ", xhr.status);
           // error
           this.setState({
             isLoaded: true,
@@ -82,13 +79,11 @@ export default class Server extends Component {
     });
     xhr.open("POST", "/backend/server", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
   }
 
   handleFormSubmit = (e) => {
     e.preventDefault();
-    console.log("Handle Save");
 
     if (
       this.state.lightPlay === "-1" ||
@@ -105,21 +100,6 @@ export default class Server extends Component {
       this.setState({ isIncomplete: true });
       return;
     }
-
-    // var settings = { ...this.props.settings };
-
-    // if (!settings.server) settings.server = {};
-
-    // settings.server.lightPlay = this.state.lightPlay;
-    // settings.server.behaviorPlay = this.state.behaviorPlay;
-    // settings.server.colorPlay = this.state.colorPlay;
-    // settings.server.brightnessPlay = this.state.brightnessPlay;
-    // settings.server.intervalsPlay = this.state.intervalsPlay;
-    // settings.server.lightNew = this.state.lightNew;
-    // settings.server.behaviorNew = this.state.behaviorNew;
-    // settings.server.colorNew = this.state.colorNew;
-    // settings.server.brightnessNew = this.state.brightnessNew;
-    // settings.server.intervalsNew = this.state.intervalsNew;
 
     if (!this.props.settings.server) this.props.settings.server = {};
 
@@ -150,7 +130,6 @@ export default class Server extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    // console.log("Before send:", settings);
     xhr.send(JSON.stringify(this.props.settings));
 
     this.setState({ isIncomplete: false, isEdit: true });

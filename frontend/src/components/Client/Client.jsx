@@ -26,8 +26,6 @@ export default class Client extends Component {
   };
 
   render() {
-    console.log("Render Client");
-
     return (
       <Card
         style={{ width: "11rem", height: "14rem", backgroundColor: "#f8f9fa" }}

@@ -1,8 +1,7 @@
 import React, { Component } from "react";
 import Client from "../Client/Client";
-import AddIcon from "./add-icon.png";
+import AddIcon from "../../images/add-icon.png";
 import Create from "../Create/Create";
-import "./Device.css";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
@@ -55,7 +54,6 @@ export default class Device extends Component {
 
   handleDelete = (e) => {
     e.preventDefault();
-    console.log("Handle Save");
 
     var settings = { ...this.props.settings };
 
@@ -81,14 +79,12 @@ export default class Device extends Component {
 
     xhr.open("POST", "/backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    console.log("Before send:", settings);
     xhr.send(JSON.stringify(settings));
 
     this.handleSaveCreate();
   };
 
   render() {
-    console.log("Render Device");
     return (
       <>
         <Row>
