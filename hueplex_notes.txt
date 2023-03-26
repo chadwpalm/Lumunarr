@@ -1,3 +1,0 @@
-HuePlex notes:
-
-1. Create a method in app.js that will check if the bridge is still active at the current IP.

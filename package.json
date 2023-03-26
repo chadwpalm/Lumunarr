@@ -13,7 +13,6 @@
     "express": "^4.16.1",
     "http-errors": "~1.6.3",
     "huejay": "^1.9.0",
-    "jade": "^1.11.0",
     "mdns-discovery": "^0.2.6",
     "mdns-js": "^1.0.3",
     "morgan": "~1.9.1",
@@ -22,7 +21,6 @@
     "nodemon": "^2.0.13",
     "plex-api": "^5.3.2",
     "request": "^2.88.2",
-    "rotating-file-stream": "^3.0.4",
     "uuid": "^8.3.2",
     "xml2json": "^0.12.0"
   }
