@@ -1,6 +1,8 @@
-from node:18.15.0
+FROM node:18.2.0-alpine
 
-ENV VERSION=0.1.0
+ARG VERSION
+
+ENV VERSION=${VERSION}
 
 COPY . /HuePlex
 

@@ -5,8 +5,12 @@ var os = require("os");
 var uuid = require("uuid").v4;
 
 var appVersion = process.env.VERSION.toString();
+var UID = Number(process.env.UID);
+var GID = Number(process.env.GID);
 
-var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
+var fileData = `{"connected": "false","platform":"${
+  os.platform
+}","uuid":"${uuid()}","version":"${appVersion}","clients":[]}`;
 try {
   fileData = fs.readFileSync("/config/settings.js");
   if (JSON.parse(fileData).version !== appVersion) {
@@ -21,6 +25,10 @@ try {
   try {
     fs.writeFileSync("/config/settings.js", fileData);
     console.info("Settings file created");
+    fs.chownSync("/config/settings.js", UID, GID, (err) => {
+      if (err) throw err;
+      console.info(`Config file change to UID: ${UID} GID: ${GID}`);
+    });
   } catch (err) {
     if (err) throw err;
   }
