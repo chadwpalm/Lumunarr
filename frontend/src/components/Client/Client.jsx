@@ -28,7 +28,7 @@ export default class Client extends Component {
   render() {
     return (
       <Card
-        style={{ width: "11rem", height: "14rem", backgroundColor: "#f8f9fa" }}
+        style={{ width: "10rem", height: "14rem", backgroundColor: "#f8f9fa" }}
         className="text-center"
         border="dark"
       >

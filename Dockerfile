@@ -1,4 +1,4 @@
-FROM node:18.2.0-alpine
+FROM node:18.15.0-slim
 
 ARG VERSION
 
@@ -8,7 +8,9 @@ COPY . /HuePlex
 
 WORKDIR /HuePlex/frontend
 
-RUN npm install && \
+RUN apt update && \
+    apt install python3 make gcc g++ -y && \
+    npm install && \
     npm run build
 
 WORKDIR /HuePlex

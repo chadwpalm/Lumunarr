@@ -1,6 +1,5 @@
 {
   "name": "frontend",
-  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
@@ -9,6 +8,7 @@
     "axios": "^0.27.2",
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.3",
+    "crc-32": "^1.2.2",
     "fs": "0.0.1-security",
     "path": "^0.12.7",
     "plex-oauth": "^2.0.2",

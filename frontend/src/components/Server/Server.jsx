@@ -29,6 +29,8 @@ export default class Server extends Component {
         isError: false,
         isIncomplete: false,
         errorRes: "",
+        isOffPlay: false,
+        isOffNew: false,
         isEdit: true,
       };
     } else {
@@ -49,6 +51,8 @@ export default class Server extends Component {
         selectIntervalsNew: false,
         isIncomplete: false,
         errorRes: "",
+        isOffPlay: false,
+        isOffNew: false,
         isEdit: false,
       };
     }
@@ -56,6 +60,16 @@ export default class Server extends Component {
 
   componentDidMount() {
     var settings = { ...this.props.settings };
+
+    if (settings.server) {
+      if (settings.server.lightPlay.toString() === "-2") {
+        this.setState({ isOffPlay: true });
+      }
+
+      if (settings.server.lightNew.toString() === "-2") {
+        this.setState({ isOffNew: true });
+      }
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.timeout = 10000;
@@ -85,20 +99,30 @@ export default class Server extends Component {
   handleFormSubmit = (e) => {
     e.preventDefault();
 
-    if (
-      this.state.lightPlay === "-1" ||
-      this.state.behaviorPlay === "-1" ||
-      this.state.colorPlay === "-1" ||
-      this.state.brightnessPlay === "-1" ||
-      (this.state.intervalsPlay === "-1" && this.state.behaviorPlay === "2") ||
-      this.state.lightNew === "-1" ||
-      this.state.behaviorNew === "-1" ||
-      this.state.colorNew === "-1" ||
-      this.state.brightnessNew === "-1" ||
-      (this.state.intervalsNew === "-1" && this.state.behaviorNew === "2")
-    ) {
-      this.setState({ isIncomplete: true });
-      return;
+    if (!this.state.isOffPlay) {
+      if (
+        this.state.lightPlay === "-1" ||
+        this.state.behaviorPlay === "-1" ||
+        this.state.colorPlay === "-1" ||
+        this.state.brightnessPlay === "-1" ||
+        (this.state.intervalsPlay === "-1" && this.state.behaviorPlay === "2")
+      ) {
+        this.setState({ isIncomplete: true });
+        return;
+      }
+    }
+
+    if (!this.state.isOffNew) {
+      if (
+        this.state.lightNew === "-1" ||
+        this.state.behaviorNew === "-1" ||
+        this.state.colorNew === "-1" ||
+        this.state.brightnessNew === "-1" ||
+        (this.state.intervalsNew === "-1" && this.state.behaviorNew === "2")
+      ) {
+        this.setState({ isIncomplete: true });
+        return;
+      }
     }
 
     if (!this.props.settings.server) this.props.settings.server = {};
@@ -137,6 +161,11 @@ export default class Server extends Component {
 
   handleLightPlay = (e) => {
     this.setState({ lightPlay: e.target.value.toString() });
+    if (e.target.value.toString() === "-2") {
+      this.setState({ isOffPlay: true });
+    } else {
+      this.setState({ isOffPlay: false });
+    }
   };
 
   handleBehaviorPlay = (e) => {
@@ -157,6 +186,11 @@ export default class Server extends Component {
 
   handleLightNew = (e) => {
     this.setState({ lightNew: e.target.value.toString() });
+    if (e.target.value.toString() === "-2") {
+      this.setState({ isOffNew: true });
+    } else {
+      this.setState({ isOffNew: false });
+    }
   };
 
   handleBehaviorNew = (e) => {
@@ -199,8 +233,10 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      This lets a light be used to alert the server admin that someone has started watching a stream.
-                      This only turns on the light...there is no event for altering this light when playback is stopped.
+                      This lets a light be used to alert the server admin that
+                      someone has started watching a stream. This only turns on
+                      the light...there is no event for altering this light when
+                      playback is stopped.
                     </Tooltip>
                   }
                 >
@@ -209,7 +245,10 @@ export default class Server extends Component {
               </h5>
               <Form.Label for="lightPlay">
                 Light &nbsp;&nbsp;
-                <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Select the light to be used.</Tooltip>}
+                >
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -235,14 +274,15 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      Select behavior for the light. This could be to turn the light on, or make it blink.
+                      Select behavior for the light. This could be to turn the
+                      light on, or make it blink.
                       <br />
                       <br />
-                      Turn On: If the light is already on, the "turn on" function will just change the color and
-                      brightness.
+                      Turn On: If the light is already on, the "turn on"
+                      function will just change the color and brightness.
                       <br />
-                      Blink: Blink will go the set amount of intervals set and return to the state it was at before the
-                      blinking.
+                      Blink: Blink will go the set amount of intervals set and
+                      return to the state it was at before the blinking.
                     </Tooltip>
                   }
                 >
@@ -255,6 +295,7 @@ export default class Server extends Component {
                 name="behaviorPlay"
                 onChange={this.handleBehaviorPlay}
                 size="sm"
+                disabled={this.state.isOffPlay}
               >
                 <option value="-1">Select Behavior</option>
                 <option value="1">Turn On</option>
@@ -267,7 +308,11 @@ export default class Server extends Component {
                     Intervals &nbsp;&nbsp;
                     <OverlayTrigger
                       placement="right"
-                      overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
+                      overlay={
+                        <Tooltip>
+                          Select number of times the light will blink.
+                        </Tooltip>
+                      }
                     >
                       <img src={Info} />
                     </OverlayTrigger>
@@ -278,6 +323,7 @@ export default class Server extends Component {
                     name="intervalsPlay"
                     onChange={this.handleIntervalsPlay}
                     size="sm"
+                    disabled={this.state.isOffPlay}
                   >
                     <option value="-1">Select Intervals</option>
                     <option value="1">1</option>
@@ -292,7 +338,10 @@ export default class Server extends Component {
               )}
               <Form.Label for="colorPlay">
                 Color &nbsp;&nbsp;
-                <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Select color for the light.</Tooltip>}
+                >
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -302,6 +351,7 @@ export default class Server extends Component {
                 name="colorPlay"
                 onChange={this.handleColorPlay}
                 size="sm"
+                disabled={this.state.isOffPlay}
               >
                 <option value="-1">Select Color</option>
                 <option value="0">Red</option>
@@ -317,7 +367,12 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
+                  overlay={
+                    <Tooltip>
+                      Select brightness for the light. Use number from 10% to
+                      100%.
+                    </Tooltip>
+                  }
                 >
                   <img src={Info} />
                 </OverlayTrigger>
@@ -328,6 +383,7 @@ export default class Server extends Component {
                 name="brightnessPlay"
                 onChange={this.handleBrightnessPlay}
                 size="sm"
+                disabled={this.state.isOffPlay}
               >
                 <option value="-1">Select Brightness</option>
                 <option value="10">10%</option>
@@ -348,8 +404,10 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      This lets a light be used to alert the server admin that someone has started watching a stream.
-                      This only turns on the light...there is no event for altering this light when playback is stopped.
+                      This lets a light be used to alert the server admin that
+                      someone has started watching a stream. This only turns on
+                      the light...there is no event for altering this light when
+                      playback is stopped.
                     </Tooltip>
                   }
                 >
@@ -358,7 +416,10 @@ export default class Server extends Component {
               </h5>
               <Form.Label for="lightNew">
                 Light &nbsp;&nbsp;
-                <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Select the light to be used.</Tooltip>}
+                >
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -384,14 +445,15 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      Select behavior for the light. This could be to turn the light on, or make it blink.
+                      Select behavior for the light. This could be to turn the
+                      light on, or make it blink.
                       <br />
                       <br />
-                      Turn On: If the light is already on, the "turn on" function will just change the color and
-                      brightness.
+                      Turn On: If the light is already on, the "turn on"
+                      function will just change the color and brightness.
                       <br />
-                      Blink: Blink will go the set amount of intervals set and return to the state it was at before the
-                      blinking.
+                      Blink: Blink will go the set amount of intervals set and
+                      return to the state it was at before the blinking.
                     </Tooltip>
                   }
                 >
@@ -404,6 +466,7 @@ export default class Server extends Component {
                 name="behaviorNew"
                 onChange={this.handleBehaviorNew}
                 size="sm"
+                disabled={this.state.isOffNew}
               >
                 <option value="-1">Select Behavior</option>
                 <option value="1">Turn On</option>
@@ -416,7 +479,11 @@ export default class Server extends Component {
                     Intervals &nbsp;&nbsp;
                     <OverlayTrigger
                       placement="right"
-                      overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
+                      overlay={
+                        <Tooltip>
+                          Select number of times the light will blink.
+                        </Tooltip>
+                      }
                     >
                       <img src={Info} />
                     </OverlayTrigger>
@@ -427,6 +494,7 @@ export default class Server extends Component {
                     name="intervalsNew"
                     onChange={this.handleIntervalsNew}
                     size="sm"
+                    disabled={this.state.isOffNew}
                   >
                     <option value="-1">Select Intervals</option>
                     <option value="1">1</option>
@@ -441,7 +509,10 @@ export default class Server extends Component {
               )}
               <Form.Label for="colorNew">
                 Color &nbsp;&nbsp;
-                <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Select color for the light.</Tooltip>}
+                >
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -451,6 +522,7 @@ export default class Server extends Component {
                 name="colorNew"
                 onChange={this.handleColorNew}
                 size="sm"
+                disabled={this.state.isOffNew}
               >
                 <option value="-1">Select Color</option>
                 <option value="1">Red</option>
@@ -466,7 +538,12 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
+                  overlay={
+                    <Tooltip>
+                      Select brightness for the light. Use number from 10% to
+                      100%.
+                    </Tooltip>
+                  }
                 >
                   <img src={Info} />
                 </OverlayTrigger>
@@ -477,6 +554,7 @@ export default class Server extends Component {
                 name="brightnessNew"
                 onChange={this.handleBrightnessNew}
                 size="sm"
+                disabled={this.state.isOffNew}
               >
                 <option value="-1">Select Brightness</option>
                 <option value="10">10%</option>
@@ -502,7 +580,9 @@ export default class Server extends Component {
                 </Button>
               )}
               {this.state.isIncomplete ? (
-                <i style={{ color: "#f00" }}>&nbsp; All parameters must be selected </i>
+                <i style={{ color: "#f00" }}>
+                  &nbsp; All parameters must be selected{" "}
+                </i>
               ) : (
                 <></>
               )}

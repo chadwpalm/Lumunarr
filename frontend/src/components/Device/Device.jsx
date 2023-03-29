@@ -111,14 +111,14 @@ export default class Device extends Component {
 
           <Col>
             {this.state.isEdit || this.state.isCreating ? (
-              <Card style={{ width: "11rem", height: "14rem", backgroundColor: "#f8f9fa" }}>
+              <Card style={{ width: "10rem", height: "14rem", backgroundColor: "#f8f9fa" }}>
                 <Card.Body className="d-flex align-items-center justify-content-center">
                   <img src={AddIcon} width="100" height="100" />
                 </Card.Body>
               </Card>
             ) : (
               <Card
-                style={{ width: "11rem", height: "14rem", backgroundColor: "#f8f9fa", cursor: "pointer" }}
+                style={{ width: "10rem", height: "14rem", backgroundColor: "#f8f9fa", cursor: "pointer" }}
                 onClick={this.handleAddClient}
               >
                 <Card.Body className="d-flex align-items-center justify-content-center">
