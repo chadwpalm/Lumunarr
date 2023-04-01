@@ -5,12 +5,24 @@ var os = require("os");
 var uuid = require("uuid").v4;
 
 var appVersion = process.env.VERSION.toString();
-var UID = Number(process.env.UID);
-var GID = Number(process.env.GID);
+var hostname = os.hostname;
+
+if (process.env.PUID) {
+  var UID = Number(process.env.PUID);
+} else {
+  var UID = os.userInfo().uid;
+}
+
+if (process.env.GUID) {
+  var GID = Number(process.env.GUID);
+} else {
+  var GID = os.userInfo().gid;
+}
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","clients":[]}`;
+}","uuid":"${uuid()}","version":"${appVersion}","appId":"${hostname}","clients":[]}`;
+
 try {
   fileData = fs.readFileSync("/config/settings.js");
   if (JSON.parse(fileData).version !== appVersion) {
@@ -19,6 +31,10 @@ try {
     temp.version = appVersion;
     fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   }
+  fs.chownSync("/config/settings.js", UID, GID, (err) => {
+    if (err) throw err;
+  });
+  console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
   console.info("Settings file read");
 } catch (err) {
   console.info("Settings file not found, creating");
@@ -27,8 +43,8 @@ try {
     console.info("Settings file created");
     fs.chownSync("/config/settings.js", UID, GID, (err) => {
       if (err) throw err;
-      console.info(`Config file change to UID: ${UID} GID: ${GID}`);
     });
+    console.info(`Config file set to UID: ${UID} GID: ${GID}`);
   } catch (err) {
     if (err) throw err;
   }

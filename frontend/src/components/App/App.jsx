@@ -219,6 +219,8 @@ export default class App extends Component {
                   <br />
                   <b>App Dir:</b>&nbsp; /HuePlex
                   <br />
+                  <b>App ID:</b>&nbsp; {this.state.config.appId}
+                  <br />
                   <b>Docker:</b>&nbsp;
                   <a href="https://hub.docker.com/repository/docker/chadwpalm/hueplex/general" target="_blank">
                     chadwpalm/hueplex

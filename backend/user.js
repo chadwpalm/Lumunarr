@@ -19,7 +19,7 @@ router.post("/", async function (req, res, next) {
 
   let user = new client.users.User();
 
-  user.deviceType = `HuePlex#${hostname}`;
+  user.deviceType = `${settings.appId}`;
   console.info("Hue Application Name:", user.deviceType);
 
   let flag = 0;
