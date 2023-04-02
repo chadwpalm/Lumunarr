@@ -284,8 +284,6 @@ export default class Bridge extends Component {
             </>
           );
         } else {
-          // } else
-
           if (!this.state.isLoaded) {
             return <h2>Scanning for bridges...</h2>;
           } else if (this.state.error) {

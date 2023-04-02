@@ -9,7 +9,6 @@ COPY . /HuePlex
 WORKDIR /HuePlex/frontend
 
 RUN apt update && \
-    apt install python3 make gcc g++ -y && \
     npm install && \
     npm run build
 

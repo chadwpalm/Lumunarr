@@ -6,6 +6,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 
 export default class Create extends Component {
   constructor(props) {
@@ -41,6 +42,7 @@ export default class Create extends Component {
         isIncomplete: false,
         isDuplicate: false,
         isError: false,
+        show: false,
         errorRes: "",
       };
     } else {
@@ -70,6 +72,7 @@ export default class Create extends Component {
         isIncomplete: false,
         isDuplicate: false,
         isError: false,
+        show: false,
         errorRes: "",
       };
     }
@@ -205,11 +208,13 @@ export default class Create extends Component {
         clientName: "",
       });
     } else {
-      var result = this.state.clientList.find(({ clientIdentifier }) => clientIdentifier === e.target.value.toString());
+      var result = this.state.clientList.find(
+        ({ _attributes }) => _attributes.clientIdentifier === e.target.value.toString()
+      );
       this.setState({
         selectUser: true,
         clientId: e.target.value.toString(),
-        clientName: result.name + " (" + result.platform + ")",
+        clientName: result._attributes.name + " (" + result._attributes.platform + ")",
       });
     }
   };
@@ -225,18 +230,20 @@ export default class Create extends Component {
         userId: "Any",
         userName: "Any",
         selectMedia: true,
+        show: true,
       });
     } else {
-      var result = this.state.userList.find(({ id }) => id.toString() === e.target.value);
+      var result = this.state.userList.find(({ _attributes }) => _attributes.id.toString() === e.target.value);
       this.setState({
         selectMedia: true,
         userId: e.target.value.toString(),
-        userName: result.title,
+        userName: result._attributes.title,
       });
     }
   };
 
   handleMedia = (e) => {
+    if (e.target.value === "All") this.setState({ show: true });
     this.setState({ selectPlay: true, media: e.target.value.toString() });
   };
 
@@ -269,9 +276,15 @@ export default class Create extends Component {
     });
   };
 
+  handleClose = () => this.setState({ show: false });
+
   render() {
     if (this.state.isError) {
-      return <>{this.state.errorRes}</>;
+      if (this.state.errorRes === "Invalid authentication token.") {
+        return <>Invalid authentication token. Please log out and log back in.</>;
+      } else {
+        return <>{this.state.errorRes}</>;
+      }
     } else if (this.state.isLoading) {
       return (
         <div className="d-flex align-items-center justify-content-center">
@@ -295,10 +308,10 @@ export default class Create extends Component {
             <Form.Select value={this.state.clientId} id="client" name="client" onChange={this.handleClient} size="sm">
               <option value="-1">Select a Client</option>
               {this.state.clientList.map((client) =>
-                client.provides !== "server" ? (
-                  <option value={client.clientIdentifier}>
-                    {client.name} ({client.platform}),{" created: "}
-                    {this.relativeTime(client.createdAt)}
+                client._attributes.provides !== "server" ? (
+                  <option value={client._attributes.clientIdentifier}>
+                    {client._attributes.name} ({client._attributes.platform}),{" created: "}
+                    {this.relativeTime(client._attributes.createdAt)}
                   </option>
                 ) : (
                   <></>
@@ -330,8 +343,8 @@ export default class Create extends Component {
                   <option value="-1">Select a User</option>
                   <option value="Any">Any</option>
                   {this.state.userList.map((user) => (
-                    <option value={user.id}>
-                      {user.title} ({user.username})
+                    <option value={user._attributes.id}>
+                      {user._attributes.title} ({user._attributes.username})
                     </option>
                   ))}
                 </Form.Select>
@@ -582,6 +595,27 @@ export default class Create extends Component {
           </Form>
           <br />
           <br />
+          <Modal
+            show={this.state.show}
+            fullscreen={this.state.fullscreen}
+            onHide={this.handleClose}
+            size="sm"
+            backdrop="static"
+          >
+            <Modal.Header>
+              <h3>Warning</h3>
+            </Modal.Header>
+            <Modal.Body>
+              Selecting the "Any" or "All" option could have unforseen issues with the behavior of the lights. Only use
+              if you know what you are doing.
+              <br />
+              <br />
+              See HuePlex documentation for more information.
+              <br />
+              <br />
+              <Button onClick={this.handleClose}>Acknowledge</Button>
+            </Modal.Body>
+          </Modal>
         </div>
       );
     }

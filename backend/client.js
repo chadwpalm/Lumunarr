@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var axios = require("axios").default;
-var parser = require("xml2json");
+var parser = require("xml-js");
 
 router.post("/", async function (req, res, next) {
   var groups = {};
@@ -60,14 +60,12 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
 
-      let list = parser.toJson(response.data, { object: true, trim: true, coerce: true }).MediaContainer.User;
-
-      users = list;
+      users = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
     })
     .catch(function (error) {
       if (error.request) {
         console.error("Could not connect to the Plex Server");
-        res.status(403).send("Could not connect to the Plex server");
+        res.status(403).send(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
       }
     });
 
@@ -79,18 +77,22 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
 
-      let user = parser.toJson(response.data, { object: true }).user;
+      let user = parser.xml2js(response.data, { compact: true, spaces: 4 }).user;
 
-      let temp = { id: user.id, title: user.title, username: user.username[0] };
+      let temp = {
+        _attributes: { id: user._attributes.id, title: user._attributes.title, username: user._attributes.username },
+      };
 
       users.push(temp);
-      users.sort((a, b) => (a.title > b.title ? 1 : b.title > a.title ? -1 : 0));
+      users.sort((a, b) =>
+        a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0
+      );
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error("Could not connect to the Plex Server");
-        res.status(403).send("Could not connect to the Plex server");
-      }
+      // if (error.request) {
+      //   console.error("Could not connect to the Plex Server");
+      //   res.status(403).send("Could not connect to the Plex server");
+      // }
     });
 
   var url = "https://plex.tv/devices.xml";
@@ -101,7 +103,8 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Plex Clients");
 
-      let list = parser.toJson(response.data, { object: true, trim: true, coerce: true }).MediaContainer.Device;
+      let list = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Device;
+
       list.sort((a, b) => (a.lastSeenAt < b.lastSeenAt ? 1 : b.lastSeenAt < a.lastSeenAt ? -1 : 0));
       var i = 0;
       while (i < list.length) {
@@ -118,8 +121,8 @@ router.post("/", async function (req, res, next) {
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not connect to the Plex Server");
-        res.status(403).send("Could not connect to the Plex server");
+        // console.error("Could not connect to the Plex Server");
+        // res.status(403).send("Could not connect to the Plex server");
       }
     });
 });

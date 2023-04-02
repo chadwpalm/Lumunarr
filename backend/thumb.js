@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var axios = require("axios").default;
-var parser = require("xml2json");
+var parser = require("xml-js");
 
 router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
@@ -12,9 +12,9 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving thumbnail from Plex account");
 
-      let thumb = parser.toJson(response.data, { object: true }).user.thumb;
-      let username = parser.toJson(response.data, { object: true }).user.username[0];
-      let email = parser.toJson(response.data, { object: true }).user.email[0];
+      let thumb = parser.xml2js(response.data, { compact: true, spaces: 4 }).user._attributes.thumb;
+      let username = parser.xml2js(response.data, { compact: true, spaces: 4 }).user._attributes.username;
+      let email = parser.xml2js(response.data, { compact: true, spaces: 4 }).user._attributes.email;
 
       let data = { thumb, username, email };
 

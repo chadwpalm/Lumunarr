@@ -13,15 +13,15 @@ if (process.env.PUID) {
   var UID = os.userInfo().uid;
 }
 
-if (process.env.GUID) {
-  var GID = Number(process.env.GUID);
+if (process.env.PGID) {
+  var GID = Number(process.env.PGID);
 } else {
   var GID = os.userInfo().gid;
 }
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","appId":"${hostname}","clients":[]}`;
+}","uuid":"${uuid()}","version":"${appVersion}","appId":"HuePlex#${hostname}","clients":[]}`;
 
 try {
   fileData = fs.readFileSync("/config/settings.js");
@@ -29,6 +29,7 @@ try {
     console.info("Version updated from", JSON.parse(fileData).version, "to", appVersion);
     var temp = JSON.parse(fileData);
     temp.version = appVersion;
+    delete temp["token"];
     fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   }
   fs.chownSync("/config/settings.js", UID, GID, (err) => {
