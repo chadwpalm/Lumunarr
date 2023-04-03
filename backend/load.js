@@ -40,6 +40,9 @@ try {
 } catch (err) {
   console.info("Settings file not found, creating");
   try {
+    if (!fs.existsSync("/config")) {
+      fs.mkdirSync("/config");
+    }
     fs.writeFileSync("/config/settings.js", fileData);
     console.info("Settings file created");
     fs.chownSync("/config/settings.js", UID, GID, (err) => {
