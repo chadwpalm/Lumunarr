@@ -61,6 +61,7 @@ router.post("/", async function (req, res, next) {
       console.info("Retrieving Plex Accounts");
 
       users = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
+      if (!users) users = [];
     })
     .catch(function (error) {
       if (error.request) {

@@ -188,7 +188,7 @@ export default class App extends Component {
                           {this.state.config.email}
                         </NavDropdown.Header>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="https://github.com/chadwpalm/HuePlex/wiki" targer="_blank">
+                        <NavDropdown.Item href="https://github.com/chadwpalm/HuePlex/wiki" target="_blank">
                           Documentation
                         </NavDropdown.Item>
                         <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>

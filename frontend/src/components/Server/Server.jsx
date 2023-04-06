@@ -233,10 +233,7 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      This lets a light be used to alert the server admin that
-                      someone has started watching a stream. This only turns on
-                      the light...there is no event for altering this light when
-                      playback is stopped.
+                      This lets a light be used to alert the server admin that someone has started watching a stream.
                     </Tooltip>
                   }
                 >
@@ -245,10 +242,7 @@ export default class Server extends Component {
               </h5>
               <Form.Label for="lightPlay">
                 Light &nbsp;&nbsp;
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Select the light to be used.</Tooltip>}
-                >
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -274,15 +268,14 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      Select behavior for the light. This could be to turn the
-                      light on, or make it blink.
+                      Select behavior for the light. This could be to turn the light on, or make it blink.
                       <br />
                       <br />
-                      Turn On: If the light is already on, the "turn on"
-                      function will just change the color and brightness.
+                      Turn On: If the light is already on, the "turn on" function will just change the color and
+                      brightness.
                       <br />
-                      Blink: Blink will go the set amount of intervals set and
-                      return to the state it was at before the blinking.
+                      Blink: Blink will go the set amount of intervals set and return to the state it was at before the
+                      blinking.
                     </Tooltip>
                   }
                 >
@@ -308,11 +301,7 @@ export default class Server extends Component {
                     Intervals &nbsp;&nbsp;
                     <OverlayTrigger
                       placement="right"
-                      overlay={
-                        <Tooltip>
-                          Select number of times the light will blink.
-                        </Tooltip>
-                      }
+                      overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
                       <img src={Info} />
                     </OverlayTrigger>
@@ -338,10 +327,7 @@ export default class Server extends Component {
               )}
               <Form.Label for="colorPlay">
                 Color &nbsp;&nbsp;
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Select color for the light.</Tooltip>}
-                >
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -367,12 +353,7 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={
-                    <Tooltip>
-                      Select brightness for the light. Use number from 10% to
-                      100%.
-                    </Tooltip>
-                  }
+                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
                 >
                   <img src={Info} />
                 </OverlayTrigger>
@@ -404,10 +385,7 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      This lets a light be used to alert the server admin that
-                      someone has started watching a stream. This only turns on
-                      the light...there is no event for altering this light when
-                      playback is stopped.
+                      This lets a light be used to alert the server admin that new media has been added to the server.
                     </Tooltip>
                   }
                 >
@@ -416,10 +394,7 @@ export default class Server extends Component {
               </h5>
               <Form.Label for="lightNew">
                 Light &nbsp;&nbsp;
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Select the light to be used.</Tooltip>}
-                >
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -445,15 +420,14 @@ export default class Server extends Component {
                   placement="right"
                   overlay={
                     <Tooltip>
-                      Select behavior for the light. This could be to turn the
-                      light on, or make it blink.
+                      Select behavior for the light. This could be to turn the light on, or make it blink.
                       <br />
                       <br />
-                      Turn On: If the light is already on, the "turn on"
-                      function will just change the color and brightness.
+                      Turn On: If the light is already on, the "turn on" function will just change the color and
+                      brightness.
                       <br />
-                      Blink: Blink will go the set amount of intervals set and
-                      return to the state it was at before the blinking.
+                      Blink: Blink will go the set amount of intervals set and return to the state it was at before the
+                      blinking.
                     </Tooltip>
                   }
                 >
@@ -479,11 +453,7 @@ export default class Server extends Component {
                     Intervals &nbsp;&nbsp;
                     <OverlayTrigger
                       placement="right"
-                      overlay={
-                        <Tooltip>
-                          Select number of times the light will blink.
-                        </Tooltip>
-                      }
+                      overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
                       <img src={Info} />
                     </OverlayTrigger>
@@ -509,10 +479,7 @@ export default class Server extends Component {
               )}
               <Form.Label for="colorNew">
                 Color &nbsp;&nbsp;
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Select color for the light.</Tooltip>}
-                >
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
@@ -538,12 +505,7 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={
-                    <Tooltip>
-                      Select brightness for the light. Use number from 10% to
-                      100%.
-                    </Tooltip>
-                  }
+                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
                 >
                   <img src={Info} />
                 </OverlayTrigger>
@@ -580,9 +542,7 @@ export default class Server extends Component {
                 </Button>
               )}
               {this.state.isIncomplete ? (
-                <i style={{ color: "#f00" }}>
-                  &nbsp; All parameters must be selected{" "}
-                </i>
+                <i style={{ color: "#f00" }}>&nbsp; All parameters must be selected </i>
               ) : (
                 <></>
               )}
