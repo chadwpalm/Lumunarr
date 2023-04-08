@@ -28,11 +28,27 @@ export default class Login extends Component {
       error: null,
     };
 
+    let version;
+
+    if (this.props.settings.build !== "Native") {
+      if (this.props.settings.branch === "dev") {
+        version = `${this.props.settings.version}.${this.props.settings.build}-dev`;
+      } else {
+        version = `${this.props.settings.version}.${this.props.settings.build}`;
+      }
+    } else {
+      if (this.props.settings.branch === "dev") {
+        version = `${this.props.settings.version}-dev`;
+      } else {
+        version = `${this.props.settings.version}`;
+      }
+    }
+
     let clientInformation: IPlexClientDetails = {
       clientIdentifier: `${this.props.settings.uuid}`, // This is a unique identifier used to identify your app with Plex.
       product: "HuePlex", // Name of your application
       device: `${this.props.settings.platform}`, // The type of device your application is running on
-      version: `${this.props.settings.version}`, // Version of your application
+      version: `${version}`, // Version of your application
       forwardUrl: "", // Url to forward back to after signing in.
       platform: "Web", // Optional - Platform your application runs on - Defaults to 'Web'
     };
