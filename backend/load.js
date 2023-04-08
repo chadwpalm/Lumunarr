@@ -4,24 +4,38 @@ var fs = require("fs");
 var os = require("os");
 var uuid = require("uuid").v4;
 
-var appVersion = process.env.VERSION.toString();
+var appVersion, branch, UID, GID, build;
 var hostname = os.hostname;
 
+try {
+  var info = fs.readFileSync("version.json");
+  appVersion = JSON.parse(info).version;
+  branch = JSON.parse(info).branch;
+} catch (err) {
+  console.error("Cannot grab version and branch info", err);
+}
+
 if (process.env.PUID) {
-  var UID = Number(process.env.PUID);
+  UID = Number(process.env.PUID);
 } else {
-  var UID = os.userInfo().uid;
+  UID = os.userInfo().uid;
 }
 
 if (process.env.PGID) {
-  var GID = Number(process.env.PGID);
+  GID = Number(process.env.PGID);
 } else {
-  var GID = os.userInfo().gid;
+  GID = os.userInfo().gid;
+}
+
+if (process.env.BUILD) {
+  build = process.env.BUILD;
+} else {
+  build = "Native";
 }
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","appId":"HuePlex#${hostname}","clients":[]}`;
+}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"HuePlex#${hostname}","clients":[]}`;
 
 try {
   fileData = fs.readFileSync("/config/settings.js");

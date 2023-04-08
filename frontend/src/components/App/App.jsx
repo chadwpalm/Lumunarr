@@ -218,6 +218,10 @@ export default class App extends Component {
                 <Modal.Body>
                   <b>Version:</b> &nbsp;{this.state.config.version}
                   <br />
+                  <b>Branch:</b> &nbsp;{this.state.config.branch}
+                  <br />
+                  <b>Build:</b> &nbsp;{this.state.config.build}
+                  <br />
                   <b>Config Dir:</b>&nbsp; /config
                   <br />
                   <b>App Dir:</b>&nbsp; /HuePlex

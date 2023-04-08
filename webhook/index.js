@@ -15,77 +15,24 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
   var payload = JSON.parse(req.body.payload);
   var settings = JSON.parse(fs.readFileSync(filePath));
 
-  let bridge = new huejay.Client({
-    host: settings.bridge.ip,
-    port: 80,
-    username: settings.bridge.user,
-    timeout: 15000,
-  });
+  if (settings.bridge) {
+    let bridge = new huejay.Client({
+      host: settings.bridge.ip,
+      port: 80,
+      username: settings.bridge.user,
+      timeout: 15000,
+    });
 
-  try {
-    if (settings.server) {
-      var server = settings.server;
-      if (payload.event === "playback.started") {
-        if (server.lightPlay !== "-2") {
-          if (server.behaviorPlay === "1") {
-            bridge.lights
-              .getById(parseInt(server.lightPlay))
-              .then((light) => {
-                light.on = true;
-                light.hue = colors[parseInt(server.colorPlay)];
-                if (server.colorPlay === "6") {
-                  light.saturation = 0;
-                } else {
-                  light.saturation = 254;
-                }
-                light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
-                return bridge.lights.save(light);
-              })
-              .then(() => {
-                console.info(`Playback started on server by ${payload.Account.title}`);
-              })
-              .catch((error) => {
-                console.error(error.stack);
-              });
-          }
-          if (server.behaviorPlay === "2") {
-            let tHue, tSat, tOn, tTrans, tBri;
-
-            bridge.lights
-              .getById(parseInt(server.lightPlay))
-              .then((light) => {
-                tOn = light.on;
-                tTrans = light.transitionTime;
-                tHue = light.hue;
-                tSat = light.saturation;
-                tBri = light.brightness;
-              })
-              .then(() => {
-                console.info(`Playback started on server by ${payload.Account.title}`);
-              })
-              .catch((error) => {
-                console.error(error.stack);
-              });
-
-            for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
-              bridge.lights
-                .getById(parseInt(server.lightPlay))
-                .then((light) => {
-                  light.on = false;
-                  light.transitionTime = 0;
-                  return bridge.lights.save(light);
-                })
-                .catch((error) => {
-                  console.error(error.stack);
-                });
-
-              await setTimeout(500);
-
+    try {
+      if (settings.server) {
+        var server = settings.server;
+        if (payload.event === "playback.started") {
+          if (server.lightPlay !== "-2") {
+            if (server.behaviorPlay === "1") {
               bridge.lights
                 .getById(parseInt(server.lightPlay))
                 .then((light) => {
                   light.on = true;
-                  light.transitionTime = 0;
                   light.hue = colors[parseInt(server.colorPlay)];
                   if (server.colorPlay === "6") {
                     light.saturation = 0;
@@ -95,91 +42,91 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
                   return bridge.lights.save(light);
                 })
+                .then(() => {
+                  console.info(`Playback started on server by ${payload.Account.title}`);
+                })
                 .catch((error) => {
                   console.error(error.stack);
                 });
-
-              await setTimeout(500);
             }
-            bridge.lights
-              .getById(parseInt(server.lightPlay))
-              .then((light) => {
-                light.on = tOn;
-                light.transitionTime = tTrans;
-                light.hue = tHue;
-                light.saturation = tSat;
-                light.brightness = tBri;
-                return bridge.lights.save(light);
-              })
+            if (server.behaviorPlay === "2") {
+              let tHue, tSat, tOn, tTrans, tBri;
 
-              .catch((error) => {
-                console.error(error.stack);
-              });
-          }
-        }
-      }
-
-      if (payload.event === "library.new") {
-        if (server.lightNew !== "-2") {
-          if (server.behaviorNew === "1") {
-            bridge.lights
-              .getById(parseInt(server.lightNew))
-              .then((light) => {
-                light.on = true;
-                light.hue = colors[parseInt(server.colorNew)];
-                if (server.colorNew === "6") {
-                  light.saturation = 0;
-                } else {
-                  light.saturation = 254;
-                }
-                light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
-                return bridge.lights.save(light);
-              })
-              .then(() => {
-                console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
-              })
-              .catch((error) => {
-                console.error(error.stack);
-              });
-          }
-          if (server.behaviorNew === "2") {
-            let tHue, tSat, tOn, tTrans, tBri;
-
-            bridge.lights
-              .getById(parseInt(server.lightNew))
-              .then((light) => {
-                tOn = light.on;
-                tTrans = light.transitionTime;
-                tHue = light.hue;
-                tSat = light.saturation;
-                tBri = light.brightness;
-              })
-              .then(() => {
-                console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
-              })
-              .catch((error) => {
-                console.error(error.stack);
-              });
-
-            for (let i = 0; i < parseInt(server.intervalsNew); i++) {
               bridge.lights
-                .getById(parseInt(server.lightNew))
+                .getById(parseInt(server.lightPlay))
                 .then((light) => {
-                  light.on = false;
-                  light.transitionTime = 0;
-                  return bridge.lights.save(light);
+                  tOn = light.on;
+                  tTrans = light.transitionTime;
+                  tHue = light.hue;
+                  tSat = light.saturation;
+                  tBri = light.brightness;
+                })
+                .then(() => {
+                  console.info(`Playback started on server by ${payload.Account.title}`);
                 })
                 .catch((error) => {
                   console.error(error.stack);
                 });
 
-              await setTimeout(500);
+              for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
+                bridge.lights
+                  .getById(parseInt(server.lightPlay))
+                  .then((light) => {
+                    light.on = false;
+                    light.transitionTime = 0;
+                    return bridge.lights.save(light);
+                  })
+                  .catch((error) => {
+                    console.error(error.stack);
+                  });
 
+                await setTimeout(500);
+
+                bridge.lights
+                  .getById(parseInt(server.lightPlay))
+                  .then((light) => {
+                    light.on = true;
+                    light.transitionTime = 0;
+                    light.hue = colors[parseInt(server.colorPlay)];
+                    if (server.colorPlay === "6") {
+                      light.saturation = 0;
+                    } else {
+                      light.saturation = 254;
+                    }
+                    light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
+                    return bridge.lights.save(light);
+                  })
+                  .catch((error) => {
+                    console.error(error.stack);
+                  });
+
+                await setTimeout(500);
+              }
+              bridge.lights
+                .getById(parseInt(server.lightPlay))
+                .then((light) => {
+                  light.on = tOn;
+                  light.transitionTime = tTrans;
+                  light.hue = tHue;
+                  light.saturation = tSat;
+                  light.brightness = tBri;
+                  return bridge.lights.save(light);
+                })
+
+                .catch((error) => {
+                  console.error(error.stack);
+                });
+            }
+          }
+        }
+
+        if (payload.event === "library.new") {
+          if (server.lightNew !== "-2") {
+            if (server.behaviorNew === "1") {
               bridge.lights
                 .getById(parseInt(server.lightNew))
                 .then((light) => {
                   light.on = true;
-                  light.transitionTime = 0;
                   light.hue = colors[parseInt(server.colorNew)];
                   if (server.colorNew === "6") {
                     light.saturation = 0;
@@ -189,104 +136,162 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
                   return bridge.lights.save(light);
                 })
+                .then(() => {
+                  console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                })
+                .catch((error) => {
+                  console.error(error.stack);
+                });
+            }
+            if (server.behaviorNew === "2") {
+              let tHue, tSat, tOn, tTrans, tBri;
+
+              bridge.lights
+                .getById(parseInt(server.lightNew))
+                .then((light) => {
+                  tOn = light.on;
+                  tTrans = light.transitionTime;
+                  tHue = light.hue;
+                  tSat = light.saturation;
+                  tBri = light.brightness;
+                })
+                .then(() => {
+                  console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                })
                 .catch((error) => {
                   console.error(error.stack);
                 });
 
-              await setTimeout(500);
-            }
-            bridge.lights
-              .getById(parseInt(server.lightNew))
-              .then((light) => {
-                light.on = tOn;
-                light.transitionTime = tTrans;
-                light.hue = tHue;
-                light.saturation = tSat;
-                light.brightness = tBri;
-                return bridge.lights.save(light);
-              })
+              for (let i = 0; i < parseInt(server.intervalsNew); i++) {
+                bridge.lights
+                  .getById(parseInt(server.lightNew))
+                  .then((light) => {
+                    light.on = false;
+                    light.transitionTime = 0;
+                    return bridge.lights.save(light);
+                  })
+                  .catch((error) => {
+                    console.error(error.stack);
+                  });
 
-              .catch((error) => {
-                console.error(error.stack);
-              });
+                await setTimeout(500);
+
+                bridge.lights
+                  .getById(parseInt(server.lightNew))
+                  .then((light) => {
+                    light.on = true;
+                    light.transitionTime = 0;
+                    light.hue = colors[parseInt(server.colorNew)];
+                    if (server.colorNew === "6") {
+                      light.saturation = 0;
+                    } else {
+                      light.saturation = 254;
+                    }
+                    light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
+                    return bridge.lights.save(light);
+                  })
+                  .catch((error) => {
+                    console.error(error.stack);
+                  });
+
+                await setTimeout(500);
+              }
+              bridge.lights
+                .getById(parseInt(server.lightNew))
+                .then((light) => {
+                  light.on = tOn;
+                  light.transitionTime = tTrans;
+                  light.hue = tHue;
+                  light.saturation = tSat;
+                  light.brightness = tBri;
+                  return bridge.lights.save(light);
+                })
+
+                .catch((error) => {
+                  console.error(error.stack);
+                });
+            }
           }
         }
       }
-    }
 
-    if (settings.clients) {
-      var clients = settings.clients;
+      if (settings.clients) {
+        var clients = settings.clients;
 
-      clients.forEach((client) => {
-        if (payload.Player.uuid === client.client.id) {
-          if (payload.Account.title === client.user.name || client.user.name === "Any") {
-            if (
-              payload.Metadata.librarySectionType === client.media ||
-              client.media === "All" ||
-              (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
-            ) {
-              if (payload.event === "media.play" && client.play !== "None") {
-                bridge.scenes
-                  .recall(client.play)
-                  .then(() => {
-                    console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
-                  })
-                  .catch((error) => {
-                    console.error(error.stack);
-                  });
-              }
-              if (payload.event === "media.stop" && client.stop !== "None") {
-                bridge.scenes
-                  .recall(client.stop)
-                  .then(() => {
-                    console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
-                  })
-                  .catch((error) => {
-                    console.error(error.stack);
-                  });
-              }
-              if (payload.event === "media.pause" && client.pause !== "None") {
-                bridge.scenes
-                  .recall(client.pause)
-                  .then(() => {
-                    console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                  })
-                  .catch((error) => {
-                    console.error(error.stack);
-                  });
-              }
-              if (payload.event === "media.resume" && client.resume !== "None") {
-                bridge.scenes
-                  .recall(client.resume)
-                  .then(() => {
-                    console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                  })
-                  .catch((error) => {
-                    console.error(error.stack);
-                  });
-              }
-              if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                bridge.scenes
-                  .recall(client.scrobble)
-                  .then(() => {
-                    console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                  })
-                  .catch((error) => {
-                    console.error(error.stack);
-                  });
+        clients.forEach((client) => {
+          if (payload.Player.uuid === client.client.id) {
+            if (payload.Account.title === client.user.name || client.user.name === "Any") {
+              if (
+                payload.Metadata.librarySectionType === client.media ||
+                client.media === "All" ||
+                (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
+              ) {
+                if (payload.event === "media.play" && client.play !== "None") {
+                  bridge.scenes
+                    .recall(client.play)
+                    .then(() => {
+                      console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
+                    })
+                    .catch((error) => {
+                      console.error(error.stack);
+                    });
+                }
+                if (payload.event === "media.stop" && client.stop !== "None") {
+                  bridge.scenes
+                    .recall(client.stop)
+                    .then(() => {
+                      console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
+                    })
+                    .catch((error) => {
+                      console.error(error.stack);
+                    });
+                }
+                if (payload.event === "media.pause" && client.pause !== "None") {
+                  bridge.scenes
+                    .recall(client.pause)
+                    .then(() => {
+                      console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                    })
+                    .catch((error) => {
+                      console.error(error.stack);
+                    });
+                }
+                if (payload.event === "media.resume" && client.resume !== "None") {
+                  bridge.scenes
+                    .recall(client.resume)
+                    .then(() => {
+                      console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                    })
+                    .catch((error) => {
+                      console.error(error.stack);
+                    });
+                }
+                if (payload.event === "media.scrobble" && client.scrobble !== "None") {
+                  bridge.scenes
+                    .recall(client.scrobble)
+                    .then(() => {
+                      console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                    })
+                    .catch((error) => {
+                      console.error(error.stack);
+                    });
+                }
               }
             }
           }
-        }
-      });
-    } else {
-      console.info("There are no clients set up yet.");
+        });
+      } else {
+        console.info("There are no clients set up yet.");
+      }
+    } catch (err) {
+      console.info("Config file not found, please run the web app once to create file", err);
     }
-  } catch (err) {
-    console.info("Config file not found, please run the web app once to create file", err);
-  }
 
-  res.sendStatus(200);
+    res.sendStatus(200);
+  } else {
+    console.info("Bridge is not set up");
+    res.sendStatus(200);
+  }
 });
 
 module.exports = router;
