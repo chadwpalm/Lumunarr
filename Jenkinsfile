@@ -29,7 +29,7 @@ pipeline {
           def JSONVersion = readJSON file: "version.json"
           def PulledVersion = JSONVersion.version
           def APPVersion = "${PulledVersion}.${BUILD_ID}"
-          sh "docker build --force-rm --pull --build-arg BUILD='Docker' -t ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ."
+          sh "docker build --force-rm --pull --build-arg BUILD='${BUILD_ID} (Docker)' -t ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ${REPO}/${IMAGE_NAME}:develop"
           sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
           sh "docker rmi ${REPO}/${IMAGE_NAME}:develop-${APPVersion}"
