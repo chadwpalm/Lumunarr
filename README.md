@@ -10,6 +10,11 @@ HuePlex is a connector application for controlling Philips Hue lighting using Pl
 
 ### Features
 
+* Easy to use web-based graphical interface that is also mobile friendly.
+* Multiple client profiles for deeper customization and multi-room use.
+* Can be run natively or in a Docker container.
+* Server alerts supported
+
 ### Support
 
  - [Discussions](https://github.com/chadwpalm/HuePlex/discussions)
