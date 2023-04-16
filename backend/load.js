@@ -39,10 +39,20 @@ var fileData = `{"connected": "false","platform":"${
 
 try {
   fileData = fs.readFileSync("/config/settings.js");
-  if (JSON.parse(fileData).version !== appVersion) {
-    console.info("Version updated from", JSON.parse(fileData).version, "to", appVersion);
+  if (JSON.parse(fileData).version !== appVersion || JSON.parse(fileData).build !== build) {
+    console.info(
+      "Version updated from",
+      JSON.parse(fileData).version,
+      "build",
+      JSON.parse(fileData).build,
+      "to",
+      appVersion,
+      "build",
+      build
+    );
     var temp = JSON.parse(fileData);
     temp.version = appVersion;
+    temp.build = build;
     delete temp["token"];
     fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   }
