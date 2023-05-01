@@ -5,6 +5,8 @@ var axios = require("axios").default;
 router.post("/", async function (req, res, next) {
   var groups = {};
   var lights = [];
+  var groupList = [];
+  var output = [];
 
   var url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/groups`;
 
@@ -14,6 +16,17 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Light Groups");
       groups = response.data;
+      for (const [key, value] of Object.entries(groups)) {
+        try {
+          if (value.type === "Room") {
+            let array = `{ "Room":"${value.name}"}`;
+
+            groupList.push(JSON.parse(array));
+          }
+        } catch (error) {
+          console.error("GroupList: ", error);
+        }
+      }
     })
     .catch(function (error) {
       if (error.request) {
@@ -46,6 +59,9 @@ router.post("/", async function (req, res, next) {
       }
       lights.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       lights.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
+
+      output.push(lights);
+      output.push(groupList);
     })
     .catch(function (error) {
       if (error.request) {
@@ -54,7 +70,7 @@ router.post("/", async function (req, res, next) {
       }
     });
 
-  res.send(JSON.stringify(lights));
+  res.send(JSON.stringify(output));
 });
 
 module.exports = router;

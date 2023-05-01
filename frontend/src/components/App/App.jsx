@@ -17,6 +17,8 @@ import Logout from "bootstrap-icons/icons/box-arrow-right.svg";
 import Modal from "react-bootstrap/Modal";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
+import Badge from "react-bootstrap/Badge";
+import { default as axios } from "axios";
 
 export default class App extends Component {
   state = {
@@ -27,23 +29,54 @@ export default class App extends Component {
     show: false,
     fullscreen: true,
     isLoggedIn: false,
+    isUpdate: false,
   };
 
   componentDidMount() {
     var xhr = new XMLHttpRequest();
+    var state = false;
 
-    xhr.addEventListener("readystatechange", () => {
+    xhr.addEventListener("readystatechange", async () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           // request successful
           var response = xhr.responseText,
             json = JSON.parse(response);
 
+          if (json.branch === "dev") {
+            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/develop/version.json`;
+
+            await axios
+              .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+              .then(function (response) {
+                var data = response.data;
+                if (data.version !== json.version) {
+                  state = true;
+                }
+              })
+              .catch(function (error) {});
+          } else {
+            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/main/version.json`;
+
+            await axios
+              .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+              .then(function (response) {
+                var data = response.data;
+
+                if (data.version !== json.version) {
+                  state = true;
+                }
+              })
+              .catch(function (error) {});
+          }
+
           this.setState({
             isLoaded: true,
             config: json,
             thumb: json.thumb,
           });
+
+          if (state) this.setState({ isUpdate: true });
 
           if (json.token) this.setState({ isLoggedIn: true });
 
@@ -65,7 +98,8 @@ export default class App extends Component {
   }
 
   handleLogin = () => {
-    this.setState({ isLoggedIn: true });
+    window.location.reload(false);
+    // this.setState({ isLoggedIn: true });
   };
 
   handleConnectionChange = (change) => {
@@ -175,11 +209,20 @@ export default class App extends Component {
                         id="dropdown-menu-align-end"
                         align="end"
                         title={
-                          <Image
-                            roundedCircle
-                            src={this.state.config.thumb}
-                            style={{ height: "40px", width: "40px" }}
-                          />
+                          <>
+                            <Image
+                              roundedCircle
+                              src={this.state.config.thumb}
+                              style={{ height: "40px", width: "40px" }}
+                            />
+                            {this.state.isUpdate ? (
+                              <Badge pill bg="danger" className="position-absolute top-20 translate-middle start-55">
+                                !
+                              </Badge>
+                            ) : (
+                              <></>
+                            )}
+                          </>
                         }
                       >
                         <NavDropdown.Header>
@@ -195,6 +238,17 @@ export default class App extends Component {
                         <NavDropdown.Item href="https://www.buymeacoffee.com/hueplex" target="_blank">
                           Donate
                         </NavDropdown.Item>
+                        {this.state.isUpdate ? (
+                          <NavDropdown.Item
+                            href="https://github.com/chadwpalm/HuePlex/blob/develop/history.md"
+                            target="_blank"
+                            style={{ color: "red" }}
+                          >
+                            Update Available
+                          </NavDropdown.Item>
+                        ) : (
+                          <></>
+                        )}
                         <NavDropdown.Item onClick={this.handleLogout}>
                           <img src={Logout} style={{ verticalAlign: "middle" }} />
                           &nbsp; Sign Out

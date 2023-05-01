@@ -12,6 +12,7 @@ export default class Server extends Component {
     super(props);
     if (this.props.settings.server) {
       this.state = {
+        roomPlay: this.props.settings.server.roomPlay,
         lightPlay: this.props.settings.server.lightPlay.toString(),
         behaviorPlay: this.props.settings.server.behaviorPlay.toString(),
         colorPlay: this.props.settings.server.colorPlay.toString(),
@@ -22,7 +23,10 @@ export default class Server extends Component {
         colorNew: this.props.settings.server.colorNew.toString(),
         brightnessNew: this.props.settings.server.brightnessNew.toString(),
         intervalsNew: this.props.settings.server.intervalsNew.toString(),
+        groupsList: [],
         lightList: [],
+        roomLightListPlay: [],
+        roomLightListNew: [],
         isLoading: true,
         selectIntervalsPlay: false,
         selectIntervalsNew: false,
@@ -35,6 +39,7 @@ export default class Server extends Component {
       };
     } else {
       this.state = {
+        roomPlay: "-1",
         lightPlay: "-1",
         behaviorPlay: "-1",
         colorPlay: "-1",
@@ -45,7 +50,10 @@ export default class Server extends Component {
         colorNew: "-1",
         brightnessNew: "-1",
         intervalsNew: "-1",
+        groupsList: [],
         lightList: [],
+        roomLightListPlay: [],
+        roomLightListNew: [],
         isLoading: true,
         selectIntervalsPlay: false,
         selectIntervalsNew: false,
@@ -79,8 +87,45 @@ export default class Server extends Component {
           // request successful
           var response = xhr.responseText,
             json = JSON.parse(response);
-          this.setState({ lightList: json });
+          this.setState({ lightList: json[0] });
+          this.setState({ groupsList: json[1] });
           this.setState({ isLoading: false });
+
+          if (this.props.settings.server) {
+            if (this.state.lightPlay !== "-2") {
+              var roomPlay = json[0].find(({ Id }) => Id === this.state.lightPlay).Room;
+            } else {
+              roomPlay = "-1";
+            }
+            if (this.state.lightNew !== "-2") {
+              var roomNew = json[0].find(({ Id }) => Id === this.state.lightNew).Room;
+            } else {
+              roomNew = "-1";
+            }
+            if (this.state.roomPlay === undefined) this.setState({ roomPlay: roomPlay });
+            if (this.state.roomNew === undefined) this.setState({ roomNew: roomNew });
+          }
+          var tempPlay = [];
+          var tempNew = [];
+          this.setState({ roomLightListPlay: [] });
+          this.setState({ roomLightListNew: [] });
+          json[0].forEach((light) => {
+            if (this.state.roomPlay === undefined) {
+              if (light.Room === roomPlay) tempPlay.push(light);
+            } else {
+              if (light.Room === this.state.roomPlay) tempPlay.push(light);
+            }
+          });
+          json[0].forEach((light) => {
+            if (this.state.roomNew === undefined) {
+              if (light.Room === roomNew) tempNew.push(light);
+            } else {
+              if (light.Room === this.state.roomNew) tempNew.push(light);
+            }
+          });
+
+          this.setState({ roomLightListPlay: tempPlay });
+          this.setState({ roomLightListNew: tempNew });
         } else {
           // error
           this.setState({
@@ -127,6 +172,8 @@ export default class Server extends Component {
 
     if (!this.props.settings.server) this.props.settings.server = {};
 
+    this.props.settings.server.roomPlay = this.state.roomPlay;
+    this.props.settings.server.roomNew = this.state.roomNew;
     this.props.settings.server.lightPlay = this.state.lightPlay;
     this.props.settings.server.behaviorPlay = this.state.behaviorPlay;
     this.props.settings.server.colorPlay = this.state.colorPlay;
@@ -162,7 +209,7 @@ export default class Server extends Component {
   handleLightPlay = (e) => {
     this.setState({ lightPlay: e.target.value.toString() });
     if (e.target.value.toString() === "-2") {
-      this.setState({ isOffPlay: true });
+      this.setState({ isOffPlay: true, roomPlay: "-1" });
     } else {
       this.setState({ isOffPlay: false });
     }
@@ -184,10 +231,32 @@ export default class Server extends Component {
     this.setState({ brightnessPlay: e.target.value.toString() });
   };
 
+  handleRoomPlay = (e) => {
+    this.setState({ roomPlay: e.target.value.toString() });
+    var temp = [];
+    this.setState({ roomLightListPlay: [] });
+    this.state.lightList.forEach((light) => {
+      if (light.Room === e.target.value.toString()) temp.push(light);
+    });
+
+    this.setState({ roomLightListPlay: temp });
+  };
+
+  handleRoomNew = (e) => {
+    this.setState({ roomNew: e.target.value.toString() });
+    var temp = [];
+    this.setState({ roomLightListNew: [] });
+    this.state.lightList.forEach((light) => {
+      if (light.Room === e.target.value.toString()) temp.push(light);
+    });
+
+    this.setState({ roomLightListNew: temp });
+  };
+
   handleLightNew = (e) => {
     this.setState({ lightNew: e.target.value.toString() });
     if (e.target.value.toString() === "-2") {
-      this.setState({ isOffNew: true });
+      this.setState({ isOffNew: true, roomNew: "-1" });
     } else {
       this.setState({ isOffNew: false });
     }
@@ -240,6 +309,25 @@ export default class Server extends Component {
                   <img src={Info} />
                 </OverlayTrigger>
               </h5>
+              <Form.Label for="roomPlay">
+                Room &nbsp;&nbsp;
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
+                  <img src={Info} />
+                </OverlayTrigger>
+              </Form.Label>
+              <Form.Select
+                value={this.state.roomPlay}
+                id="roomPlay"
+                name="roomPlay"
+                onChange={this.handleRoomPlay}
+                size="sm"
+              >
+                <option value="-1">Select Room</option>
+                {this.state.groupsList.map((group) => (
+                  <option value={group.Room}>{group.Room}</option>
+                ))}
+              </Form.Select>
+              <div style={{ paddingBottom: "0.75rem" }} />
               <Form.Label for="lightPlay">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
@@ -255,10 +343,8 @@ export default class Server extends Component {
               >
                 <option value="-1">Select a Light</option>
                 <option value="-2">None</option>
-                {this.state.lightList.map((light) => (
-                  <option value={light.Id}>
-                    {light.Name} ({light.Room})
-                  </option>
+                {this.state.roomLightListPlay.map((light) => (
+                  <option value={light.Id}>{light.Name}</option>
                 ))}
               </Form.Select>
               <div style={{ paddingBottom: "0.75rem" }} />
@@ -392,6 +478,25 @@ export default class Server extends Component {
                   <img src={Info} />
                 </OverlayTrigger>
               </h5>
+              <Form.Label for="roomNew">
+                Room &nbsp;&nbsp;
+                <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
+                  <img src={Info} />
+                </OverlayTrigger>
+              </Form.Label>
+              <Form.Select
+                value={this.state.roomNew}
+                id="roomNew"
+                name="roomNew"
+                onChange={this.handleRoomNew}
+                size="sm"
+              >
+                <option value="-1">Select Room</option>
+                {this.state.groupsList.map((group) => (
+                  <option value={group.Room}>{group.Room}</option>
+                ))}
+              </Form.Select>
+              <div style={{ paddingBottom: "0.75rem" }} />
               <Form.Label for="lightNew">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
@@ -407,10 +512,8 @@ export default class Server extends Component {
               >
                 <option value="-1">Select a Light</option>
                 <option value="-2">None</option>
-                {this.state.lightList.map((light) => (
-                  <option value={light.Id}>
-                    {light.Name} ({light.Room})
-                  </option>
+                {this.state.roomLightListNew.map((light) => (
+                  <option value={light.Id}>{light.Name}</option>
                 ))}
               </Form.Select>
               <div style={{ paddingBottom: "0.75rem" }} />

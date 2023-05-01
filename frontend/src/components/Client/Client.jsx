@@ -2,19 +2,29 @@ import React, { Component } from "react";
 import Card from "react-bootstrap/Card";
 import Xclose from "bootstrap-icons/icons/x-square.svg";
 import Edit from "bootstrap-icons/icons/pencil-square.svg";
+import Form from "react-bootstrap/Form";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import "./Client.css";
 
 export default class Client extends Component {
   constructor(props) {
     super(props);
     this.state = {
       id: "",
+      active: true,
     };
 
     this.handleClick = this.handleClick.bind(this.props.id);
   }
 
   static getDerivedStateFromProps(props) {
-    return { id: props.id };
+    if (props.checked === undefined) {
+      props.isChecked(true, props.id);
+      return { id: props.id, active: true };
+    } else {
+      return { id: props.id, active: props.checked };
+    }
   }
 
   handleClick = (e) => {
@@ -23,6 +33,16 @@ export default class Client extends Component {
 
   handleDelete = (e) => {
     this.props.delete(this.state.id);
+  };
+
+  handleCheck = (e) => {
+    if (e.target.checked) {
+      this.setState({ active: true });
+    } else {
+      this.setState({ active: false });
+    }
+
+    this.props.isChecked(e.target.checked, this.state.id);
   };
 
   render() {
@@ -62,21 +82,29 @@ export default class Client extends Component {
               : this.props.media[0].toUpperCase() + this.props.media.substring(1)}
           </div>
         </Card.Body>
-        <Card.Footer
-          className="border-top-0"
-          style={{ backgroundColor: "#f8f9fa", padding: "5px", textAlign: "right" }}
-        >
-          {this.props.isEdit || this.props.isCreating ? (
-            <img src={Edit} />
-          ) : (
-            <button
-              value={this.state.id}
-              onClick={this.handleClick}
-              style={{ margin: 0, padding: 0, borderWidth: "0px", backgroundColor: "inherit" }}
-            >
-              <img src={Edit} />
-            </button>
-          )}
+        <Card.Footer className="border-top-0" style={{ backgroundColor: "#f8f9fa", padding: "5px" }}>
+          <Row>
+            <Col>
+              <div style={{ textAlign: "left" }}>
+                <Form.Switch onChange={this.handleCheck} defaultChecked={this.state.active} />
+              </div>
+            </Col>
+            <Col>
+              <div style={{ textAlign: "right" }}>
+                {this.props.isEdit || this.props.isCreating ? (
+                  <img src={Edit} />
+                ) : (
+                  <button
+                    value={this.state.id}
+                    onClick={this.handleClick}
+                    style={{ margin: 0, padding: 0, borderWidth: "0px", backgroundColor: "inherit" }}
+                  >
+                    <img src={Edit} />
+                  </button>
+                )}
+              </div>
+            </Col>
+          </Row>
         </Card.Footer>
       </Card>
     );

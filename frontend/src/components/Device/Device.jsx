@@ -84,6 +84,35 @@ export default class Device extends Component {
     this.handleSaveCreate();
   };
 
+  handleChecked = (checked, id) => {
+    var settings = { ...this.props.settings };
+
+    const index = settings.clients.findIndex(({ uid }) => uid === id);
+
+    var client = settings.clients[index];
+    client.active = checked;
+    settings.clients.splice(index, 1, client);
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.addEventListener("readystatechange", () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+        } else {
+          // error
+          this.setState({
+            show: false,
+            error: xhr.responseText,
+          });
+        }
+      }
+    });
+
+    xhr.open("POST", "/backend/save", true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify(settings));
+  };
+
   render() {
     return (
       <>
@@ -104,6 +133,8 @@ export default class Device extends Component {
                 isEdit={this.state.isEdit}
                 isCreating={this.state.isCreating}
                 delete={this.handleOpen}
+                checked={client.active}
+                isChecked={this.handleChecked}
               />
               <br />
             </Col>

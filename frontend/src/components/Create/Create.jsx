@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
 import crc from "crc-32";
+import { v4 as uuid } from "uuid";
 import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
@@ -22,27 +23,23 @@ export default class Create extends Component {
         userName: info.user.name,
         userId: info.user.id,
         media: info.media,
+        room: info.room,
         playScene: info.play,
         pauseScene: info.pause,
         stopScene: info.stop,
         resumeScene: info.resume,
         scrobble: info.scrobble,
+        active: info.active,
+        groupsList: [],
         userList: [],
         clientList: [],
         sceneList: [],
+        roomSceneList: [],
         isLoading: true,
-        selectUser: true,
-        selectMedia: true,
-        selectPlay: true,
-        selectPause: true,
-        selectStop: true,
-        selectResume: true,
-        selectSave: true,
-        selectScrobble: true,
         isIncomplete: false,
-        isDuplicate: false,
         isError: false,
         show: false,
+        show2: false,
         errorRes: "",
       };
     } else {
@@ -52,27 +49,24 @@ export default class Create extends Component {
         userName: "",
         userId: "-1",
         media: "-1",
+        room: "-1",
         playScene: "-1",
+        playRoom: "-1",
         pauseScene: "-1",
         stopScene: "-1",
         resumeScene: "-1",
         scrobble: "-1",
+        active: true,
+        groupsList: [],
         userList: [],
         clientList: [],
         sceneList: [],
+        roomSceneList: [],
         isLoading: true,
-        selectUser: false,
-        selectMedia: false,
-        selectPlay: false,
-        selectPause: false,
-        selectStop: false,
-        selectResume: false,
-        selectSave: false,
-        selectScrobble: false,
         isIncomplete: false,
-        isDuplicate: false,
         isError: false,
         show: false,
+        show2: false,
         errorRes: "",
       };
     }
@@ -94,7 +88,24 @@ export default class Create extends Component {
           this.setState({ userList: json[0] });
           this.setState({ clientList: json[1] });
           this.setState({ sceneList: json[2] });
+          this.setState({ groupsList: json[3] });
           this.setState({ isLoading: false });
+
+          if (this.props.isEdit) {
+            var room = json[2].find(({ Id }) => Id === this.state.playScene).Room;
+            if (this.state.room === undefined) this.setState({ room: room });
+          }
+          var temp = [];
+          this.setState({ roomSceneList: [] });
+          json[2].forEach((scene) => {
+            if (this.state.room === undefined) {
+              if (scene.Room === room) temp.push(scene);
+            } else {
+              if (scene.Room === this.state.room) temp.push(scene);
+            }
+          });
+
+          this.setState({ roomSceneList: temp });
         } else {
           // error
           this.setState({
@@ -113,12 +124,13 @@ export default class Create extends Component {
   handleFormSubmit = (e) => {
     e.preventDefault();
 
-    this.setState({ isDuplicate: false, isIncomplete: false });
+    this.setState({ isIncomplete: false });
 
     if (
       this.state.clientId === "-1" ||
       this.state.userId === "-1" ||
       this.state.media === "-1" ||
+      this.state.room === "-1" ||
       this.state.playScene === "-1" ||
       this.state.pauseScene === "-1" ||
       this.state.stopScene === "-1" ||
@@ -135,7 +147,7 @@ export default class Create extends Component {
 
     var temp = {};
 
-    temp.uid = Math.abs(crc.str(this.state.clientName + this.state.userName + this.state.media)).toString();
+    temp.uid = uuid().toString();
     temp.client = {};
     temp.client.id = this.state.clientId;
     temp.client.name = this.state.clientName;
@@ -143,29 +155,19 @@ export default class Create extends Component {
     temp.user.id = this.state.userId;
     temp.user.name = this.state.userName;
     temp.media = this.state.media;
+    temp.room = this.state.room;
     temp.play = this.state.playScene;
     temp.stop = this.state.stopScene;
     temp.pause = this.state.pauseScene;
     temp.resume = this.state.resumeScene;
     temp.scrobble = this.state.scrobble;
+    temp.active = this.state.active;
 
     if (this.props.isEdit) {
-      const index = settings.clients.findIndex(({ uid }) => uid === temp.uid);
-      if (index !== -1 && temp.uid !== this.state.uid) {
-        this.setState({ isDuplicate: true });
-        return;
-      } else {
-        const index2 = settings.clients.findIndex(({ uid }) => uid === this.state.uid);
-        settings.clients.splice(index2, 1, temp);
-      }
+      const index = settings.clients.findIndex(({ uid }) => uid === this.state.uid);
+      settings.clients.splice(index, 1, temp);
     } else {
-      const index = settings.clients.findIndex(({ uid }) => uid === temp.uid);
-      if (index !== -1) {
-        this.setState({ isDuplicate: true });
-        return;
-      } else {
-        settings.clients.push(temp);
-      }
+      settings.clients.push(temp);
     }
 
     var xhr = new XMLHttpRequest();
@@ -229,13 +231,11 @@ export default class Create extends Component {
       this.setState({
         userId: "Any",
         userName: "Any",
-        selectMedia: true,
         show: true,
       });
     } else {
       var result = this.state.userList.find(({ _attributes }) => _attributes.id.toString() === e.target.value);
       this.setState({
-        selectMedia: true,
         userId: e.target.value.toString(),
         userName: result._attributes.title,
       });
@@ -244,39 +244,47 @@ export default class Create extends Component {
 
   handleMedia = (e) => {
     if (e.target.value === "All") this.setState({ show: true });
-    this.setState({ selectPlay: true, media: e.target.value.toString() });
+    this.setState({ media: e.target.value.toString() });
   };
 
   handlePlay = (e) => {
-    this.setState({ selectStop: true, playScene: e.target.value.toString() });
+    this.setState({ playScene: e.target.value.toString() });
+  };
+
+  handleRoom = (e) => {
+    this.setState({ room: e.target.value.toString() });
+    var temp = [];
+    this.setState({ roomSceneList: [] });
+    this.state.sceneList.forEach((scene) => {
+      if (scene.Room === e.target.value.toString()) temp.push(scene);
+    });
+
+    this.setState({ roomSceneList: temp });
   };
 
   handleStop = (e) => {
-    this.setState({ selectPause: true, stopScene: e.target.value.toString() });
+    this.setState({ stopScene: e.target.value.toString() });
   };
 
   handlePause = (e) => {
     this.setState({
-      selectResume: true,
       pauseScene: e.target.value.toString(),
     });
   };
 
   handleResume = (e) => {
     this.setState({
-      selectScrobble: true,
       resumeScene: e.target.value.toString(),
     });
   };
 
   handleScrobble = (e) => {
     this.setState({
-      selectSave: true,
       scrobble: e.target.value.toString(),
     });
   };
 
-  handleClose = () => this.setState({ show: false });
+  handleClose = () => this.setState({ show: false, show2: false });
 
   render() {
     if (this.state.isError) {
@@ -300,7 +308,12 @@ export default class Create extends Component {
               Client &nbsp;&nbsp;
               <OverlayTrigger
                 placement="right"
-                overlay={<Tooltip>This is the Plex client that will control the Hue scenes.</Tooltip>}
+                overlay={
+                  <Tooltip>
+                    This is the Plex client that will control the Hue scenes. Clients are ordered top-down from most
+                    recently used to last used.
+                  </Tooltip>
+                }
               >
                 <img src={Info} />
               </OverlayTrigger>
@@ -310,7 +323,9 @@ export default class Create extends Component {
               {this.state.clientList.map((client) =>
                 client._attributes.provides !== "server" ? (
                   <option value={client._attributes.clientIdentifier}>
-                    {client._attributes.name} ({client._attributes.platform}),{" created: "}
+                    {client._attributes.name} ({client._attributes.platform}) {"  -  "} {client._attributes.product}
+                    {", version: "}
+                    {client._attributes.productVersion} ({client._attributes.device}){" - created: "}
                     {this.relativeTime(client._attributes.createdAt)}
                   </option>
                 ) : (
@@ -320,294 +335,252 @@ export default class Create extends Component {
             </Form.Select>
             <div style={{ paddingBottom: "0.75rem" }} />
             {/* Select User */}
-            {this.state.selectUser ? (
-              <>
-                <Form.Label for="user">
-                  User &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Plex user that will control the Hue scenes. Chosing "Any" will allow any user to
-                        control the Hue scenes from that client. <br />
-                        <br /> This option is meant to be used when the client is set up with multiple Plex Home users.
-                        If Plex Home is not set up, then you should use the user that is logged into that client (or use
-                        "Any").
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select value={this.state.userId} id="user" name="user" onChange={this.handleUser} size="sm">
-                  <option value="-1">Select a User</option>
-                  <option value="Any">Any</option>
-                  {this.state.userList.map((user) => (
-                    <option value={user._attributes.id}>
-                      {user._attributes.title} ({user._attributes.username})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="user">
+              User &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Plex user that will control the Hue scenes. Chosing "Any" will allow any user to control
+                    the Hue scenes from that client. <br />
+                    <br /> This option is meant to be used when the client is set up with multiple Plex Home users. If
+                    Plex Home is not set up, then you should use the user that is logged into that client (or use
+                    "Any").
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.userId} id="user" name="user" onChange={this.handleUser} size="sm">
+              <option value="-1">Select a User</option>
+              <option value="Any">Any</option>
+              {this.state.userList.map((user) => (
+                <option value={user._attributes.id}>
+                  {user._attributes.title} ({user._attributes.username})
+                </option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Select Media Type */}
-            {this.state.selectMedia ? (
-              <>
-                <Form.Label for="media">
-                  Media &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the media type that you want to control Hue scenes from. Select "All" if you want scenes
-                        to activate for any media type.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select value={this.state.media} id="media" name="media" onChange={this.handleMedia} size="sm">
-                  <option value="-1">Select Media Type</option>
-                  <option value="All">All</option>
-                  <option value="movie">Movie</option>
-                  <option value="show">TV Show</option>
-                  <option value="cinemaTrailer">Trailer/Preroll</option>
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="media">
+              Media &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the media type that you want to control Hue scenes from. Select "All" if you want scenes to
+                    activate for any media type.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.media} id="media" name="media" onChange={this.handleMedia} size="sm">
+              <option value="-1">Select Media Type</option>
+              <option value="All">All</option>
+              <option value="movie">Movie</option>
+              <option value="show">TV Show</option>
+              <option value="cinemaTrailer">Trailer/Preroll</option>
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
+            {/* Select Room */}
+            <Form.Label for="room">
+              Room &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip>This is the room/group of lights you want to use.</Tooltip>}
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
+              <option value="-1">Select Room</option>
+              {this.state.groupsList.map((group) => (
+                <option value={group.Room}>{group.Room}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Play Action */}
-            {this.state.selectPlay ? (
-              <>
-                <Form.Label for="play">
-                  Play &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Hue scene that will activate when media is played (From a stopped state). Select
-                        "None" if you don't want any action to happen.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
-                  <option value="-1">Select Play Action Scene</option>
-                  <option value="None">None</option>
-                  {this.state.sceneList.map((scene) => (
-                    <option value={scene.Id}>
-                      {scene.Name} ({scene.Room})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="play">
+              Play &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Hue scene that will activate when media is played (From a stopped state). Select "None"
+                    if you don't want any action to happen.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
+              <option value="-1">Select Play Action Scene</option>
+              <option value="None">None</option>
+              {this.state.roomSceneList.map((scene) => (
+                <option value={scene.Id}>{scene.Name}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Stop Action */}
-            {this.state.selectStop ? (
-              <>
-                <Form.Label for="stop">
-                  Stop &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Hue scene that will activate when media is stopped. Select "None" if you don't want
-                        any action to happen.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
-                  <option value="-1">Select Stop Action Scene</option>
-                  <option value="None">None</option>
-                  {this.state.sceneList.map((scene) => (
-                    <option value={scene.Id}>
-                      {scene.Name} ({scene.Room})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="stop">
+              Stop &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Hue scene that will activate when media is stopped. Select "None" if you don't want any
+                    action to happen.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
+              <option value="-1">Select Stop Action Scene</option>
+              <option value="None">None</option>
+              {this.state.roomSceneList.map((scene) => (
+                <option value={scene.Id}>{scene.Name}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Pause Action */}
-            {this.state.selectPause ? (
-              <>
-                <Form.Label for="pause">
-                  Pause &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Hue scene that will activate when media is paused. Select "None" if you don't want
-                        any action to happen.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select
-                  value={this.state.pauseScene}
-                  id="pause"
-                  name="pause"
-                  onChange={this.handlePause}
-                  size="sm"
-                >
-                  <option value="-1">Select Pause Action Scene</option>
-                  <option value="None">None</option>
-                  {this.state.sceneList.map((scene) => (
-                    <option value={scene.Id}>
-                      {scene.Name} ({scene.Room})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="pause">
+              Pause &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Hue scene that will activate when media is paused. Select "None" if you don't want any
+                    action to happen.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select value={this.state.pauseScene} id="pause" name="pause" onChange={this.handlePause} size="sm">
+              <option value="-1">Select Pause Action Scene</option>
+              <option value="None">None</option>
+              {this.state.roomSceneList.map((scene) => (
+                <option value={scene.Id}>{scene.Name}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Resume Action */}
-            {this.state.selectResume ? (
-              <>
-                <Form.Label for="resume">
-                  Resume &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Hue scene that will activate when media is resumed from a paused state. Select
-                        "None" if you don't want any action to happen.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select
-                  value={this.state.resumeScene}
-                  id="resume"
-                  name="resume"
-                  onChange={this.handleResume}
-                  size="sm"
-                >
-                  <option value="-1">Select Resume Action Scene</option>
-                  <option value="None">None</option>
-                  {this.state.sceneList.map((scene) => (
-                    <option value={scene.Id}>
-                      {scene.Name} ({scene.Room})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="resume">
+              Resume &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Hue scene that will activate when media is resumed from a paused state. Select "None" if
+                    you don't want any action to happen.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select
+              value={this.state.resumeScene}
+              id="resume"
+              name="resume"
+              onChange={this.handleResume}
+              size="sm"
+            >
+              <option value="-1">Select Resume Action Scene</option>
+              <option value="None">None</option>
+              {this.state.roomSceneList.map((scene) => (
+                <option value={scene.Id}>{scene.Name}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Scrobble Action */}
-            {this.state.selectScrobble ? (
-              <>
-                <Form.Label for="scrobble">
-                  Scrobble &nbsp;&nbsp;
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={
-                      <Tooltip>
-                        This is the Hue scene that will activate when media is scrobbled. Select "None" if you don't
-                        want any action to happen.
-                        <br />
-                        <br />
-                        In Plex, "scrobble" is the time when the media you are watching is considered "played". By
-                        default, this time is set at the 90% mark of a video, but can be changed in the Plex Media
-                        Server's settings.
-                        <br />
-                        <br />
-                        As of version 1.31 of the Plex Media Server, scrobble can be set at end credits marker points.
-                        This is good if you want your lights to react when credits start rolling.
-                      </Tooltip>
-                    }
-                  >
-                    <img src={Info} />
-                  </OverlayTrigger>
-                </Form.Label>
-                <Form.Select
-                  value={this.state.scrobble}
-                  id="scrobble"
-                  name="scrobble"
-                  onChange={this.handleScrobble}
-                  size="sm"
-                >
-                  <option value="-1">Select Scrobble Action Scene</option>
-                  <option value="None">None</option>
-                  {this.state.sceneList.map((scene) => (
-                    <option value={scene.Id}>
-                      {scene.Name} ({scene.Room})
-                    </option>
-                  ))}
-                </Form.Select>
-                <div style={{ paddingBottom: "0.75rem" }} />
-              </>
-            ) : (
-              <></>
-            )}
+            <Form.Label for="scrobble">
+              Scrobble &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This is the Hue scene that will activate when media is scrobbled. Select "None" if you don't want
+                    any action to happen.
+                    <br />
+                    <br />
+                    In Plex, "scrobble" is the time when the media you are watching is considered "played". By default,
+                    this time is set at the 90% mark of a video, but can be changed in the Plex Media Server's settings.
+                    <br />
+                    <br />
+                    As of version 1.31 of the Plex Media Server, scrobble can be set at end credits marker points. This
+                    is good if you want your lights to react when credits start rolling.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Select
+              value={this.state.scrobble}
+              id="scrobble"
+              name="scrobble"
+              onChange={this.handleScrobble}
+              size="sm"
+            >
+              <option value="-1">Select Scrobble Action Scene</option>
+              <option value="None">None</option>
+              {this.state.roomSceneList.map((scene) => (
+                <option value={scene.Id}>{scene.Name}</option>
+              ))}
+            </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
             {/* Cancel/Save */}
             <Button onClick={this.props.cancel} variant="light">
               Cancel
             </Button>
             &nbsp;&nbsp;
-            {this.state.selectSave ? (
-              this.props.isEdit ? (
-                <Button type="submit" variant="secondary">
-                  Update
-                </Button>
-              ) : (
-                <Button type="submit" variant="secondary">
-                  Save
-                </Button>
-              )
+            {this.props.isEdit ? (
+              <Button type="submit" variant="secondary">
+                Update
+              </Button>
             ) : (
-              <></>
+              <Button type="submit" variant="secondary">
+                Save
+              </Button>
             )}
             {this.state.isIncomplete ? (
               <i style={{ color: "#f00" }}>&nbsp; All parameters must be selected. </i>
             ) : (
               <></>
             )}
-            {this.state.isDuplicate ? (
-              <i style={{ color: "#f00" }}>&nbsp; A client with the same matching user and media already exists. </i>
-            ) : (
-              <></>
-            )}
           </Form>
           <br />
           <br />
-          <Modal
-            show={this.state.show}
-            fullscreen={this.state.fullscreen}
-            onHide={this.handleClose}
-            size="sm"
-            backdrop="static"
-          >
+          <Modal show={this.state.show} onHide={this.handleClose} size="sm" backdrop="static">
             <Modal.Header>
               <h3>Warning</h3>
             </Modal.Header>
             <Modal.Body>
               Selecting the "Any" or "All" option could have unforseen issues with the behavior of the lights. Only use
               if you know what you are doing.
+              <br />
+              <br />
+              See HuePlex documentation for more information.
+              <br />
+              <br />
+              <Button onClick={this.handleClose}>Acknowledge</Button>
+            </Modal.Body>
+          </Modal>
+          <Modal show={this.state.show2} onHide={this.handleClose} size="sm" backdrop="static">
+            <Modal.Header>
+              <h3>Warning</h3>
+            </Modal.Header>
+            <Modal.Body>
+              A profile with the same client, user, and media already exists. This could have unforseen issues if scenes
+              from the same room are used in both profiles.
               <br />
               <br />
               See HuePlex documentation for more information.

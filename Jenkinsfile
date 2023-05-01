@@ -53,5 +53,24 @@ pipeline {
         }
       }
     }
+    stage('Build Features/Fixes') {
+      when {
+        not {
+           anyOf {
+            branch "main";
+            branch "develop"
+          }
+        }
+      }
+      steps {
+        script {
+          def JSONVersion = readJSON file: "version.json"
+          def PulledVersion = JSONVersion.version
+          def APPVersion = "${PulledVersion}.${BUILD_ID}"
+          sh "docker build --force-rm --pull --build-arg BUILD='${BUILD_ID}' -t ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion} ."
+          sh "docker push ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion}"
+        }
+      }
+    }
   }
 }

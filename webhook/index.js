@@ -50,13 +50,12 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 });
             }
             if (server.behaviorPlay === "2") {
-              let tHue, tSat, tOn, tTrans, tBri;
+              let tHue, tSat, tOn, tBri;
 
               bridge.lights
                 .getById(parseInt(server.lightPlay))
                 .then((light) => {
                   tOn = light.on;
-                  tTrans = light.transitionTime;
                   tHue = light.hue;
                   tSat = light.saturation;
                   tBri = light.brightness;
@@ -106,7 +105,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 .getById(parseInt(server.lightPlay))
                 .then((light) => {
                   light.on = tOn;
-                  light.transitionTime = tTrans;
                   light.hue = tHue;
                   light.saturation = tSat;
                   light.brightness = tBri;
@@ -219,62 +217,64 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
         var clients = settings.clients;
 
         clients.forEach((client) => {
-          if (payload.Player.uuid === client.client.id) {
-            if (payload.Account.title === client.user.name || client.user.name === "Any") {
-              if (
-                payload.Metadata.librarySectionType === client.media ||
-                client.media === "All" ||
-                (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
-              ) {
-                if (payload.event === "media.play" && client.play !== "None") {
-                  bridge.scenes
-                    .recall(client.play)
-                    .then(() => {
-                      console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
-                    })
-                    .catch((error) => {
-                      console.error(error.stack);
-                    });
-                }
-                if (payload.event === "media.stop" && client.stop !== "None") {
-                  bridge.scenes
-                    .recall(client.stop)
-                    .then(() => {
-                      console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
-                    })
-                    .catch((error) => {
-                      console.error(error.stack);
-                    });
-                }
-                if (payload.event === "media.pause" && client.pause !== "None") {
-                  bridge.scenes
-                    .recall(client.pause)
-                    .then(() => {
-                      console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                    })
-                    .catch((error) => {
-                      console.error(error.stack);
-                    });
-                }
-                if (payload.event === "media.resume" && client.resume !== "None") {
-                  bridge.scenes
-                    .recall(client.resume)
-                    .then(() => {
-                      console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                    })
-                    .catch((error) => {
-                      console.error(error.stack);
-                    });
-                }
-                if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                  bridge.scenes
-                    .recall(client.scrobble)
-                    .then(() => {
-                      console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                    })
-                    .catch((error) => {
-                      console.error(error.stack);
-                    });
+          if (client.active) {
+            if (payload.Player.uuid === client.client.id) {
+              if (payload.Account.title === client.user.name || client.user.name === "Any") {
+                if (
+                  payload.Metadata.librarySectionType === client.media ||
+                  client.media === "All" ||
+                  (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
+                ) {
+                  if (payload.event === "media.play" && client.play !== "None") {
+                    bridge.scenes
+                      .recall(client.play)
+                      .then(() => {
+                        console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
+                      })
+                      .catch((error) => {
+                        console.error(error.stack);
+                      });
+                  }
+                  if (payload.event === "media.stop" && client.stop !== "None") {
+                    bridge.scenes
+                      .recall(client.stop)
+                      .then(() => {
+                        console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
+                      })
+                      .catch((error) => {
+                        console.error(error.stack);
+                      });
+                  }
+                  if (payload.event === "media.pause" && client.pause !== "None") {
+                    bridge.scenes
+                      .recall(client.pause)
+                      .then(() => {
+                        console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                      })
+                      .catch((error) => {
+                        console.error(error.stack);
+                      });
+                  }
+                  if (payload.event === "media.resume" && client.resume !== "None") {
+                    bridge.scenes
+                      .recall(client.resume)
+                      .then(() => {
+                        console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                      })
+                      .catch((error) => {
+                        console.error(error.stack);
+                      });
+                  }
+                  if (payload.event === "media.scrobble" && client.scrobble !== "None") {
+                    bridge.scenes
+                      .recall(client.scrobble)
+                      .then(() => {
+                        console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                      })
+                      .catch((error) => {
+                        console.error(error.stack);
+                      });
+                  }
                 }
               }
             }

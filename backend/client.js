@@ -8,6 +8,8 @@ router.post("/", async function (req, res, next) {
   var scenes = [];
   var users = [];
   var data = [];
+  var groupList = [];
+
   var url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/groups`;
 
   await axios
@@ -15,6 +17,17 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Light Groups");
       groups = response.data;
+      for (const [key, value] of Object.entries(groups)) {
+        try {
+          if (value.type === "Room") {
+            let array = `{ "Room":"${value.name}"}`;
+
+            groupList.push(JSON.parse(array));
+          }
+        } catch (error) {
+          console.error("GroupList: ", error);
+        }
+      }
     })
     .catch(function (error) {
       if (error.request) {
@@ -118,6 +131,7 @@ router.post("/", async function (req, res, next) {
       data.push(users);
       data.push(list);
       data.push(scenes);
+      data.push(groupList);
       res.send(JSON.stringify(data));
     })
     .catch(function (error) {
