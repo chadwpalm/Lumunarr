@@ -5,6 +5,7 @@ pipeline {
   environment {
       REPO="chadwpalm"
       IMAGE_NAME="hueplex"
+      BUILD_CRED=credentials('b5555926-7439-43d8-a28d-f0e3b9b67724')
   }
 
   options {
@@ -28,8 +29,12 @@ pipeline {
         script {
           def JSONVersion = readJSON file: "version.json"
           def PulledVersion = JSONVersion.version
-          def APPVersion = "${PulledVersion}.${BUILD_ID}"
-          sh "docker build --force-rm --pull --build-arg BUILD='${BUILD_ID}' -t ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ."
+          def BuildNumber = sh (
+            script: 'curl https://increment.build/${BUILD_CRED}/get',
+            returnStdout: true
+          ).trim()
+          def APPVersion = "${PulledVersion}.${BuildNumber}"
+          sh "docker build --force-rm --pull --build-arg BUILD='${BuildNumber}' -t ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ${REPO}/${IMAGE_NAME}:develop"
           sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
           sh "docker rmi ${REPO}/${IMAGE_NAME}:develop-${APPVersion}"
@@ -45,7 +50,11 @@ pipeline {
         script {
           def JSONVersion = readJSON file: "version.json"
           def PulledVersion = JSONVersion.version
-          def APPVersion = "${PulledVersion}.${BUILD_ID}"
+          def BuildNumber = sh (
+            script: 'curl https://increment.build/${BUILD_CRED}/get',
+            returnStdout: true
+          ).trim()
+          def APPVersion = "${PulledVersion}.${BuildNumber}"
           sh "docker build --force-rm --pull --build-arg BUILD='Docker' -t ${REPO}/${IMAGE_NAME}:${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:${APPVersion} ${REPO}/${IMAGE_NAME}:latest"
           sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
@@ -66,8 +75,12 @@ pipeline {
         script {
           def JSONVersion = readJSON file: "version.json"
           def PulledVersion = JSONVersion.version
-          def APPVersion = "${PulledVersion}.${BUILD_ID}"
-          sh "docker build --force-rm --pull --build-arg BUILD='${BUILD_ID}' -t ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion} ."
+          def BuildNumber = sh (
+            script: 'curl https://increment.build/${BUILD_CRED}',
+            returnStdout: true
+          ).trim()
+          def APPVersion = "${PulledVersion}.${BuildNumber}"
+          sh "docker build --force-rm --pull --build-arg BUILD=${BuildNumer} -t ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion} ."
           sh "docker push ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion}"
         }
       }
