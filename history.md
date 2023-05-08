@@ -1,5 +1,9 @@
 # HuePlex Version History
 
+## 1.0.0
+
+App brought out of beta testing
+
 ## 0.2.0
 
 ### Added
