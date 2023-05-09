@@ -569,7 +569,7 @@ export default class Create extends Component {
                 step={100}
                 onChange={this.handleScrobbleDelay} 
               />
-              <div style={{ width: 70, textAlign: 'right' }}>
+              <div style={{ width: 80, textAlign: 'right' }}>
                 {this.state.scrobbleDelayMs} ms
               </div>
             </Stack>
