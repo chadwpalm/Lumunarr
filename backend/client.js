@@ -19,8 +19,8 @@ router.post("/", async function (req, res, next) {
       groups = response.data;
       for (const [key, value] of Object.entries(groups)) {
         try {
-          if (value.type === "Room") {
-            let array = `{ "Room":"${value.name}"}`;
+          if (value.type === "Room" || value.type === "Zone") {
+            let array = `{ "Room":"${value.name}", "Type":"${value.type}"}`;
 
             groupList.push(JSON.parse(array));
           }

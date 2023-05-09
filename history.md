@@ -1,5 +1,11 @@
 # HuePlex Version History
 
+## 1.0.1
+
+### Fixed
+
+- Rooms selection was not showing zones {[#5](https://github.com/chadwpalm/HuePlex/issues/5)}
+
 ## 1.0.0
 
 App brought out of beta testing
