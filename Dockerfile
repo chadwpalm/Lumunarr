@@ -8,10 +8,10 @@ COPY . /HuePlex
 
 WORKDIR /HuePlex/frontend
 
-RUN npm install && npm run build
+RUN npm ci && npm run build
 
 WORKDIR /HuePlex
 
-RUN npm install
+RUN npm ci
 
 ENTRYPOINT ["npm", "start"]
