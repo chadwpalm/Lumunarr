@@ -8,9 +8,7 @@ COPY . /HuePlex
 
 WORKDIR /HuePlex/frontend
 
-RUN apt update && \
-    npm install && \
-    npm run build
+RUN npm install && npm run build
 
 WORKDIR /HuePlex
 
