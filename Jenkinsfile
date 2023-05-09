@@ -55,7 +55,7 @@ pipeline {
             returnStdout: true
           ).trim()
           def APPVersion = "${PulledVersion}.${BuildNumber}"
-          sh "docker build --force-rm --pull --build-arg BUILD='Docker' -t ${REPO}/${IMAGE_NAME}:${APPVersion} ."
+          sh "docker build --force-rm --pull --build-arg BUILD='${BuildNumber}' -t ${REPO}/${IMAGE_NAME}:${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:${APPVersion} ${REPO}/${IMAGE_NAME}:latest"
           sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
           sh "docker rmi ${REPO}/${IMAGE_NAME}:latest-${APPVersion}"
