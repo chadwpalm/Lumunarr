@@ -315,7 +315,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.clientId} id="client" name="client" onChange={this.handleClient} size="sm">
@@ -349,7 +349,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.userId} id="user" name="user" onChange={this.handleUser} size="sm">
@@ -374,7 +374,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.media} id="media" name="media" onChange={this.handleMedia} size="sm">
@@ -392,7 +392,7 @@ export default class Create extends Component {
                 placement="right"
                 overlay={<Tooltip>This is the room/group of lights you want to use.</Tooltip>}
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
@@ -414,7 +414,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
@@ -437,7 +437,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
@@ -460,7 +460,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.pauseScene} id="pause" name="pause" onChange={this.handlePause} size="sm">
@@ -483,7 +483,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
@@ -520,7 +520,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
