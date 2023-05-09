@@ -1,0 +1,23 @@
+{
+    "payload": {
+      "event": "media.scrobble",
+      "user": false,
+      "owner": true,
+      "Account": {
+        "id": 1,
+        "thumb": "https://plex.tv/users/X/avatar?c=y",
+        "title": "Guest"
+      },
+      "Server": {
+        "title": "server",
+        "uuid": "<uuid>"
+      },
+      "Player": {
+        "local": true,
+        "publicAddress": "255.255.255.255",
+        "title": "iPhone",
+        "uuid": "<uuid>"
+      },
+      "Metadata": {}
+    }
+}
