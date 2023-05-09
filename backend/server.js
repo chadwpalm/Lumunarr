@@ -18,8 +18,8 @@ router.post("/", async function (req, res, next) {
       groups = response.data;
       for (const [key, value] of Object.entries(groups)) {
         try {
-          if (value.type === "Room") {
-            let array = `{ "Room":"${value.name}"}`;
+          if (value.type === "Room" || value.type === "Zone") {
+            let array = `{ "Room":"${value.name}", "Type":"${value.type}"}`;
 
             groupList.push(JSON.parse(array));
           }
@@ -46,7 +46,7 @@ router.post("/", async function (req, res, next) {
       for (const [key1, value1] of Object.entries(data)) {
         var group;
         for (const [key2, value2] of Object.entries(groups)) {
-          if (value2.lights.includes(key1) && value2.type === "Room") {
+          if (value2.lights.includes(key1) && (value2.type === "Room" || value2.type === "Zone")) {
             group = key2;
           }
         }

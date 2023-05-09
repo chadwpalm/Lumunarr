@@ -324,7 +324,9 @@ export default class Server extends Component {
               >
                 <option value="-1">Select Room</option>
                 {this.state.groupsList.map((group) => (
-                  <option value={group.Room}>{group.Room}</option>
+                  <option value={group.Room}>
+                    {group.Room} ({group.Type})
+                  </option>
                 ))}
               </Form.Select>
               <div style={{ paddingBottom: "0.75rem" }} />
@@ -493,7 +495,9 @@ export default class Server extends Component {
               >
                 <option value="-1">Select Room</option>
                 {this.state.groupsList.map((group) => (
-                  <option value={group.Room}>{group.Room}</option>
+                  <option value={group.Room}>
+                    {group.Room} ({group.Type})
+                  </option>
                 ))}
               </Form.Select>
               <div style={{ paddingBottom: "0.75rem" }} />
