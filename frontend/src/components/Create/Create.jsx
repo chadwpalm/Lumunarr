@@ -398,7 +398,7 @@ export default class Create extends Component {
             <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
               <option value="-1">Select Room</option>
               {this.state.groupsList.map((group) => (
-                <option value={group.Room}>{group.Room}</option>
+                <option value={group.Room}>{group.Room} ({group.Type})</option>
               ))}
             </Form.Select>
             <div style={{ paddingBottom: "0.75rem" }} />

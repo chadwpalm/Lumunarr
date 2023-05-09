@@ -80,7 +80,7 @@ pipeline {
             returnStdout: true
           ).trim()
           def APPVersion = "${PulledVersion}.${BuildNumber}"
-          sh "docker build --force-rm --pull --build-arg BUILD=${BuildNumer} -t ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion} ."
+          sh "docker build --force-rm --pull --build-arg BUILD=${BuildNumber} -t ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion} ."
           sh "docker push ${REPO}/${IMAGE_NAME}:${BRANCH_NAME}-${APPVersion}"
         }
       }
