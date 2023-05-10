@@ -41,10 +41,24 @@ try {
   fileData = fs.readFileSync("/config/settings.js");
   var temp = JSON.parse(fileData);
 
-  if (temp.version !== appVersion || temp.build !== build) {
-    console.info("Version updated from", temp.version, "build", temp.build, "to", appVersion, "build", build);
+  if (temp.version !== appVersion || temp.build !== build || temp.branch !== branch) {
+    console.info(
+      "Version updated from",
+      temp.version,
+      "build",
+      temp.build,
+      "branch",
+      temp.branch,
+      "to",
+      appVersion,
+      "build",
+      build,
+      "branch",
+      branch
+    );
     temp.version = appVersion;
     temp.build = build;
+    temp.branch = branch;
     delete temp["token"];
   }
 
@@ -90,3 +104,4 @@ router.get("/", function (req, res, next) {
 });
 
 module.exports = router;
+

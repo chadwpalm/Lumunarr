@@ -1,5 +1,11 @@
 # HuePlex Version History
 
+## 1.1.0
+
+### Added
+
+- Time delay for scrobble trigger added to client profiles {[#6](https://github.com/chadwpalm/HuePlex/issues/6)}
+
 ## 1.0.1
 
 ### Fixed
