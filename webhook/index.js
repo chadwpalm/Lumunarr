@@ -3,7 +3,7 @@ var router = express.Router();
 var huejay = require("huejay");
 var multer = require("multer");
 var fs = require("fs");
-const { setTimeout } = require("timers/promises");
+const { setTimeout: setTimeoutPromise } = require("timers/promises");
 
 var upload = multer({ dest: "/tmp/" });
 
@@ -79,7 +79,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     console.error(error.stack);
                   });
 
-                await setTimeout(500);
+                await setTimeoutPromise(500);
 
                 bridge.lights
                   .getById(parseInt(server.lightPlay))
@@ -99,7 +99,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     console.error(error.stack);
                   });
 
-                await setTimeout(500);
+                await setTimeoutPromise(500);
               }
               bridge.lights
                 .getById(parseInt(server.lightPlay))
@@ -172,7 +172,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     console.error(error.stack);
                   });
 
-                await setTimeout(500);
+                await setTimeoutPromise(500);
 
                 bridge.lights
                   .getById(parseInt(server.lightNew))
@@ -192,7 +192,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     console.error(error.stack);
                   });
 
-                await setTimeout(500);
+                await setTimeoutPromise(500);
               }
               bridge.lights
                 .getById(parseInt(server.lightNew))
@@ -266,14 +266,22 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       });
                   }
                   if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                    bridge.scenes
-                      .recall(client.scrobble)
-                      .then(() => {
-                        console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                      })
-                      .catch((error) => {
-                        console.error(error.stack);
-                      });
+                    const recallScrobbleScene = () =>
+                      bridge.scenes
+                        .recall(client.scrobble)
+                        .then(() => {
+                          console.info(`Scrobble scene was recalled for ${client.media} on ${client.client.name}`);
+                        })
+                        .catch((error) => {
+                          console.error(error.stack);
+                        });
+                                        
+                    if (client.scrobbleDelayMs) {
+                      console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`)
+                      setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
+                    } else {
+                      recallScrobbleScene(); 
+                    }
                   }
                 }
               }

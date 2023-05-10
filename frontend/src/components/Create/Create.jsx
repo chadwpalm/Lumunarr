@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
-import crc from "crc-32";
 import { v4 as uuid } from "uuid";
 import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
@@ -8,6 +7,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import Stack from "react-bootstrap/Stack";
 
 export default class Create extends Component {
   constructor(props) {
@@ -29,6 +29,7 @@ export default class Create extends Component {
         stopScene: info.stop,
         resumeScene: info.resume,
         scrobble: info.scrobble,
+        scrobbleDelayMs: info.scrobbleDelayMs ?? 0,
         active: info.active,
         groupsList: [],
         userList: [],
@@ -56,6 +57,7 @@ export default class Create extends Component {
         stopScene: "-1",
         resumeScene: "-1",
         scrobble: "-1",
+        scrobbleDelayMs: 0,
         active: true,
         groupsList: [],
         userList: [],
@@ -161,6 +163,7 @@ export default class Create extends Component {
     temp.pause = this.state.pauseScene;
     temp.resume = this.state.resumeScene;
     temp.scrobble = this.state.scrobble;
+    temp.scrobbleDelayMs = this.state.scrobbleDelayMs;
     temp.active = this.state.active;
 
     if (this.props.isEdit) {
@@ -284,6 +287,12 @@ export default class Create extends Component {
     });
   };
 
+  handleScrobbleDelay = (e) => {
+    this.setState({
+      scrobbleDelayMs: e.target.value.toString(),
+    });
+  }
+
   handleClose = () => this.setState({ show: false, show2: false });
 
   render() {
@@ -315,7 +324,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.clientId} id="client" name="client" onChange={this.handleClient} size="sm">
@@ -349,7 +358,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.userId} id="user" name="user" onChange={this.handleUser} size="sm">
@@ -374,7 +383,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.media} id="media" name="media" onChange={this.handleMedia} size="sm">
@@ -392,7 +401,7 @@ export default class Create extends Component {
                 placement="right"
                 overlay={<Tooltip>This is the room/group of lights you want to use.</Tooltip>}
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
@@ -414,7 +423,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
@@ -437,7 +446,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
@@ -460,7 +469,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.pauseScene} id="pause" name="pause" onChange={this.handlePause} size="sm">
@@ -483,7 +492,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
@@ -520,7 +529,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
@@ -536,6 +545,34 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
+            <div style={{ paddingBottom: "0.75rem" }} />
+            <Form.Label for="scrobbleDelay">
+              Scrobble Delay (ms) &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    Plex tends to send the scrobble event a second or two before the credits start rolling. You can use this to delay the effect by a few seconds.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} alt="Info" />
+              </OverlayTrigger>
+            </Form.Label>
+            <Stack gap={1} direction="horizontal">
+              <Form.Range
+                id="scrobbleDelay"
+                className="me-auto"
+                value={this.state.scrobbleDelayMs}
+                min={0}
+                max={5000}
+                step={100}
+                onChange={this.handleScrobbleDelay} 
+              />
+              <div style={{ width: 80, textAlign: 'right' }}>
+                {this.state.scrobbleDelayMs} ms
+              </div>
+            </Stack>
             <div style={{ paddingBottom: "0.75rem" }} />
             {/* Cancel/Save */}
             <Button onClick={this.props.cancel} variant="light">
