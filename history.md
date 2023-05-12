@@ -1,5 +1,11 @@
 # HuePlex Version History
 
+## 1.2.0
+
+### Added
+
+- Changed Intervals and Brightness on Server page to range sliders
+
 ## 1.1.0
 
 ### Added

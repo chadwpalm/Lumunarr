@@ -6,6 +6,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Loading from "../../images/loading-gif.gif";
+import Stack from "react-bootstrap/Stack";
 
 export default class Server extends Component {
   constructor(props) {
@@ -43,13 +44,13 @@ export default class Server extends Component {
         lightPlay: "-1",
         behaviorPlay: "-1",
         colorPlay: "-1",
-        brightnessPlay: "-1",
-        intervalsPlay: "-1",
+        brightnessPlay: "5",
+        intervalsPlay: "1",
         lightNew: "-1",
         behaviorNew: "-1",
         colorNew: "-1",
-        brightnessNew: "-1",
-        intervalsNew: "-1",
+        brightnessNew: "5",
+        intervalsNew: "1",
         groupsList: [],
         lightList: [],
         roomLightListPlay: [],
@@ -394,20 +395,19 @@ export default class Server extends Component {
                       <img src={Info} />
                     </OverlayTrigger>
                   </Form.Label>
-                  <Form.Select
-                    value={this.state.intervalsPlay}
-                    id="intervalsPlay"
-                    name="intervalsPlay"
-                    onChange={this.handleIntervalsPlay}
-                    size="sm"
-                    disabled={this.state.isOffPlay}
-                  >
-                    <option value="-1">Select Intervals</option>
-                    <option value="1">1</option>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                  </Form.Select>
+                  <Stack gap={1} direction="horizontal">
+                    <div style={{ width: 40, textAlign: "left" }}>{this.state.intervalsPlay}</div>
+                    <Form.Range
+                      id="intervalsPlay"
+                      className="me-auto"
+                      value={this.state.intervalsPlay}
+                      min={1}
+                      max={10}
+                      step={1}
+                      onChange={this.handleIntervalsPlay}
+                      disabled={this.state.isOffPlay}
+                    />
+                  </Stack>
                   <div style={{ paddingBottom: "0.75rem" }} />
                 </>
               ) : (
@@ -446,26 +446,19 @@ export default class Server extends Component {
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
-              <Form.Select
-                value={this.state.brightnessPlay}
-                id="brightnessPlay"
-                name="brightnessPlay"
-                onChange={this.handleBrightnessPlay}
-                size="sm"
-                disabled={this.state.isOffPlay}
-              >
-                <option value="-1">Select Brightness</option>
-                <option value="10">10%</option>
-                <option value="20">20%</option>
-                <option value="30">30%</option>
-                <option value="40">40%</option>
-                <option value="50">50%</option>
-                <option value="60">60%</option>
-                <option value="70">70%</option>
-                <option value="80">80%</option>
-                <option value="90">90%</option>
-                <option value="100">100%</option>
-              </Form.Select>
+              <Stack gap={1} direction="horizontal">
+                <div style={{ width: 50, textAlign: "left" }}>{this.state.brightnessPlay}%</div>
+                <Form.Range
+                  id="brightnessPlay"
+                  className="me-auto"
+                  value={this.state.brightnessPlay}
+                  min={5}
+                  max={100}
+                  step={5}
+                  onChange={this.handleBrightnessPlay}
+                  disabled={this.state.isOffPlay}
+                />
+              </Stack>
               <div style={{ paddingBottom: "1.5rem" }} />
               <h5>
                 Library New &nbsp;&nbsp;
@@ -565,20 +558,18 @@ export default class Server extends Component {
                       <img src={Info} />
                     </OverlayTrigger>
                   </Form.Label>
-                  <Form.Select
-                    value={this.state.intervalsNew}
-                    id="intervalsNew"
-                    name="intervalsNew"
-                    onChange={this.handleIntervalsNew}
-                    size="sm"
-                    disabled={this.state.isOffNew}
-                  >
-                    <option value="-1">Select Intervals</option>
-                    <option value="1">1</option>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                  </Form.Select>
+                  <Stack gap={1} direction="horizontal">
+                    <div style={{ width: 40, textAlign: "left" }}>{this.state.intervalsNew}</div>
+                    <Form.Range
+                      id="intervalsNew"
+                      className="me-auto"
+                      value={this.state.intervalsNew}
+                      min={1}
+                      max={10}
+                      step={1}
+                      onChange={this.handleIntervalsNew}
+                    />
+                  </Stack>
                   <div style={{ paddingBottom: "0.75rem" }} />
                 </>
               ) : (
@@ -617,26 +608,19 @@ export default class Server extends Component {
                   <img src={Info} />
                 </OverlayTrigger>
               </Form.Label>
-              <Form.Select
-                value={this.state.brightnessNew}
-                id="brightnessNew"
-                name="brightnessNew"
-                onChange={this.handleBrightnessNew}
-                size="sm"
-                disabled={this.state.isOffNew}
-              >
-                <option value="-1">Select Brightness</option>
-                <option value="10">10%</option>
-                <option value="20">20%</option>
-                <option value="30">30%</option>
-                <option value="40">40%</option>
-                <option value="50">50%</option>
-                <option value="60">60%</option>
-                <option value="70">70%</option>
-                <option value="80">80%</option>
-                <option value="90">90%</option>
-                <option value="100">100%</option>
-              </Form.Select>
+              <Stack gap={1} direction="horizontal">
+                <div style={{ width: 50, textAlign: "left" }}>{this.state.brightnessNew}%</div>
+                <Form.Range
+                  id="brightnessNew"
+                  className="me-auto"
+                  value={this.state.brightnessNew}
+                  min={5}
+                  max={100}
+                  step={5}
+                  onChange={this.handleBrightnessNew}
+                  disabled={this.state.isOffNew}
+                />
+              </Stack>
               <div style={{ paddingBottom: "0.75rem" }} />
               {/* Cancel/Save */}
               {this.state.isEdit ? (
@@ -653,6 +637,7 @@ export default class Server extends Component {
               ) : (
                 <></>
               )}
+              <div style={{ paddingBottom: "1rem" }} />
             </Form>
           </Row>
         </>

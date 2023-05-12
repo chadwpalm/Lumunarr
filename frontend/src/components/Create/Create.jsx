@@ -291,7 +291,7 @@ export default class Create extends Component {
     this.setState({
       scrobbleDelayMs: e.target.value.toString(),
     });
-  }
+  };
 
   handleClose = () => this.setState({ show: false, show2: false });
 
@@ -407,7 +407,9 @@ export default class Create extends Component {
             <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
               <option value="-1">Select Room</option>
               {this.state.groupsList.map((group) => (
-                <option value={group.Room}>{group.Room} ({group.Type})</option>
+                <option value={group.Room}>
+                  {group.Room} ({group.Type})
+                </option>
               ))}
             </Form.Select>
             <div style={{ paddingBottom: "0.75rem" }} />
@@ -552,7 +554,8 @@ export default class Create extends Component {
                 placement="right"
                 overlay={
                   <Tooltip>
-                    Plex tends to send the scrobble event a second or two before the credits start rolling. You can use this to delay the effect by a few seconds.
+                    Plex tends to send the scrobble event a second or two before the credits start rolling. You can use
+                    this to delay the effect by a few seconds.
                   </Tooltip>
                 }
               >
@@ -567,11 +570,9 @@ export default class Create extends Component {
                 min={0}
                 max={5000}
                 step={100}
-                onChange={this.handleScrobbleDelay} 
+                onChange={this.handleScrobbleDelay}
               />
-              <div style={{ width: 80, textAlign: 'right' }}>
-                {this.state.scrobbleDelayMs} ms
-              </div>
+              <div style={{ width: 80, textAlign: "right" }}>{this.state.scrobbleDelayMs} ms</div>
             </Stack>
             <div style={{ paddingBottom: "0.75rem" }} />
             {/* Cancel/Save */}
