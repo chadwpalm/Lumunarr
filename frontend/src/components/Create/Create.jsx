@@ -30,6 +30,13 @@ export default class Create extends Component {
         resumeScene: info.resume,
         scrobble: info.scrobble,
         scrobbleDelayMs: info.scrobbleDelayMs ?? 0,
+        scheduleType: info.scheduleType ?? "0",
+        startHour: info.startHour ?? "1",
+        startMin: info.startMin ?? "0",
+        startMed: info.startMed ?? "1",
+        endHour: info.endHour ?? "1",
+        endMin: info.endMin ?? "0",
+        endMed: info.startMed ?? "1",
         active: info.active,
         groupsList: [],
         userList: [],
@@ -58,6 +65,13 @@ export default class Create extends Component {
         resumeScene: "-1",
         scrobble: "-1",
         scrobbleDelayMs: 0,
+        scheduleType: "0",
+        startHour: "1",
+        startMin: "0",
+        startMed: "1",
+        endHour: "1",
+        endMin: "0",
+        endMed: "1",
         active: true,
         groupsList: [],
         userList: [],
@@ -164,6 +178,13 @@ export default class Create extends Component {
     temp.resume = this.state.resumeScene;
     temp.scrobble = this.state.scrobble;
     temp.scrobbleDelayMs = this.state.scrobbleDelayMs;
+    temp.scheduleType = this.state.scheduleType;
+    temp.startHour = this.state.startHour;
+    temp.startMin = this.state.startMin;
+    temp.startMed = this.state.startMed;
+    temp.endHour = this.state.endHour;
+    temp.endMin = this.state.endMin;
+    temp.endMed = this.state.endMed;
     temp.active = this.state.active;
 
     if (this.props.isEdit) {
@@ -293,6 +314,33 @@ export default class Create extends Component {
     });
   };
 
+  handleSchedule = (e) => {
+    this.setState({ scheduleType: e.target.value.toString() });
+  };
+
+  handleTime = (e) => {
+    switch (e.target.name) {
+      case "startHour":
+        this.setState({ startHour: e.target.value.toString() });
+        break;
+      case "startMin":
+        this.setState({ startMin: e.target.value.toString() });
+        break;
+      case "startMed":
+        this.setState({ startMed: e.target.value.toString() });
+        break;
+      case "endHour":
+        this.setState({ endHour: e.target.value.toString() });
+        break;
+      case "endMin":
+        this.setState({ endMin: e.target.value.toString() });
+        break;
+      case "endMed":
+        this.setState({ endMed: e.target.value.toString() });
+        break;
+    }
+  };
+
   handleClose = () => this.setState({ show: false, show2: false });
 
   render() {
@@ -309,6 +357,14 @@ export default class Create extends Component {
         </div>
       );
     } else {
+      const options = [];
+      for (var i = 0; i < 60; i++) {
+        options.push(
+          <option value={i.toString()}>
+            {i.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false })}
+          </option>
+        );
+      }
       return (
         <div>
           <Form onSubmit={this.handleFormSubmit}>
@@ -548,6 +604,7 @@ export default class Create extends Component {
               ))}
             </Form.Select>
             <div style={{ paddingBottom: "0.75rem" }} />
+            {/* Scrobble Delay */}
             <Form.Label for="scrobbleDelay">
               Scrobble Delay (ms) &nbsp;&nbsp;
               <OverlayTrigger
@@ -575,6 +632,178 @@ export default class Create extends Component {
               <div style={{ width: 80, textAlign: "right" }}>{this.state.scrobbleDelayMs} ms</div>
             </Stack>
             <div style={{ paddingBottom: "0.75rem" }} />
+            {/* Schedule */}
+            <Form.Label for="schedule">
+              Schedule &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    Add a schedule for when the triggers will be active.
+                    <br />
+                    <br />
+                    None: There will be no schedule. Profiles will be active based on the switch located on the profile
+                    tile.
+                    <br />
+                    <br />
+                    Global: Use the global setting for schedules.
+                    <br />
+                    <br />
+                    Range: The schedule will be based on a time range daily.
+                    <br />
+                    <br />
+                    Sunset/Sunrise: The active schedule will be between sunset and sunrise.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} alt="Schedule" />
+              </OverlayTrigger>
+            </Form.Label>
+            <div>
+              <Form.Check
+                inline
+                type="radio"
+                label="None"
+                value="0"
+                id="schedule"
+                name="schedule"
+                onChange={this.handleSchedule}
+                size="sm"
+                checked={this.state.scheduleType === "0"}
+              />
+              <Form.Check
+                inline
+                type="radio"
+                label="Global"
+                value="3"
+                id="schedule"
+                name="schedule"
+                onChange={this.handleSchedule}
+                size="sm"
+                checked={this.state.scheduleType === "3"}
+              />
+              <Form.Check
+                inline
+                type="radio"
+                label="Range"
+                value="1"
+                id="schedule"
+                name="schedule"
+                onChange={this.handleSchedule}
+                size="sm"
+                checked={this.state.scheduleType === "1"}
+              />
+              <Form.Check
+                inline
+                type="radio"
+                label="Sunset/Sunrise"
+                value="2"
+                id="schedule"
+                name="schedule"
+                onChange={this.handleSchedule}
+                size="sm"
+                checked={this.state.scheduleType === "2"}
+              />
+            </div>
+            <div style={{ paddingBottom: "0.75rem" }} />
+            {this.state.scheduleType === "1" ? (
+              <>
+                <Stack gap={1} direction="horizontal">
+                  Start:&nbsp;&nbsp;
+                  <Form.Select
+                    value={this.state.startHour}
+                    id="startHour"
+                    name="startHour"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "65px" }}
+                  >
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </Form.Select>
+                  <Form.Select
+                    value={this.state.startMin}
+                    id="startMin"
+                    name="startMin"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "65px" }}
+                  >
+                    {options}
+                  </Form.Select>
+                  <Form.Select
+                    value={this.state.startMed}
+                    id="startMed"
+                    name="startMed"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "68px" }}
+                  >
+                    <option value="1">AM</option>
+                    <option value="2">PM</option>
+                  </Form.Select>
+                </Stack>
+                <div style={{ paddingBottom: "0.50rem" }} />
+                <Stack gap={1} direction="horizontal">
+                  End:&nbsp;&nbsp;&nbsp;&nbsp;
+                  <Form.Select
+                    value={this.state.endHour}
+                    id="endHour"
+                    name="endHour"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "65px" }}
+                  >
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </Form.Select>
+                  <Form.Select
+                    value={this.state.endMin}
+                    id="endMin"
+                    name="endMin"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "65px" }}
+                  >
+                    {options}
+                  </Form.Select>
+                  <Form.Select
+                    value={this.state.endMed}
+                    id="endMed"
+                    name="endMed"
+                    onChange={this.handleTime}
+                    size="sm"
+                    style={{ width: "68px" }}
+                  >
+                    <option value="1">AM</option>
+                    <option value="2">PM</option>
+                  </Form.Select>
+                </Stack>
+                <div style={{ paddingBottom: "0.75rem" }} />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Cancel/Save */}
             <Button onClick={this.props.cancel} variant="light">
               Cancel

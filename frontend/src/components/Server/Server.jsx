@@ -441,7 +441,7 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
+                  overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
                   <img src={Info} />
                 </OverlayTrigger>
@@ -603,7 +603,7 @@ export default class Server extends Component {
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
-                  overlay={<Tooltip>Select brightness for the light. Use number from 10% to 100%.</Tooltip>}
+                  overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
                   <img src={Info} />
                 </OverlayTrigger>

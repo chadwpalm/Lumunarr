@@ -2,6 +2,11 @@
 
 ## 1.2.0
 
+### Fixed
+
+- Issue with blink on Library New
+- Login issue where Plex credentials weren't saving for some users
+
 ### Added
 
 - Changed Intervals and Brightness on Server page to range sliders

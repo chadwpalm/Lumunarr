@@ -142,13 +142,12 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 });
             }
             if (server.behaviorNew === "2") {
-              let tHue, tSat, tOn, tTrans, tBri;
+              let tHue, tSat, tOn, tBri;
 
               bridge.lights
                 .getById(parseInt(server.lightNew))
                 .then((light) => {
                   tOn = light.on;
-                  tTrans = light.transitionTime;
                   tHue = light.hue;
                   tSat = light.saturation;
                   tBri = light.brightness;
@@ -198,7 +197,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 .getById(parseInt(server.lightNew))
                 .then((light) => {
                   light.on = tOn;
-                  light.transitionTime = tTrans;
                   light.hue = tHue;
                   light.saturation = tSat;
                   light.brightness = tBri;
@@ -275,12 +273,12 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         .catch((error) => {
                           console.error(error.stack);
                         });
-                                        
+
                     if (client.scrobbleDelayMs) {
-                      console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`)
+                      console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);
                       setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
                     } else {
-                      recallScrobbleScene(); 
+                      recallScrobbleScene();
                     }
                   }
                 }
