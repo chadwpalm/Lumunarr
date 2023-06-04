@@ -37,6 +37,8 @@ export default class Create extends Component {
         endHour: info.endHour ?? "1",
         endMin: info.endMin ?? "0",
         endMed: info.startMed ?? "1",
+        transitionType: info.transitionType ?? "1",
+        transition: info.transition ?? "400",
         active: info.active,
         groupsList: [],
         userList: [],
@@ -72,6 +74,8 @@ export default class Create extends Component {
         endHour: "1",
         endMin: "0",
         endMed: "1",
+        transitionType: "1",
+        transition: "400",
         active: true,
         groupsList: [],
         userList: [],
@@ -185,6 +189,8 @@ export default class Create extends Component {
     temp.endHour = this.state.endHour;
     temp.endMin = this.state.endMin;
     temp.endMed = this.state.endMed;
+    temp.transitionType = this.state.transitionType;
+    temp.transition = this.state.transition;
     temp.active = this.state.active;
 
     if (this.props.isEdit) {
@@ -311,6 +317,18 @@ export default class Create extends Component {
   handleScrobbleDelay = (e) => {
     this.setState({
       scrobbleDelayMs: e.target.value.toString(),
+    });
+  };
+
+  handleTransition = (e) => {
+    this.setState({
+      transition: e.target.value.toString(),
+    });
+  };
+
+  handleTransitionType = (e) => {
+    this.setState({
+      transitionType: e.target.value.toString(),
     });
   };
 
@@ -632,6 +650,60 @@ export default class Create extends Component {
               <div style={{ width: 80, textAlign: "right" }}>{this.state.scrobbleDelayMs} ms</div>
             </Stack>
             <div style={{ paddingBottom: "0.75rem" }} />
+            {/* Scene Transition */}
+            <Form.Label for="transition">
+              Scene Transition Time (s) &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={<Tooltip>This is the time in seconds for the scene to transition.</Tooltip>}
+              >
+                <img src={Info} alt="Info" />
+              </OverlayTrigger>
+            </Form.Label>
+            <div>
+              <Form.Check
+                inline
+                type="radio"
+                label="Local"
+                value="1"
+                id="transition"
+                name="transition"
+                onChange={this.handleTransitionType}
+                size="sm"
+                checked={this.state.transitionType === "1"}
+              />
+              <Form.Check
+                inline
+                type="radio"
+                label="Global"
+                value="2"
+                id="transition"
+                name="transition"
+                onChange={this.handleTransitionType}
+                size="sm"
+                checked={this.state.transitionType === "2"}
+              />
+            </div>
+            <div style={{ paddingBottom: "0.75rem" }} />
+            {this.state.transitionType === "1" ? (
+              <>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="transition"
+                    className="me-auto"
+                    value={this.state.transition}
+                    min={200}
+                    max={10000}
+                    step={200}
+                    onChange={this.handleTransition}
+                  />
+                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} ms</div>
+                </Stack>
+                <div style={{ paddingBottom: "0.75rem" }} />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Schedule */}
             <Form.Label for="schedule">
               Schedule &nbsp;&nbsp;

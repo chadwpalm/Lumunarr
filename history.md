@@ -10,6 +10,9 @@
 ### Added
 
 - Changed Intervals and Brightness on Server page to range sliders
+- Added a schedule that can be used locally or globally which includes sunrise/sunset times by location
+- Added scene change transition times for each profile {[#11](https://github.com/chadwpalm/HuePlex/issues/11)}
+- Added a settings page to house global settings
 
 ## 1.1.0
 
