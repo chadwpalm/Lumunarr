@@ -7,6 +7,7 @@ import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
 import Device from "../Device/Device";
 import Server from "../Server/Server";
+import Settings from "../Settings/Settings";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Nav from "react-bootstrap/Nav";
@@ -198,10 +199,22 @@ export default class App extends Component {
                           </LinkContainer>
                         </>
                       )}
-
                       <LinkContainer to="/bridge">
                         <Nav.Link>Bridge</Nav.Link>
                       </LinkContainer>
+                      {!this.state.isConnected ? (
+                        <>
+                          <LinkContainer to="/settings">
+                            <Nav.Link disabled>Settings</Nav.Link>
+                          </LinkContainer>
+                        </>
+                      ) : (
+                        <>
+                          <LinkContainer to="/settings">
+                            <Nav.Link>Settings</Nav.Link>
+                          </LinkContainer>
+                        </>
+                      )}
                     </Nav>
                     <Nav className="ms-auto">
                       <NavDropdown
@@ -314,6 +327,7 @@ export default class App extends Component {
                     <>
                       <Route path="/" element={<Device settings={this.state.config} />} />
                       <Route path="/server" element={<Server settings={this.state.config} />} />
+                      <Route path="/settings" element={<Settings settings={this.state.config} />} />
                       <Route path="*" element={<Navigate replace to="/" />} />
                     </>
                   )}
