@@ -76,6 +76,25 @@ async function isSunRiseSet(lat, long) {
   return sunset <= currentEpoch && sunrise + 86400000 > currentEpoch;
 }
 
+async function setScene(scene, transition, ip, user) {
+  var url = `http://${ip}/api/${user}/groups/0/action`;
+
+  await axios
+    .put(
+      url,
+      { scene: `${scene}`, transitiontime: transition },
+      { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
+    )
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      if (error.request) {
+        console.error(error);
+      }
+    });
+}
+
 function convertToMinutes(time) {
   const [hours, minutes] = time.split(":");
   return parseInt(hours) * 60 + parseInt(minutes);
@@ -323,55 +342,91 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
                   ) {
                     if (payload.event === "media.play" && client.play !== "None") {
-                      bridge.scenes
-                        .recall(client.play)
-                        .then(() => {
-                          console.info(`Play scene was recalled for ${client.media} on ${client.client.name}`);
-                        })
-                        .catch((error) => {
-                          console.error(error.stack);
-                        });
+                      if (client.transitionType == "1") {
+                        await setScene(
+                          client.play,
+                          parseFloat(client.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      } else {
+                        await setScene(
+                          client.play,
+                          parseFloat(global.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      }
                     }
                     if (payload.event === "media.stop" && client.stop !== "None") {
-                      bridge.scenes
-                        .recall(client.stop)
-                        .then(() => {
-                          console.info(`Stop scene was recalled for ${client.media} on ${client.client.name}`);
-                        })
-                        .catch((error) => {
-                          console.error(error.stack);
-                        });
+                      if (client.transitionType == "1") {
+                        await setScene(
+                          client.stop,
+                          parseFloat(client.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      } else {
+                        await setScene(
+                          client.stop,
+                          parseFloat(global.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      }
                     }
                     if (payload.event === "media.pause" && client.pause !== "None") {
-                      bridge.scenes
-                        .recall(client.pause)
-                        .then(() => {
-                          console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                        })
-                        .catch((error) => {
-                          console.error(error.stack);
-                        });
+                      if (client.transitionType == "1") {
+                        await setScene(
+                          client.pause,
+                          parseFloat(client.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      } else {
+                        await setScene(
+                          client.pause,
+                          parseFloat(global.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      }
                     }
                     if (payload.event === "media.resume" && client.resume !== "None") {
-                      bridge.scenes
-                        .recall(client.resume)
-                        .then(() => {
-                          console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                        })
-                        .catch((error) => {
-                          console.error(error.stack);
-                        });
+                      if (client.transitionType == "1") {
+                        await setScene(
+                          client.resume,
+                          parseFloat(client.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      } else {
+                        await setScene(
+                          client.resume,
+                          parseFloat(global.transition) * 10,
+                          settings.bridge.ip,
+                          settings.bridge.user
+                        );
+                      }
                     }
                     if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                      const recallScrobbleScene = () =>
-                        bridge.scenes
-                          .recall(client.scrobble)
-                          .then(() => {
-                            console.info(`Scrobble scene was recalled for ${client.media} on ${client.client.name}`);
-                          })
-                          .catch((error) => {
-                            console.error(error.stack);
-                          });
+                      const recallScrobbleScene = async () => {
+                        if (client.transitionType == "1") {
+                          await setScene(
+                            client.scrobble,
+                            parseFloat(client.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                        } else {
+                          await setScene(
+                            client.scrobble,
+                            parseFloat(global.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                        }
+                      };
 
                       if (client.scrobbleDelayMs) {
                         console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);

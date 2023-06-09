@@ -38,7 +38,7 @@ export default class Create extends Component {
         endMin: info.endMin ?? "0",
         endMed: info.startMed ?? "1",
         transitionType: info.transitionType ?? "1",
-        transition: info.transition ?? "400",
+        transition: info.transition ?? "0.4",
         active: info.active,
         groupsList: [],
         userList: [],
@@ -75,7 +75,7 @@ export default class Create extends Component {
         endMin: "0",
         endMed: "1",
         transitionType: "1",
-        transition: "400",
+        transition: "0.4",
         active: true,
         groupsList: [],
         userList: [],
@@ -692,12 +692,12 @@ export default class Create extends Component {
                     id="transition"
                     className="me-auto"
                     value={this.state.transition}
-                    min={200}
-                    max={10000}
-                    step={200}
+                    min={0.2}
+                    max={10}
+                    step={0.2}
                     onChange={this.handleTransition}
                   />
-                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} ms</div>
+                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
                 </Stack>
                 <div style={{ paddingBottom: "0.75rem" }} />
               </>
