@@ -85,9 +85,15 @@ export default class Client extends Component {
         <Card.Footer className="border-top-0" style={{ backgroundColor: "#f8f9fa", padding: "5px" }}>
           <Row>
             <Col>
-              <div style={{ textAlign: "left" }}>
-                <Form.Switch onChange={this.handleCheck} defaultChecked={this.state.active} />
-              </div>
+              {this.props.isEdit || this.props.isCreating ? (
+                <div style={{ textAlign: "left" }}>
+                  <Form.Switch onChange={this.handleCheck} defaultChecked={this.state.active} disabled />
+                </div>
+              ) : (
+                <div style={{ textAlign: "left" }}>
+                  <Form.Switch onChange={this.handleCheck} defaultChecked={this.state.active} />
+                </div>
+              )}
             </Col>
             <Col>
               <div style={{ textAlign: "right" }}>
