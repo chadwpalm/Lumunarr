@@ -76,17 +76,17 @@ async function isSunRiseSet(lat, long) {
   return sunset <= currentEpoch && sunrise + 86400000 > currentEpoch;
 }
 
-async function setScene(scene, transition, ip, user) {
+function setScene(scene, transition, ip, user) {
   var url = `http://${ip}/api/${user}/groups/0/action`;
 
-  await axios
+  axios
     .put(
       url,
       { scene: `${scene}`, transitiontime: transition },
-      { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
+      { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
     )
     .then(function (response) {
-      console.log(response);
+      // console.log(response);
     })
     .catch(function (error) {
       if (error.request) {
@@ -98,6 +98,49 @@ async function setScene(scene, transition, ip, user) {
 function convertToMinutes(time) {
   const [hours, minutes] = time.split(":");
   return parseInt(hours) * 60 + parseInt(minutes);
+}
+
+async function turnoffGroup(room, ip, user, transition) {
+  var url = `http://${ip}/api/${user}/groups/`;
+  var groups = {};
+  var groupNum;
+
+  await axios
+    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .then(function (response) {
+      groups = response.data;
+    })
+    .catch(function (error) {
+      if (error.request) {
+        console.error("Could not retrieve groups.");
+      }
+    });
+
+  for (const [key, value] of Object.entries(groups)) {
+    try {
+      if (value.name === room) {
+        groupNum = key;
+      }
+    } catch (error) {
+      console.error("GroupList: ", error);
+    }
+  }
+  var url = `http://${ip}/api/${user}/groups/${groupNum}/action`;
+
+  axios
+    .put(
+      url,
+      { transitiontime: transition * 10, on: false },
+      { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
+    )
+    .then(function (response) {
+      // console.log(response);
+    })
+    .catch(function (error) {
+      if (error.request) {
+        console.error(error);
+      }
+    });
 }
 
 router.post("/", upload.single("thumb"), async function (req, res, next) {
@@ -343,88 +386,138 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   ) {
                     if (payload.event === "media.play" && client.play !== "None") {
                       if (client.transitionType == "1") {
-                        await setScene(
-                          client.play,
-                          parseFloat(client.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.play === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                        } else {
+                          setScene(
+                            client.play,
+                            parseFloat(client.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       } else {
-                        await setScene(
-                          client.play,
-                          parseFloat(global.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.play === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                        } else {
+                          setScene(
+                            client.play,
+                            parseFloat(global.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       }
                     }
                     if (payload.event === "media.stop" && client.stop !== "None") {
                       if (client.transitionType == "1") {
-                        await setScene(
-                          client.stop,
-                          parseFloat(client.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.stop === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                        } else {
+                          setScene(
+                            client.stop,
+                            parseFloat(client.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       } else {
-                        await setScene(
-                          client.stop,
-                          parseFloat(global.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.stop === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                        } else {
+                          setScene(
+                            client.stop,
+                            parseFloat(global.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       }
                     }
                     if (payload.event === "media.pause" && client.pause !== "None") {
                       if (client.transitionType == "1") {
-                        await setScene(
-                          client.pause,
-                          parseFloat(client.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.pause === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                        } else {
+                          setScene(
+                            client.pause,
+                            parseFloat(client.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       } else {
-                        await setScene(
-                          client.pause,
-                          parseFloat(global.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.pause === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                        } else {
+                          setScene(
+                            client.pause,
+                            parseFloat(global.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       }
                     }
                     if (payload.event === "media.resume" && client.resume !== "None") {
                       if (client.transitionType == "1") {
-                        await setScene(
-                          client.resume,
-                          parseFloat(client.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.resume === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                        } else {
+                          setScene(
+                            client.resume,
+                            parseFloat(client.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       } else {
-                        await setScene(
-                          client.resume,
-                          parseFloat(global.transition) * 10,
-                          settings.bridge.ip,
-                          settings.bridge.user
-                        );
+                        if (client.resume === "Off") {
+                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                        } else {
+                          setScene(
+                            client.resume,
+                            parseFloat(global.transition) * 10,
+                            settings.bridge.ip,
+                            settings.bridge.user
+                          );
+                          console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                        }
                       }
                     }
                     if (payload.event === "media.scrobble" && client.scrobble !== "None") {
                       const recallScrobbleScene = async () => {
                         if (client.transitionType == "1") {
-                          await setScene(
-                            client.scrobble,
-                            parseFloat(client.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
+                          if (client.scrobble === "Off") {
+                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                          } else {
+                            setScene(
+                              client.scrobble,
+                              parseFloat(client.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                          }
                         } else {
-                          await setScene(
-                            client.scrobble,
-                            parseFloat(global.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
+                          if (client.scrobble === "Off") {
+                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                          } else {
+                            setScene(
+                              client.scrobble,
+                              parseFloat(global.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                          }
                         }
                       };
 

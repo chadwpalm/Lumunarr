@@ -505,6 +505,7 @@ export default class Create extends Component {
             <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
               <option value="-1">Select Play Action Scene</option>
               <option value="None">None</option>
+              <option value="Off">Off</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
@@ -528,6 +529,7 @@ export default class Create extends Component {
             <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
               <option value="-1">Select Stop Action Scene</option>
               <option value="None">None</option>
+              <option value="Off">Off</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
@@ -551,6 +553,7 @@ export default class Create extends Component {
             <Form.Select value={this.state.pauseScene} id="pause" name="pause" onChange={this.handlePause} size="sm">
               <option value="-1">Select Pause Action Scene</option>
               <option value="None">None</option>
+              <option value="Off">Off</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
@@ -580,6 +583,7 @@ export default class Create extends Component {
             >
               <option value="-1">Select Resume Action Scene</option>
               <option value="None">None</option>
+              <option value="Off">Off</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
@@ -617,6 +621,7 @@ export default class Create extends Component {
             >
               <option value="-1">Select Scrobble Action Scene</option>
               <option value="None">None</option>
+              <option value="Off">Off</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}

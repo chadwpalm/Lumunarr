@@ -5,7 +5,7 @@
 ### Fixed
 
 - Issue with blink on Library New
-- Login issue where Plex credentials weren't saving for some users
+- Profile on/off switches disabled during edit/create
 
 ### Added
 
