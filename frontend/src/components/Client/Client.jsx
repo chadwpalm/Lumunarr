@@ -57,9 +57,9 @@ export default class Client extends Component {
           style={{ backgroundColor: "#f8f9fa", padding: "5px", textAlign: "right" }}
         >
           {this.props.isEdit || this.props.isCreating ? (
-            <img src={Xclose} />
+            <img src={Xclose} alt="Close" />
           ) : (
-            <img src={Xclose} onClick={this.handleDelete} style={{ cursor: "pointer" }} />
+            <img src={Xclose} onClick={this.handleDelete} style={{ cursor: "pointer" }} alt="Close" />
           )}
         </Card.Header>
         <Card.Subtitle
@@ -92,14 +92,14 @@ export default class Client extends Component {
             <Col>
               <div style={{ textAlign: "right" }}>
                 {this.props.isEdit || this.props.isCreating ? (
-                  <img src={Edit} />
+                  <img src={Edit} alt="Edit" />
                 ) : (
                   <button
                     value={this.state.id}
                     onClick={this.handleClick}
                     style={{ margin: 0, padding: 0, borderWidth: "0px", backgroundColor: "inherit" }}
                   >
-                    <img src={Edit} />
+                    <img src={Edit} alt="Edit" />
                   </button>
                 )}
               </div>

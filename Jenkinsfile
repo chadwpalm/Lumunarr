@@ -36,7 +36,8 @@ pipeline {
           def APPVersion = "${PulledVersion}.${BuildNumber}"
           sh "docker build --force-rm --pull --build-arg BUILD='${BuildNumber}' -t ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:develop-${APPVersion} ${REPO}/${IMAGE_NAME}:develop"
-          sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
+          sh "docker push ${REPO}/${IMAGE_NAME}:develop-${APPVersion}"
+          sh "docker push ${REPO}/${IMAGE_NAME}:develop"          
           sh "docker rmi ${REPO}/${IMAGE_NAME}:develop-${APPVersion}"
         }
         
@@ -57,7 +58,8 @@ pipeline {
           def APPVersion = "${PulledVersion}.${BuildNumber}"
           sh "docker build --force-rm --pull --build-arg BUILD='${BuildNumber}' -t ${REPO}/${IMAGE_NAME}:${APPVersion} ."
           sh "docker tag ${REPO}/${IMAGE_NAME}:${APPVersion} ${REPO}/${IMAGE_NAME}:latest"
-          sh "docker push --all-tags ${REPO}/${IMAGE_NAME}"
+          sh "docker push ${REPO}/${IMAGE_NAME}:${APPVersion}"
+          sh "docker push ${REPO}/${IMAGE_NAME}:latest"
           sh "docker rmi ${REPO}/${IMAGE_NAME}:${APPVersion}"
         }
       }
@@ -87,3 +89,4 @@ pipeline {
     }
   }
 }
+
