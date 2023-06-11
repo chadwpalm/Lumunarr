@@ -14,6 +14,12 @@
 - Added scene change transition times for each profile {[#11](https://github.com/chadwpalm/HuePlex/issues/11)}
 - Added a settings page to house global settings
 
+## 1.1.1
+
+### Fixed
+
+- Login issue where Plex credentials weren't saving for some users
+
 ## 1.1.0
 
 ### Added
