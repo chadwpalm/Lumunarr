@@ -1,5 +1,11 @@
 # HuePlex Version History
 
+## 1.1.1
+
+### Fixed
+
+- Login issue where Plex credentials weren't saving for some users
+
 ## 1.1.0
 
 ### Added
