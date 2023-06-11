@@ -388,6 +388,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (client.transitionType == "1") {
                         if (client.play === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                          console.info("Play trigger has turned off lights");
                         } else {
                           setScene(
                             client.play,
@@ -400,6 +401,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       } else {
                         if (client.play === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                          console.info("Play trigger has turned off lights");
                         } else {
                           setScene(
                             client.play,
@@ -415,6 +417,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (client.transitionType == "1") {
                         if (client.stop === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                          console.info("Stop trigger has turned off lights");
                         } else {
                           setScene(
                             client.stop,
@@ -427,6 +430,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       } else {
                         if (client.stop === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                          console.info("Stop trigger has turned off lights");
                         } else {
                           setScene(
                             client.stop,
@@ -442,6 +446,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (client.transitionType == "1") {
                         if (client.pause === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                          console.info("Pause trigger has turned off lights");
                         } else {
                           setScene(
                             client.pause,
@@ -454,6 +459,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       } else {
                         if (client.pause === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                          console.info("Pause trigger has turned off lights");
                         } else {
                           setScene(
                             client.pause,
@@ -469,6 +475,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (client.transitionType == "1") {
                         if (client.resume === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                          console.info("Resume trigger has turned off lights");
                         } else {
                           setScene(
                             client.resume,
@@ -481,6 +488,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       } else {
                         if (client.resume === "Off") {
                           turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                          console.info("Resume trigger has turned off lights");
                         } else {
                           setScene(
                             client.resume,
@@ -497,6 +505,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         if (client.transitionType == "1") {
                           if (client.scrobble === "Off") {
                             turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                            console.info("Scrobble trigger has turned off lights");
                           } else {
                             setScene(
                               client.scrobble,
@@ -509,6 +518,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         } else {
                           if (client.scrobble === "Off") {
                             turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                            console.info("Scrobble trigger has turned off lights");
                           } else {
                             setScene(
                               client.scrobble,
