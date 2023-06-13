@@ -348,7 +348,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
         var global = settings.settings;
 
         clients.forEach(async (client) => {
-          if (client.active) {
+          if (client.active && payload.Player.uuid) {
             if (payload.Player.uuid === client.client.id) {
               var sFlag = true;
 

@@ -1,5 +1,11 @@
 # HuePlex Version History
 
+## 1.2.1
+
+## Hotfix
+
+- Fixed app crashing when webhook was not triggered from a client
+
 ## 1.2.0
 
 ### Fixed
