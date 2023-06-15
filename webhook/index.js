@@ -36,7 +36,9 @@ function isInSchedule(sh, sm, sd, eh, em, ed) {
 
   const start = convertToMinutes(`${startHour}:${startMin}`);
   const end = convertToMinutes(`${endHour}:${endMin}`);
-  const check = convertToMinutes(`${currentTime.getHours()}:${currentTime.getMinutes()}`);
+  const check = convertToMinutes(
+    `${currentTime.getHours()}:${currentTime.getMinutes()}`
+  );
 
   if (start <= end) {
     return check >= start && check <= end;
@@ -53,15 +55,28 @@ async function isSunRiseSet(lat, long) {
   var sunTimes, sunset, sunrise;
 
   if (currentDate.getHours() < 12) {
-    var date = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1) + "-" + (currentDate.getDate() - 1);
+    var date =
+      currentDate.getFullYear() +
+      "-" +
+      (currentDate.getMonth() + 1) +
+      "-" +
+      (currentDate.getDate() - 1);
   } else {
-    var date = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1) + "-" + currentDate.getDate();
+    var date =
+      currentDate.getFullYear() +
+      "-" +
+      (currentDate.getMonth() + 1) +
+      "-" +
+      currentDate.getDate();
   }
 
   var url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${long}&date=${date}&formatted=0`;
 
   await axios
-    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, {
+      timeout: 5000,
+      headers: { "Content-Type": "application/json;charset=UTF-8" },
+    })
     .then(function (response) {
       sunTimes = response.data;
       sunset = new Date(sunTimes.results.sunset).getTime();
@@ -69,7 +84,9 @@ async function isSunRiseSet(lat, long) {
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not retrieve sunrise/sunset times. Lat/Long must be valid entries");
+        console.error(
+          "Could not retrieve sunrise/sunset times. Lat/Long must be valid entries"
+        );
       }
     });
 
@@ -83,7 +100,10 @@ function setScene(scene, transition, ip, user) {
     .put(
       url,
       { scene: `${scene}`, transitiontime: transition },
-      { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
+      {
+        timeout: 1000,
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+      }
     )
     .then(function (response) {
       // console.log(response);
@@ -106,7 +126,10 @@ async function turnoffGroup(room, ip, user, transition) {
   var groupNum;
 
   await axios
-    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, {
+      timeout: 5000,
+      headers: { "Content-Type": "application/json;charset=UTF-8" },
+    })
     .then(function (response) {
       groups = response.data;
     })
@@ -131,7 +154,10 @@ async function turnoffGroup(room, ip, user, transition) {
     .put(
       url,
       { transitiontime: transition * 10, on: false },
-      { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } }
+      {
+        timeout: 1000,
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+      }
     )
     .then(function (response) {
       // console.log(response);
@@ -171,11 +197,15 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   } else {
                     light.saturation = 254;
                   }
-                  light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
+                  light.brightness = Math.floor(
+                    (parseInt(server.brightnessPlay) / 100) * 254
+                  );
                   return bridge.lights.save(light);
                 })
                 .then(() => {
-                  console.info(`Playback started on server by ${payload.Account.title}`);
+                  console.info(
+                    `Playback started on server by ${payload.Account.title}`
+                  );
                 })
                 .catch((error) => {
                   console.error(error.stack);
@@ -193,7 +223,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   tBri = light.brightness;
                 })
                 .then(() => {
-                  console.info(`Playback started on server by ${payload.Account.title}`);
+                  console.info(
+                    `Playback started on server by ${payload.Account.title}`
+                  );
                 })
                 .catch((error) => {
                   console.error(error.stack);
@@ -224,7 +256,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     } else {
                       light.saturation = 254;
                     }
-                    light.brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
+                    light.brightness = Math.floor(
+                      (parseInt(server.brightnessPlay) / 100) * 254
+                    );
                     return bridge.lights.save(light);
                   })
                   .catch((error) => {
@@ -263,11 +297,15 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   } else {
                     light.saturation = 254;
                   }
-                  light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
+                  light.brightness = Math.floor(
+                    (parseInt(server.brightnessNew) / 100) * 254
+                  );
                   return bridge.lights.save(light);
                 })
                 .then(() => {
-                  console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                  console.info(
+                    `New item added to library ${payload.Metadata.librarySectionTitle}`
+                  );
                 })
                 .catch((error) => {
                   console.error(error.stack);
@@ -285,7 +323,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   tBri = light.brightness;
                 })
                 .then(() => {
-                  console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                  console.info(
+                    `New item added to library ${payload.Metadata.librarySectionTitle}`
+                  );
                 })
                 .catch((error) => {
                   console.error(error.stack);
@@ -316,7 +356,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     } else {
                       light.saturation = 254;
                     }
-                    light.brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
+                    light.brightness = Math.floor(
+                      (parseInt(server.brightnessNew) / 100) * 254
+                    );
                     return bridge.lights.save(light);
                   })
                   .catch((error) => {
@@ -348,209 +390,324 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
         var global = settings.settings;
 
         clients.forEach(async (client) => {
-          if (client.active && payload.Player.uuid !== undefined) {
-            if (payload.Player.uuid === client.client.id) {
-              var sFlag = true;
+          try {
+            if (client.active && payload.Player.uuid) {
+              if (payload.Player.uuid === client.client.id) {
+                var sFlag = true;
 
-              switch (client.scheduleType) {
-                case "1":
-                  sFlag = isInSchedule(
-                    client.startHour,
-                    client.startMin,
-                    client.startMed,
-                    client.endHour,
-                    client.endMin,
-                    client.endMed
-                  );
-                  break;
-                case "2":
-                  sFlag = await isSunRiseSet(global.latitude, global.longitude);
-                  break;
-                case "3":
-                  sFlag = isInSchedule(
-                    global.startHour,
-                    global.startMin,
-                    global.startMed,
-                    global.endHour,
-                    global.endMin,
-                    global.endMed
-                  );
-                  break;
-              }
-              if (sFlag) {
-                if (payload.Account.title === client.user.name || client.user.name === "Any") {
+                switch (client.scheduleType) {
+                  case "1":
+                    sFlag = isInSchedule(
+                      client.startHour,
+                      client.startMin,
+                      client.startMed,
+                      client.endHour,
+                      client.endMin,
+                      client.endMed
+                    );
+                    break;
+                  case "2":
+                    sFlag = await isSunRiseSet(
+                      global.latitude,
+                      global.longitude
+                    );
+                    break;
+                  case "3":
+                    sFlag = isInSchedule(
+                      global.startHour,
+                      global.startMin,
+                      global.startMed,
+                      global.endHour,
+                      global.endMin,
+                      global.endMed
+                    );
+                    break;
+                }
+                if (sFlag) {
                   if (
-                    payload.Metadata.librarySectionType === client.media ||
-                    client.media === "All" ||
-                    (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
+                    payload.Account.title === client.user.name ||
+                    client.user.name === "Any"
                   ) {
-                    if (payload.event === "media.play" && client.play !== "None") {
-                      if (client.transitionType == "1") {
-                        if (client.play === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
-                          console.info("Play trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.play,
-                            parseFloat(client.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      } else {
-                        if (client.play === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
-                          console.info("Play trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.play,
-                            parseFloat(global.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      }
-                    }
-                    if (payload.event === "media.stop" && client.stop !== "None") {
-                      if (client.transitionType == "1") {
-                        if (client.stop === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
-                          console.info("Stop trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.stop,
-                            parseFloat(client.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      } else {
-                        if (client.stop === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
-                          console.info("Stop trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.stop,
-                            parseFloat(global.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      }
-                    }
-                    if (payload.event === "media.pause" && client.pause !== "None") {
-                      if (client.transitionType == "1") {
-                        if (client.pause === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
-                          console.info("Pause trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.pause,
-                            parseFloat(client.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      } else {
-                        if (client.pause === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
-                          console.info("Pause trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.pause,
-                            parseFloat(global.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      }
-                    }
-                    if (payload.event === "media.resume" && client.resume !== "None") {
-                      if (client.transitionType == "1") {
-                        if (client.resume === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
-                          console.info("Resume trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.resume,
-                            parseFloat(client.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      } else {
-                        if (client.resume === "Off") {
-                          turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
-                          console.info("Resume trigger has turned off lights");
-                        } else {
-                          setScene(
-                            client.resume,
-                            parseFloat(global.transition) * 10,
-                            settings.bridge.ip,
-                            settings.bridge.user
-                          );
-                          console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                        }
-                      }
-                    }
-                    if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                      const recallScrobbleScene = async () => {
+                    if (
+                      payload.Metadata.librarySectionType === client.media ||
+                      client.media === "All" ||
+                      (payload.Metadata.cinemaTrailer &&
+                        client.media === "cinemaTrailer")
+                    ) {
+                      if (
+                        payload.event === "media.play" &&
+                        client.play !== "None"
+                      ) {
                         if (client.transitionType == "1") {
-                          if (client.scrobble === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
-                            console.info("Scrobble trigger has turned off lights");
+                          if (client.play === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              client.transition
+                            );
+                            console.info("Play trigger has turned off lights");
                           } else {
                             setScene(
-                              client.scrobble,
+                              client.play,
                               parseFloat(client.transition) * 10,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
-                            console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                            console.info(
+                              `Play scene was recalled ${client.media} on ${client.client.name}`
+                            );
                           }
                         } else {
-                          if (client.scrobble === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
-                            console.info("Scrobble trigger has turned off lights");
+                          if (client.play === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              global.transition
+                            );
+                            console.info("Play trigger has turned off lights");
                           } else {
                             setScene(
-                              client.scrobble,
+                              client.play,
                               parseFloat(global.transition) * 10,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
-                            console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                            console.info(
+                              `Play scene was recalled ${client.media} on ${client.client.name}`
+                            );
                           }
                         }
-                      };
+                      }
+                      if (
+                        payload.event === "media.stop" &&
+                        client.stop !== "None"
+                      ) {
+                        if (client.transitionType == "1") {
+                          if (client.stop === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              client.transition
+                            );
+                            console.info("Stop trigger has turned off lights");
+                          } else {
+                            setScene(
+                              client.stop,
+                              parseFloat(client.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Stop scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        } else {
+                          if (client.stop === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              global.transition
+                            );
+                            console.info("Stop trigger has turned off lights");
+                          } else {
+                            setScene(
+                              client.stop,
+                              parseFloat(global.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Stop scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        }
+                      }
+                      if (
+                        payload.event === "media.pause" &&
+                        client.pause !== "None"
+                      ) {
+                        if (client.transitionType == "1") {
+                          if (client.pause === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              client.transition
+                            );
+                            console.info("Pause trigger has turned off lights");
+                          } else {
+                            setScene(
+                              client.pause,
+                              parseFloat(client.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Pause scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        } else {
+                          if (client.pause === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              global.transition
+                            );
+                            console.info("Pause trigger has turned off lights");
+                          } else {
+                            setScene(
+                              client.pause,
+                              parseFloat(global.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Pause scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        }
+                      }
+                      if (
+                        payload.event === "media.resume" &&
+                        client.resume !== "None"
+                      ) {
+                        if (client.transitionType == "1") {
+                          if (client.resume === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              client.transition
+                            );
+                            console.info(
+                              "Resume trigger has turned off lights"
+                            );
+                          } else {
+                            setScene(
+                              client.resume,
+                              parseFloat(client.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Resume scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        } else {
+                          if (client.resume === "Off") {
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              global.transition
+                            );
+                            console.info(
+                              "Resume trigger has turned off lights"
+                            );
+                          } else {
+                            setScene(
+                              client.resume,
+                              parseFloat(global.transition) * 10,
+                              settings.bridge.ip,
+                              settings.bridge.user
+                            );
+                            console.info(
+                              `Resume scene was recalled ${client.media} on ${client.client.name}`
+                            );
+                          }
+                        }
+                      }
+                      if (
+                        payload.event === "media.scrobble" &&
+                        client.scrobble !== "None"
+                      ) {
+                        const recallScrobbleScene = async () => {
+                          if (client.transitionType == "1") {
+                            if (client.scrobble === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                client.transition
+                              );
+                              console.info(
+                                "Scrobble trigger has turned off lights"
+                              );
+                            } else {
+                              setScene(
+                                client.scrobble,
+                                parseFloat(client.transition) * 10,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(
+                                `Scrobble scene was recalled ${client.media} on ${client.client.name}`
+                              );
+                            }
+                          } else {
+                            if (client.scrobble === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                global.transition
+                              );
+                              console.info(
+                                "Scrobble trigger has turned off lights"
+                              );
+                            } else {
+                              setScene(
+                                client.scrobble,
+                                parseFloat(global.transition) * 10,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(
+                                `Scrobble scene was recalled ${client.media} on ${client.client.name}`
+                              );
+                            }
+                          }
+                        };
 
-                      if (client.scrobbleDelayMs) {
-                        console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);
-                        setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
-                      } else {
-                        recallScrobbleScene();
+                        if (client.scrobbleDelayMs) {
+                          console.info(
+                            `Waiting ${client.scrobbleDelayMs}ms before recalling scene`
+                          );
+                          setTimeout(
+                            recallScrobbleScene,
+                            client.scrobbleDelayMs
+                          );
+                        } else {
+                          recallScrobbleScene();
+                        }
                       }
                     }
                   }
+                } else {
+                  console.info("Not within schedule");
                 }
-              } else {
-                console.info("Not within schedule");
               }
             }
+          } catch (err) {
+            console.info(
+              "This is a server webhook not associated with a Plex client",
+              err
+            );
           }
         });
       } else {
         console.info("There are no clients set up yet.");
       }
     } catch (err) {
-      console.info("Config file not found, please run the web app once to create file", err);
+      console.info(
+        "Config file not found, please run the web app once to create file",
+        err
+      );
     }
 
     res.sendStatus(200);
