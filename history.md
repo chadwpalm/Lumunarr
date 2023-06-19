@@ -1,8 +1,15 @@
 # HuePlex Version History
 
+## 1.2.2
+
+### Fixed
+
+- Typo in Settings screen
+- Various log output
+
 ## 1.2.1
 
-## Hotfix
+### Hotfix
 
 - Fixed app crashing when webhook was not triggered from a client
 
@@ -16,7 +23,7 @@
 ### Added
 
 - Changed Intervals and Brightness on Server page to range sliders
-- Added a schedule that can be used locally or globally which includes sunrise/sunset times by location
+- Added a schedule that can be used locally or globally which includes sunrise/sunset times by location {[#2](https://github.com/chadwpalm/HuePlex/issues/2)}
 - Added scene change transition times for each profile {[#11](https://github.com/chadwpalm/HuePlex/issues/11)}
 - Added a settings page to house global settings
 

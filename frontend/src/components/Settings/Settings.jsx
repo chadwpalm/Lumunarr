@@ -288,7 +288,7 @@ export default class Settings extends Component {
             <div style={{ paddingBottom: "0.75rem" }} />
             1. Visit{" "}
             <a href="https://www.latlong.net/" target="_blank">
-              LotLong.net
+              LatLong.net
             </a>
             <br />
             2. Pinpoint your location using the text box and/or map
