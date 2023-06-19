@@ -30,7 +30,7 @@ pipeline {
           def JSONVersion = readJSON file: "version.json"
           def PulledVersion = JSONVersion.version
           def BuildNumber = sh (
-            script: 'curl https://increment.build/${BUILD_CRED}/get',
+            script: 'curl https://increment.build/${BUILD_CRED}',
             returnStdout: true
           ).trim()
           def APPVersion = "${PulledVersion}.${BuildNumber}"
