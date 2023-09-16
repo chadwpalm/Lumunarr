@@ -9,11 +9,13 @@ router.post("/", async function (req, res, next) {
   var users = [];
   var data = [];
   var groupList = [];
+  var message = [];
+  var flag = false;
 
   var url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/groups`;
 
   await axios
-    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, { timeout: 3000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
     .then(function (response) {
       console.info("Retrieving Light Groups");
       groups = response.data;
@@ -32,14 +34,15 @@ router.post("/", async function (req, res, next) {
     .catch(function (error) {
       if (error.request) {
         console.error("Could not connect to the Hue bridge");
-        res.status(403).send("Could not connect to the Hue bridge");
+        // res.status(403).send("Could not connect to the Hue bridge, dawg");
+        message.push("Could not connect to the Hue Bridge while ");
       }
     });
 
   url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/scenes`;
 
   await axios
-    .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, { timeout: 3000 ,  headers: { "Content-Type": "application/json;charset=UTF-8" } })
     .then(function (response) {
       console.info("Retrieving Light Scenes");
       var data = {};
@@ -60,8 +63,9 @@ router.post("/", async function (req, res, next) {
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not connect to the Hue bridge");
-        res.status(403).send("Could not connect to the Hue bridge");
+        console.error("Could not connect to the Hue bridge", error.message);
+        // res.status(403).send("Could not connect to the Hue bridge");
+        message.push("Test2");
       }
     });
 
@@ -79,7 +83,8 @@ router.post("/", async function (req, res, next) {
     .catch(function (error) {
       if (error.request) {
         console.error("Could not connect to the Plex Server");
-        res.status(403).send(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
+        // res.status(403).send(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
+        message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
       }
     });
 
@@ -107,6 +112,7 @@ router.post("/", async function (req, res, next) {
       //   console.error("Could not connect to the Plex Server");
       //   res.status(403).send("Could not connect to the Plex server");
       // }
+      message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
     });
 
   var url = "https://plex.tv/devices.xml";
@@ -132,14 +138,22 @@ router.post("/", async function (req, res, next) {
       data.push(list);
       data.push(scenes);
       data.push(groupList);
-      res.send(JSON.stringify(data));
+      
     })
     .catch(function (error) {
       if (error.request) {
         // console.error("Could not connect to the Plex Server");
         // res.status(403).send("Could not connect to the Plex server");
+        message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
       }
     });
+  
+  if(message.length !== 0) {
+    console.log(message);
+    res.status(403).send(JSON.stringify(message));
+  } else {
+  res.send(JSON.stringify(data));
+  }
 });
 
 module.exports = router;

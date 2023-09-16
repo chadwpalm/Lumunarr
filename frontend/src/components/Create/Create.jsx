@@ -50,7 +50,7 @@ export default class Create extends Component {
         isError: false,
         show: false,
         show2: false,
-        errorRes: "",
+        errorRes: [],
       };
     } else {
       this.state = {
@@ -87,7 +87,7 @@ export default class Create extends Component {
         isError: false,
         show: false,
         show2: false,
-        errorRes: "",
+        errorRes: [],
       };
     }
     this.handleClient = this.handleClient.bind(this);
@@ -131,7 +131,7 @@ export default class Create extends Component {
           this.setState({
             isLoaded: true,
             isError: true,
-            errorRes: xhr.responseText,
+            errorRes: JSON.parse(xhr.responseText),
           });
         }
       }
@@ -363,11 +363,11 @@ export default class Create extends Component {
 
   render() {
     if (this.state.isError) {
-      if (this.state.errorRes === "Invalid authentication token.") {
-        return <>Invalid authentication token. Please log out and log back in.</>;
-      } else {
-        return <>{this.state.errorRes}</>;
+      var text = '';
+      for(var i = 0; i < this.state.errorRes.length; i++ ) {
+        text = text + `- ` + this.state.errorRes[i] + '</br>';
       }
+      return <div dangerouslySetInnerHTML={{__html: `${text}`}}/>;
     } else if (this.state.isLoading) {
       return (
         <div className="d-flex align-items-center justify-content-center">
