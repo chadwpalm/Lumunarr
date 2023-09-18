@@ -363,11 +363,11 @@ export default class Create extends Component {
 
   render() {
     if (this.state.isError) {
-      var text = '';
-      for(var i = 0; i < this.state.errorRes.length; i++ ) {
-        text = text + `- ` + this.state.errorRes[i] + '</br>';
+      var text = "";
+      for (var i = 0; i < this.state.errorRes.length; i++) {
+        text = text + `- ` + this.state.errorRes[i] + "</br>";
       }
-      return <div dangerouslySetInnerHTML={{__html: `${text}`}}/>;
+      return <div dangerouslySetInnerHTML={{ __html: `${text}` }} />;
     } else if (this.state.isLoading) {
       return (
         <div className="d-flex align-items-center justify-content-center">

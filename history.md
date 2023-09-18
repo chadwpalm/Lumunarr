@@ -1,5 +1,13 @@
 # HuePlex Version History
 
+## 1.2.3
+
+### Fixed
+
+- Improved error handling to prevent crashing
+- Shows reasons for being unable to add client instead of hanging
+- App detects if connected to internet. Useful if Docker network is set up incorrectly
+
 ## 1.2.2
 
 ### Fixed

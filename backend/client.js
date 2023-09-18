@@ -15,7 +15,7 @@ router.post("/", async function (req, res, next) {
   var url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/groups`;
 
   await axios
-    .get(url, { timeout: 3000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
     .then(function (response) {
       console.info("Retrieving Light Groups");
       groups = response.data;
@@ -32,17 +32,14 @@ router.post("/", async function (req, res, next) {
       }
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error("Could not connect to the Hue bridge");
-        // res.status(403).send("Could not connect to the Hue bridge, dawg");
-        message.push("Could not connect to the Hue Bridge while ");
-      }
+      console.error("Error while trying to connect to the Hue bridge while requesting light groups: ", error.message);
+      message.push("Could not connect to the Hue Bridge while requesting light groups");
     });
 
   url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/scenes`;
 
   await axios
-    .get(url, { timeout: 3000 ,  headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
     .then(function (response) {
       console.info("Retrieving Light Scenes");
       var data = {};
@@ -62,17 +59,14 @@ router.post("/", async function (req, res, next) {
       scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error("Could not connect to the Hue bridge", error.message);
-        // res.status(403).send("Could not connect to the Hue bridge");
-        message.push("Test2");
-      }
+      console.error("Error while trying to connect to the Hue bridge while requesting scenes: ", error.message);
+      message.push("Could not connect to the Hue bridge while requesting scenes");
     });
 
   var url = "https://plex.tv/pms/friends/all";
 
   await axios
-    .get(url, { params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
@@ -81,17 +75,14 @@ router.post("/", async function (req, res, next) {
       if (!users) users = [];
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error("Could not connect to the Plex Server");
-        // res.status(403).send(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
-        message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
-      }
+      console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
+      message.push("Issue with connection to online Plex account which requesting friends. Check logs for reason.");
     });
 
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
@@ -108,17 +99,16 @@ router.post("/", async function (req, res, next) {
       );
     })
     .catch(function (error) {
-      // if (error.request) {
-      //   console.error("Could not connect to the Plex Server");
-      //   res.status(403).send("Could not connect to the Plex server");
-      // }
-      message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
+      console.error("Issue with connection to online Plex account while requesting account info: ", error.message);
+      message.push(
+        "Issue with connection to online Plex account while requesting account info. Check logs for reason."
+      );
     });
 
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Clients");
@@ -138,21 +128,16 @@ router.post("/", async function (req, res, next) {
       data.push(list);
       data.push(scenes);
       data.push(groupList);
-      
     })
     .catch(function (error) {
-      if (error.request) {
-        // console.error("Could not connect to the Plex Server");
-        // res.status(403).send("Could not connect to the Plex server");
-        message.push(parser.xml2js(error.response.data, { compact: true, spaces: 4 }).errors.error._text);
-      }
+      console.error("Issue with connection to online Plex account while requesting device info: ", error.message);
+      message.push("Issue with connection to online Plex account while requesting device info. Check logs for reason.");
     });
-  
-  if(message.length !== 0) {
-    console.log(message);
+
+  if (message.length !== 0) {
     res.status(403).send(JSON.stringify(message));
   } else {
-  res.send(JSON.stringify(data));
+    res.send(JSON.stringify(data));
   }
 });
 

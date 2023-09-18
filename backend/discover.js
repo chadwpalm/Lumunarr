@@ -3,6 +3,8 @@ var router = express.Router();
 var axios = require("axios").default;
 var mdns = require("mdns-js");
 
+mdns.excludeInterface("0.0.0.0");
+
 var ips = [];
 
 var TIMEOUT = 5000;
@@ -42,7 +44,15 @@ router.post("/", async function (req, res, next) {
         })
         .catch(function (error) {
           if (error.request) {
-            console.error("Could not get bridges from Hue Discovery. Try again in 15 minutes");
+            if (error.message === "getaddrinfo ENOTFOUND discovery.meethue.com") {
+              console.error("Could not connect to Hue Discovery. Check internet connection.");
+            } else if (error.message === "Request failed with status code 429") {
+              console.error(
+                "Could not get bridges from Hue Discovery due to reaching rate limit. Try again in 15 minutes."
+              );
+            } else {
+              console.error("Could not connect to Hue Discovery website: ", error.message);
+            }
           }
         });
     }
