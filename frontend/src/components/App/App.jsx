@@ -31,11 +31,13 @@ export default class App extends Component {
     fullscreen: true,
     isLoggedIn: false,
     isUpdate: false,
+    isOnline: true,
   };
 
   componentDidMount() {
     var xhr = new XMLHttpRequest();
     var state = false;
+    var online = true;
 
     xhr.addEventListener("readystatechange", async () => {
       if (xhr.readyState === 4) {
@@ -45,7 +47,7 @@ export default class App extends Component {
             json = JSON.parse(response);
 
           if (json.branch === "dev") {
-            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/develop/version.json`;
+            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/develop/version.json?cb=${Date.now()}`;
 
             await axios
               .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
@@ -55,7 +57,9 @@ export default class App extends Component {
                   state = true;
                 }
               })
-              .catch(function (error) {});
+              .catch(function (error) {
+                online = false;
+              });
           } else {
             var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/main/version.json`;
 
@@ -71,18 +75,22 @@ export default class App extends Component {
               .catch(function (error) {});
           }
 
-          this.setState({
-            isLoaded: true,
-            config: json,
-            thumb: json.thumb,
-          });
+          if (!online) {
+            this.setState({ isOnline: false });
+          } else {
+            this.setState({
+              isLoaded: true,
+              config: json,
+              thumb: json.thumb,
+            });
 
-          if (state) this.setState({ isUpdate: true });
+            if (state) this.setState({ isUpdate: true });
 
-          if (json.token) this.setState({ isLoggedIn: true });
+            if (json.token) this.setState({ isLoggedIn: true });
 
-          if (json.connected === "true") {
-            this.setState({ isConnected: true });
+            if (json.connected === "true") {
+              this.setState({ isConnected: true });
+            }
           }
         } else {
           // error
@@ -149,211 +157,220 @@ export default class App extends Component {
   };
 
   render() {
-    if (!this.state.isLoaded) {
-      // is loading
+    if (!this.state.isOnline) {
       return (
-        <div>
-          <img src={Loading} width="50" />
-        </div>
+        <>
+          HuePlex requires an internet connection. If you are running HuePlex in Docker, check your Docker network
+          settings.
+        </>
       );
-    } else if (this.state.error) {
-      // error
-      return <div>Error occured: {this.state.error}</div>;
     } else {
-      if (this.state.isLoggedIn) {
-        // success
+      if (!this.state.isLoaded) {
+        // is loading
         return (
-          <Router>
-            <Container fluid>
-              <Row style={{ borderBottom: "solid", borderBottomColor: "black" }}>
-                <Navbar
-                  style={{
-                    backgroundColor: "#ddd",
-                    paddingLeft: "15px",
-                    paddingRight: "15px",
-                  }}
-                  expand="md"
-                >
-                  <Navbar.Brand>
-                    <img src={Logo} className="d-inline-block align-top" /> HuePlex
-                  </Navbar.Brand>
-                  <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                  <Navbar.Collapse id="basic-navbar-nav">
-                    <Nav className="me-auto">
-                      {!this.state.isConnected ? (
-                        <>
-                          <LinkContainer to="/">
-                            <Nav.Link disabled>Clients</Nav.Link>
-                          </LinkContainer>
-                          <LinkContainer to="/server">
-                            <Nav.Link disabled>Server</Nav.Link>
-                          </LinkContainer>
-                        </>
-                      ) : (
-                        <>
-                          <LinkContainer to="/">
-                            <Nav.Link>Clients</Nav.Link>
-                          </LinkContainer>
-                          <LinkContainer to="/server">
-                            <Nav.Link>Server</Nav.Link>
-                          </LinkContainer>
-                        </>
-                      )}
-                      <LinkContainer to="/bridge">
-                        <Nav.Link>Bridge</Nav.Link>
-                      </LinkContainer>
-                      {!this.state.isConnected ? (
-                        <>
-                          <LinkContainer to="/settings">
-                            <Nav.Link disabled>Settings</Nav.Link>
-                          </LinkContainer>
-                        </>
-                      ) : (
-                        <>
-                          <LinkContainer to="/settings">
-                            <Nav.Link>Settings</Nav.Link>
-                          </LinkContainer>
-                        </>
-                      )}
-                    </Nav>
-                    <Nav className="ms-auto">
-                      <NavDropdown
-                        menuVariant="secondary"
-                        id="dropdown-menu-align-end"
-                        align="end"
-                        title={
-                          <>
-                            <Image
-                              roundedCircle
-                              src={this.state.config.thumb}
-                              style={{ height: "40px", width: "40px" }}
-                            />
-                            {this.state.isUpdate ? (
-                              <Badge pill bg="danger" className="position-absolute top-20 translate-middle start-55">
-                                !
-                              </Badge>
-                            ) : (
-                              <></>
-                            )}
-                          </>
-                        }
-                      >
-                        <NavDropdown.Header>
-                          <b>{this.state.config.username}</b>
-                          <br />
-                          {this.state.config.email}
-                        </NavDropdown.Header>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item href="https://github.com/chadwpalm/HuePlex/wiki" target="_blank">
-                          Documentation
-                        </NavDropdown.Item>
-                        <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
-                        <NavDropdown.Item href="https://www.buymeacoffee.com/hueplex" target="_blank">
-                          Donate
-                        </NavDropdown.Item>
-                        {this.state.isUpdate ? (
-                          <NavDropdown.Item
-                            href="https://github.com/chadwpalm/HuePlex/blob/develop/history.md"
-                            target="_blank"
-                            style={{ color: "red" }}
-                          >
-                            Update Available
-                          </NavDropdown.Item>
-                        ) : (
-                          <></>
-                        )}
-                        <NavDropdown.Item onClick={this.handleLogout}>
-                          <img src={Logout} style={{ verticalAlign: "middle" }} />
-                          &nbsp; Sign Out
-                        </NavDropdown.Item>
-                      </NavDropdown>
-                    </Nav>
-                  </Navbar.Collapse>
-                </Navbar>
-              </Row>
-
-              <Modal
-                show={this.state.show}
-                fullscreen={this.state.fullscreen}
-                onHide={this.handleClose}
-                size="lg"
-                animation={true}
-              >
-                <Modal.Header closeButton>
-                  <Modal.Title>About</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <b>Version:</b> &nbsp;{this.state.config.version}
-                  <br />
-                  <b>Branch:</b> &nbsp;{this.state.config.branch}
-                  <br />
-                  <b>Build:</b> &nbsp;{this.state.config.build}
-                  <br />
-                  <b>Config Dir:</b>&nbsp; /config
-                  <br />
-                  <b>App Dir:</b>&nbsp; /HuePlex
-                  <br />
-                  <b>App ID:</b>&nbsp; {this.state.config.appId}
-                  <br />
-                  <b>Docker:</b>&nbsp;
-                  <a href="https://hub.docker.com/repository/docker/chadwpalm/hueplex/general" target="_blank">
-                    chadwpalm/hueplex
-                  </a>
-                  <br />
-                  <b>Source:</b>&nbsp;
-                  <a href="https://github.com/chadwpalm/HuePlex" target="_blank">
-                    github.com/chadwpalm/HuePlex
-                  </a>
-                </Modal.Body>
-              </Modal>
-              <Row
-                style={{
-                  paddingLeft: 30,
-                  paddingTop: 30,
-                  paddingRight: 30,
-                  borderTop: "solid",
-                  borderTopColor: "#ebaf00",
-                }}
-              >
-                <Routes>
-                  <Route
-                    path="/bridge"
-                    element={<Bridge settings={this.state.config} connection={this.handleConnectionChange} />}
-                  />
-
-                  {!this.state.isConnected ? (
-                    <Route path="*" element={<Navigate replace to="/bridge" />} />
-                  ) : (
-                    <>
-                      <Route path="/" element={<Device settings={this.state.config} />} />
-                      <Route path="/server" element={<Server settings={this.state.config} />} />
-                      <Route path="/settings" element={<Settings settings={this.state.config} />} />
-                      <Route path="*" element={<Navigate replace to="/" />} />
-                    </>
-                  )}
-                </Routes>
-              </Row>
-            </Container>
-          </Router>
+          <div>
+            <img src={Loading} width="50" />
+          </div>
         );
+      } else if (this.state.error) {
+        // error
+        return <div>Error occured: {this.state.error}</div>;
       } else {
-        return (
-          <Router>
-            <Routes>
-              <Route path="*" element={<Navigate replace to="/login" />} />
-              <Route
-                path="/login"
-                element={
-                  <Login
-                    handleLogin={this.handleLogin}
-                    handleUpdateThumb={this.handleUpdateThumb}
-                    settings={this.state.config}
-                  />
-                }
-              />
-            </Routes>
-          </Router>
-        );
+        if (this.state.isLoggedIn) {
+          // success
+          return (
+            <Router>
+              <Container fluid>
+                <Row style={{ borderBottom: "solid", borderBottomColor: "black" }}>
+                  <Navbar
+                    style={{
+                      backgroundColor: "#ddd",
+                      paddingLeft: "15px",
+                      paddingRight: "15px",
+                    }}
+                    expand="md"
+                  >
+                    <Navbar.Brand>
+                      <img src={Logo} className="d-inline-block align-top" /> HuePlex
+                    </Navbar.Brand>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                      <Nav className="me-auto">
+                        {!this.state.isConnected ? (
+                          <>
+                            <LinkContainer to="/">
+                              <Nav.Link disabled>Clients</Nav.Link>
+                            </LinkContainer>
+                            <LinkContainer to="/server">
+                              <Nav.Link disabled>Server</Nav.Link>
+                            </LinkContainer>
+                          </>
+                        ) : (
+                          <>
+                            <LinkContainer to="/">
+                              <Nav.Link>Clients</Nav.Link>
+                            </LinkContainer>
+                            <LinkContainer to="/server">
+                              <Nav.Link>Server</Nav.Link>
+                            </LinkContainer>
+                          </>
+                        )}
+                        <LinkContainer to="/bridge">
+                          <Nav.Link>Bridge</Nav.Link>
+                        </LinkContainer>
+                        {!this.state.isConnected ? (
+                          <>
+                            <LinkContainer to="/settings">
+                              <Nav.Link disabled>Settings</Nav.Link>
+                            </LinkContainer>
+                          </>
+                        ) : (
+                          <>
+                            <LinkContainer to="/settings">
+                              <Nav.Link>Settings</Nav.Link>
+                            </LinkContainer>
+                          </>
+                        )}
+                      </Nav>
+                      <Nav className="ms-auto">
+                        <NavDropdown
+                          menuVariant="secondary"
+                          id="dropdown-menu-align-end"
+                          align="end"
+                          title={
+                            <>
+                              <Image
+                                roundedCircle
+                                src={this.state.config.thumb}
+                                style={{ height: "40px", width: "40px" }}
+                              />
+                              {this.state.isUpdate ? (
+                                <Badge pill bg="danger" className="position-absolute top-20 translate-middle start-55">
+                                  !
+                                </Badge>
+                              ) : (
+                                <></>
+                              )}
+                            </>
+                          }
+                        >
+                          <NavDropdown.Header>
+                            <b>{this.state.config.username}</b>
+                            <br />
+                            {this.state.config.email}
+                          </NavDropdown.Header>
+                          <NavDropdown.Divider />
+                          <NavDropdown.Item href="https://github.com/chadwpalm/HuePlex/wiki" target="_blank">
+                            Documentation
+                          </NavDropdown.Item>
+                          <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
+                          <NavDropdown.Item href="https://www.buymeacoffee.com/hueplex" target="_blank">
+                            Donate
+                          </NavDropdown.Item>
+                          {this.state.isUpdate ? (
+                            <NavDropdown.Item
+                              href="https://github.com/chadwpalm/HuePlex/blob/develop/history.md"
+                              target="_blank"
+                              style={{ color: "red" }}
+                            >
+                              Update Available
+                            </NavDropdown.Item>
+                          ) : (
+                            <></>
+                          )}
+                          <NavDropdown.Item onClick={this.handleLogout}>
+                            <img src={Logout} style={{ verticalAlign: "middle" }} />
+                            &nbsp; Sign Out
+                          </NavDropdown.Item>
+                        </NavDropdown>
+                      </Nav>
+                    </Navbar.Collapse>
+                  </Navbar>
+                </Row>
+
+                <Modal
+                  show={this.state.show}
+                  fullscreen={this.state.fullscreen}
+                  onHide={this.handleClose}
+                  size="lg"
+                  animation={true}
+                >
+                  <Modal.Header closeButton>
+                    <Modal.Title>About</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <b>Version:</b> &nbsp;{this.state.config.version}
+                    <br />
+                    <b>Branch:</b> &nbsp;{this.state.config.branch}
+                    <br />
+                    <b>Build:</b> &nbsp;{this.state.config.build}
+                    <br />
+                    <b>Config Dir:</b>&nbsp; /config
+                    <br />
+                    <b>App Dir:</b>&nbsp; /HuePlex
+                    <br />
+                    <b>App ID:</b>&nbsp; {this.state.config.appId}
+                    <br />
+                    <b>Docker:</b>&nbsp;
+                    <a href="https://hub.docker.com/repository/docker/chadwpalm/hueplex/general" target="_blank">
+                      chadwpalm/hueplex
+                    </a>
+                    <br />
+                    <b>Source:</b>&nbsp;
+                    <a href="https://github.com/chadwpalm/HuePlex" target="_blank">
+                      github.com/chadwpalm/HuePlex
+                    </a>
+                  </Modal.Body>
+                </Modal>
+                <Row
+                  style={{
+                    paddingLeft: 30,
+                    paddingTop: 30,
+                    paddingRight: 30,
+                    borderTop: "solid",
+                    borderTopColor: "#ebaf00",
+                  }}
+                >
+                  <Routes>
+                    <Route
+                      path="/bridge"
+                      element={<Bridge settings={this.state.config} connection={this.handleConnectionChange} />}
+                    />
+
+                    {!this.state.isConnected ? (
+                      <Route path="*" element={<Navigate replace to="/bridge" />} />
+                    ) : (
+                      <>
+                        <Route path="/" element={<Device settings={this.state.config} />} />
+                        <Route path="/server" element={<Server settings={this.state.config} />} />
+                        <Route path="/settings" element={<Settings settings={this.state.config} />} />
+                        <Route path="*" element={<Navigate replace to="/" />} />
+                      </>
+                    )}
+                  </Routes>
+                </Row>
+              </Container>
+            </Router>
+          );
+        } else {
+          return (
+            <Router>
+              <Routes>
+                <Route path="*" element={<Navigate replace to="/login" />} />
+                <Route
+                  path="/login"
+                  element={
+                    <Login
+                      handleLogin={this.handleLogin}
+                      handleUpdateThumb={this.handleUpdateThumb}
+                      settings={this.state.config}
+                    />
+                  }
+                />
+              </Routes>
+            </Router>
+          );
+        }
       }
     }
   }
