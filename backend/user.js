@@ -1,44 +1,41 @@
 var express = require("express");
 var router = express.Router();
-var huejay = require("huejay");
+var axios = require("axios").default;
+const { setTimeout: setTimeoutPromise } = require("timers/promises");
 var os = require("os");
 var fs = require("fs");
 
 router.post("/", async function (req, res, next) {
   var settings = req.body;
-
-  var hostname = os.hostname;
+  var user;
 
   console.log(settings.bridge.ip);
+  console.info("Hue Application Name:", `${settings.appId}`);
 
-  let client = new huejay.Client({
-    host: `${settings.bridge.ip}`,
-    port: 80,
-    timeout: 15000,
-  });
-
-  let user = new client.users.User();
-
-  user.deviceType = `${settings.appId}`;
-  console.info("Hue Application Name:", user.deviceType);
-
-  let flag = 0;
-  let startTime = new Date().getTime();
+  var flag = false;
+  var startTime = new Date().getTime();
+  var url = `http://${settings.bridge.ip}/api`;
+  var username;
 
   while (!flag && new Date().getTime() - startTime < 10000) {
-    await client.users
-      .create(user)
-      .then((user) => {
-        console.info(`New bridge user created - Username: ${user.username}`);
-        flag = 1;
+    await axios
+      .post(url, { devicetype: `${settings.appId}` })
+      .then(function (response) {
+        if (!response.data[0].error) {
+          console.info(`New bridge user created - Username: ${response.data[0].success.username}`);
+          username = response.data[0].success.username;
+          flag = true;
+        }
       })
-      .catch((error) => {
-        if (error instanceof huejay.Error && error.type === 101) {
+      .catch(function (error) {
+        if (error.request) {
+          console.error("Could not reach bridge during detection:", error);
         }
       });
+    await setTimeoutPromise(200);
   }
 
-  if (!user.username) {
+  if (!username) {
     console.info(`Link button not pressed. Try again...`);
   } else {
     settings.connected = "true";
@@ -48,7 +45,7 @@ router.post("/", async function (req, res, next) {
     settings.bridge = {};
   }
 
-  settings.bridge.user = user.username;
+  settings.bridge.user = username;
 
   var fileData = JSON.stringify(settings);
 
@@ -59,7 +56,7 @@ router.post("/", async function (req, res, next) {
     if (err) throw err;
   }
 
-  res.send(user.username);
+  res.send(username);
 });
 
 module.exports = router;
