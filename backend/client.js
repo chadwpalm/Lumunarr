@@ -72,7 +72,8 @@ router.post("/", async function (req, res, next) {
       console.info("Retrieving Plex Accounts");
 
       users = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
-      if (!users) users = [];
+      if (!users || users === undefined) users = [];
+      console.debug("Users array at friend creation: ", users);
     })
     .catch(function (error) {
       console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
@@ -92,7 +93,7 @@ router.post("/", async function (req, res, next) {
       let temp = {
         _attributes: { id: user._attributes.id, title: user._attributes.title, username: user._attributes.username },
       };
-
+      console.debug("Printing of temp variable: ", temp);
       users.push(temp);
       users.sort((a, b) =>
         a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0
