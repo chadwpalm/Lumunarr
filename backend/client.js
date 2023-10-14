@@ -73,7 +73,7 @@ router.post("/", async function (req, res, next) {
 
       var user = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
 
-      if(Array.isArray(user)) {
+      if (Array.isArray(user)) {
         users = user;
       } else if (!user || user === undefined) {
         users = [];
