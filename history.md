@@ -1,10 +1,16 @@
 # HuePlex Version History
 
+## 1.2.4
+
+### Hotfix
+
+- Fixed a certain situation where creation of a client would fail when pulling the accounts of those who have access to Plex Server {[#21](https://github.com/chadwpalm/HuePlex/issues/21)}
+
 ## 1.2.3
 
 ### Fixed
 
-- Improved error handling to prevent crashing
+- Improved error handling to prevent crashing {[#17](https://github.com/chadwpalm/HuePlex/issues/17)}
 - Shows reasons for being unable to add client instead of hanging
 - App detects if connected to internet. Useful if Docker network is set up incorrectly
 

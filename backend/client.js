@@ -71,8 +71,15 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
 
-      users = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
-      if (!users) users = [];
+      var user = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
+
+      if(Array.isArray(user)) {
+        users = user;
+      } else if (!user || user === undefined) {
+        users = [];
+      } else {
+        users.push(user);
+      }
     })
     .catch(function (error) {
       console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
