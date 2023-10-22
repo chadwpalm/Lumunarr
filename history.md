@@ -1,5 +1,13 @@
 # HuePlex Version History
 
+## 1.2.5
+
+### Fixed
+
+- Removed 3rd party Hue API and now using native API calls
+- Fixed light colors for Library New server behaviors
+- Fixed lights getting stuck after blinking when multiple media is added at same time
+
 ## 1.2.4
 
 ### Hotfix

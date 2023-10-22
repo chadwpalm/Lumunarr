@@ -590,13 +590,13 @@ export default class Server extends Component {
                 disabled={this.state.isOffNew}
               >
                 <option value="-1">Select Color</option>
-                <option value="1">Red</option>
-                <option value="2">Orange</option>
-                <option value="3">Yellow</option>
-                <option value="4">Green</option>
-                <option value="5">Blue</option>
-                <option value="6">Purple</option>
-                <option value="7">White</option>
+                <option value="0">Red</option>
+                <option value="1">Orange</option>
+                <option value="2">Yellow</option>
+                <option value="3">Green</option>
+                <option value="4">Blue</option>
+                <option value="5">Purple</option>
+                <option value="6">White</option>
               </Form.Select>
               <div style={{ paddingBottom: "0.75rem" }} />
               <Form.Label for="brightnessNew">
