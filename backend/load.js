@@ -68,6 +68,10 @@ try {
     }
   });
 
+  if (temp.message === undefined) {
+    temp.message = true;
+  }
+
   fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   fs.chownSync("/config/settings.js", UID, GID, (err) => {
     if (err) throw err;
@@ -104,4 +108,3 @@ router.get("/", function (req, res, next) {
 });
 
 module.exports = router;
-
