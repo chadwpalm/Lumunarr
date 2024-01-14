@@ -20,6 +20,8 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import { default as axios } from "axios";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
 
 export default class App extends Component {
   state = {
@@ -29,9 +31,13 @@ export default class App extends Component {
     config: {},
     show: false,
     fullscreen: true,
+    fullscreenAnn: true,
     isLoggedIn: false,
     isUpdate: false,
     isOnline: true,
+    announce: false,
+    first: false,
+    dismiss: false,
   };
 
   componentDidMount() {
@@ -91,6 +97,8 @@ export default class App extends Component {
             if (json.connected === "true") {
               this.setState({ isConnected: true });
             }
+
+            if (json.message) this.setState({ first: true });
           }
         } else {
           // error
@@ -118,6 +126,43 @@ export default class App extends Component {
   handleClose = () => this.setState({ show: false });
 
   handleOpen = () => this.setState({ show: true, fullscreen: "md-down" });
+
+  handleCloseAnn = () => {
+    this.setState({ announce: false });
+    if (this.state.dismiss) {
+      var settings = { ...this.state.config };
+
+      settings.message = false;
+
+      var xhr = new XMLHttpRequest();
+
+      xhr.addEventListener("readystatechange", () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+          } else {
+            // error
+            this.setState({
+              error: xhr.responseText,
+            });
+          }
+        }
+      });
+
+      xhr.open("POST", "/backend/save", true);
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhr.send(JSON.stringify(settings));
+    }
+  };
+
+  handleOpenAnn = () => this.setState({ announce: true, first: false, fullscreenAnn: "md-down" });
+
+  handleDismiss = () => {
+    if (this.state.dismiss) {
+      this.setState({ dismiss: false });
+    } else {
+      this.setState({ dismiss: true });
+    }
+  };
 
   handleUpdateThumb = (thumb, token, username, email) => {
     var temp = this.state.config;
@@ -288,6 +333,7 @@ export default class App extends Component {
                   </Navbar>
                 </Row>
 
+                {this.state.first ? this.handleOpenAnn() : <></>}
                 <Modal
                   show={this.state.show}
                   fullscreen={this.state.fullscreen}
@@ -320,6 +366,49 @@ export default class App extends Component {
                     <a href="https://github.com/chadwpalm/HuePlex" target="_blank">
                       github.com/chadwpalm/HuePlex
                     </a>
+                  </Modal.Body>
+                </Modal>
+                <Modal
+                  show={this.state.announce}
+                  fullscreen={this.state.fullscreenAnn}
+                  onHide={this.handleCloseAnn}
+                  size="lg"
+                  animation={true}
+                >
+                  <Modal.Header>
+                    <Modal.Title>Announcement</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    Due to Plex's trademark guidelines for product naming, HuePlex is being rebranded to <b>Lumunarr</b>
+                    .
+                    <br />
+                    <br />
+                    This will be the final release under the name HuePlex. The GitHub repository will be renamed to
+                    <b>https://github.com/chadwpalm/lumunarr</b> and the new Docker repository will be{" "}
+                    <b>chadwpalm/lumunarr</b>.
+                    <br />
+                    <br />
+                    If you are running this app natively, the app will simply be rebranded in the next release found at
+                    the renamed GitHub repo. If you are using Docker, you will need to pull the image from the new
+                    Docker Hub repo and recreate the container or update your Docker Compose file accordingly. This is
+                    important if you are using an auto-update app like Watchtower.
+                    <br />
+                    <br />
+                    Thank you for your support and I look forward to continue growing this app as Lumunarr!
+                    <br />
+                    <br />
+                    <Form.Check
+                      inline
+                      label="Do not show this message again"
+                      id="Dismiss"
+                      name="Dismiss"
+                      onChange={this.handleDismiss}
+                      size="sm"
+                      checked={this.state.dismiss}
+                    />
+                    <br />
+                    <br />
+                    <Button onClick={this.handleCloseAnn}>Dismiss</Button>
                   </Modal.Body>
                 </Modal>
                 <Row

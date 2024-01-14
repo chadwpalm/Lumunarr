@@ -39,7 +39,7 @@ router.post("/", async function (req, res, next) {
   url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/scenes`;
 
   await axios
-    .get(url, { timeout: 1000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
     .then(function (response) {
       console.info("Retrieving Light Scenes");
       var data = {};
@@ -66,7 +66,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/pms/friends/all";
 
   await axios
-    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
@@ -89,7 +89,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
@@ -115,7 +115,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { timeout: 1000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Clients");

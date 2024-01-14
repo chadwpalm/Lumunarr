@@ -267,7 +267,7 @@ export default class Create extends Component {
       var result = this.state.userList.find(({ _attributes }) => _attributes.id.toString() === e.target.value);
       this.setState({
         userId: e.target.value.toString(),
-        userName: result._attributes.title,
+        userName: result._attributes.username,
       });
     }
   };

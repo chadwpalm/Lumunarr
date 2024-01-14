@@ -1,5 +1,12 @@
 # HuePlex Version History
 
+## 1.2.6
+
+### Fixed
+
+- Increased timeout on retrieval of Plex account information to decrease access errors
+- Issue where profiles were using the Plex user's Full Name instead of username causing the backend not to recognize user. This was only happening when a Plex user was adding their full name to their Plex profile.
+
 ## 1.2.5
 
 ### Fixed
