@@ -912,7 +912,7 @@ export default class Create extends Component {
               if you know what you are doing.
               <br />
               <br />
-              See HuePlex documentation for more information.
+              See Lumunarr documentation for more information.
               <br />
               <br />
               <Button onClick={this.handleClose}>Acknowledge</Button>
@@ -927,7 +927,7 @@ export default class Create extends Component {
               from the same room are used in both profiles.
               <br />
               <br />
-              See HuePlex documentation for more information.
+              See Lumunarr documentation for more information.
               <br />
               <br />
               <Button onClick={this.handleClose}>Acknowledge</Button>

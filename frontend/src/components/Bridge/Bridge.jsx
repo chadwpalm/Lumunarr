@@ -472,7 +472,7 @@ export default class Bridge extends Component {
           </div>
           <h5>
             <br />
-            HuePlex is linked to Hue Bridge
+            Lumunarr is linked to Hue Bridge
             <br />
             <br />
           </h5>

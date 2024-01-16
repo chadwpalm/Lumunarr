@@ -35,7 +35,7 @@ if (process.env.BUILD) {
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"HuePlex#${hostname}","clients":[]}`;
+}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[]}`;
 
 try {
   fileData = fs.readFileSync("/config/settings.js");
@@ -59,6 +59,9 @@ try {
     temp.version = appVersion;
     temp.build = build;
     temp.branch = branch;
+    temp.appId = `Lumunarr#${hostname}`;
+    temp.message = true;
+
     delete temp["token"];
   }
 
@@ -67,10 +70,6 @@ try {
       client.active = true;
     }
   });
-
-  if (temp.message === undefined) {
-    temp.message = true;
-  }
 
   fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   fs.chownSync("/config/settings.js", UID, GID, (err) => {

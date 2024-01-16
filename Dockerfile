@@ -4,13 +4,13 @@ ARG BUILD
 
 ENV BUILD=${BUILD}
 
-COPY . /HuePlex
+COPY . /Lumunarr
 
-WORKDIR /HuePlex/frontend
+WORKDIR /Lumunarr/frontend
 
 RUN npm ci && npm run build
 
-WORKDIR /HuePlex
+WORKDIR /Lumunarr
 
 RUN npm ci
 

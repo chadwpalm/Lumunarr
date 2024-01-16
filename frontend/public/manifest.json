@@ -1,6 +1,6 @@
 {
-  "short_name": "HuePlex",
-  "name": "HuePlex - Hue Control for Plex",
+  "short_name": "Lumunarr",
+  "name": "Lumunarr - Hue Control for Plex",
   "icons": [
     {
       "src": "favicon.ico",
