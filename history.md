@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.3.1
+
+### Hotfix
+
+- Fixed Managed Users not working properly. Backend now uses client ID instead of username to match webhook {[#24](https://github.com/chadwpalm/Lumunarr/issues/24)}
+
 ## 1.3.0
 
 Application has been rebranded as Lumunarr
@@ -9,7 +15,7 @@ Application has been rebranded as Lumunarr
 ### Fixed
 
 - Increased timeout on retrieval of Plex account information to decrease access errors
-- Issue where profiles were using the Plex user's Full Name instead of username causing the backend not to recognize user. This was only happening when a Plex user was adding their full name to their Plex profile.
+- Issue where profiles were using the Plex user's Full Name instead of username causing the backend not to recognize user. This was only happening when a Plex user was adding their full name to their Plex profile
 
 ## 1.2.5
 

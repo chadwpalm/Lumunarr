@@ -267,7 +267,7 @@ export default class Create extends Component {
       var result = this.state.userList.find(({ _attributes }) => _attributes.id.toString() === e.target.value);
       this.setState({
         userId: e.target.value.toString(),
-        userName: result._attributes.username,
+        userName: result._attributes.title,
       });
     }
   };
@@ -440,7 +440,8 @@ export default class Create extends Component {
               <option value="Any">Any</option>
               {this.state.userList.map((user) => (
                 <option value={user._attributes.id}>
-                  {user._attributes.title} ({user._attributes.username})
+                  {user._attributes.title} ({user._attributes.username === "" ? "Plex Home" : user._attributes.username}
+                  )
                 </option>
               ))}
             </Form.Select>
