@@ -1,5 +1,5 @@
 {
-  "name": "hueplex",
+  "name": "lumunarr",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www"

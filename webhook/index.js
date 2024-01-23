@@ -475,7 +475,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     break;
                 }
                 if (sFlag) {
-                  if (payload.Account.title === client.user.name || client.user.name === "Any") {
+                  if (payload.Account.id.toString() === client.user.id || client.user.id === "Any") {
                     if (
                       payload.Metadata.librarySectionType === client.media ||
                       client.media === "All" ||

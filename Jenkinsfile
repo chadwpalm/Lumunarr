@@ -4,7 +4,7 @@ pipeline {
 
   environment {
       REPO="chadwpalm"
-      IMAGE_NAME="hueplex"
+      IMAGE_NAME="lumunarr"
       BUILD_CRED=credentials('b5555926-7439-43d8-a28d-f0e3b9b67724')
   }
 

@@ -1,13 +1,14 @@
 import React from "react";
 import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
-import Logo from "../../images/HuePlexLogo.png";
+import Logo from "../../images/lumunarr-logo.png";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
 import Device from "../Device/Device";
 import Server from "../Server/Server";
 import Settings from "../Settings/Settings";
+import Announce from "./Announce";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Nav from "react-bootstrap/Nav";
@@ -20,8 +21,6 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import { default as axios } from "axios";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
 
 export default class App extends Component {
   state = {
@@ -38,6 +37,7 @@ export default class App extends Component {
     announce: false,
     first: false,
     dismiss: false,
+    announcement: true, //master key to show an announcement after version update
   };
 
   componentDidMount() {
@@ -53,7 +53,7 @@ export default class App extends Component {
             json = JSON.parse(response);
 
           if (json.branch === "dev") {
-            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/develop/version.json?cb=${Date.now()}`;
+            var url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/develop/version.json?cb=${Date.now()}`;
 
             await axios
               .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
@@ -67,7 +67,7 @@ export default class App extends Component {
                 online = false;
               });
           } else {
-            var url = `https://raw.githubusercontent.com/chadwpalm/HuePlex/main/version.json`;
+            var url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/main/version.json`;
 
             await axios
               .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
@@ -205,7 +205,7 @@ export default class App extends Component {
     if (!this.state.isOnline) {
       return (
         <>
-          HuePlex requires an internet connection. If you are running HuePlex in Docker, check your Docker network
+          Lumunarr requires an internet connection. If you are running Lumunarr in Docker, check your Docker network
           settings.
         </>
       );
@@ -236,7 +236,7 @@ export default class App extends Component {
                     expand="md"
                   >
                     <Navbar.Brand>
-                      <img src={Logo} className="d-inline-block align-top" /> HuePlex
+                      <img src={Logo} className="d-inline-block align-top" />
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
@@ -305,16 +305,16 @@ export default class App extends Component {
                             {this.state.config.email}
                           </NavDropdown.Header>
                           <NavDropdown.Divider />
-                          <NavDropdown.Item href="https://github.com/chadwpalm/HuePlex/wiki" target="_blank">
+                          <NavDropdown.Item href="https://github.com/chadwpalm/Lumunarr/wiki" target="_blank">
                             Documentation
                           </NavDropdown.Item>
                           <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
-                          <NavDropdown.Item href="https://www.buymeacoffee.com/hueplex" target="_blank">
+                          <NavDropdown.Item href="https://www.buymeacoffee.com/lumunarr" target="_blank">
                             Donate
                           </NavDropdown.Item>
                           {this.state.isUpdate ? (
                             <NavDropdown.Item
-                              href="https://github.com/chadwpalm/HuePlex/blob/develop/history.md"
+                              href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md"
                               target="_blank"
                               style={{ color: "red" }}
                             >
@@ -353,71 +353,40 @@ export default class App extends Component {
                     <br />
                     <b>Config Dir:</b>&nbsp; /config
                     <br />
-                    <b>App Dir:</b>&nbsp; /HuePlex
+                    <b>App Dir:</b>&nbsp; /Lumunarr
                     <br />
                     <b>App ID:</b>&nbsp; {this.state.config.appId}
                     <br />
                     <b>Docker:</b>&nbsp;
-                    <a href="https://hub.docker.com/repository/docker/chadwpalm/hueplex/general" target="_blank">
-                      chadwpalm/hueplex
+                    <a href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general" target="_blank">
+                      chadwpalm/lumunarr
                     </a>
                     <br />
                     <b>Source:</b>&nbsp;
-                    <a href="https://github.com/chadwpalm/HuePlex" target="_blank">
-                      github.com/chadwpalm/HuePlex
+                    <a href="https://github.com/chadwpalm/Lumunarr" target="_blank">
+                      github.com/chadwpalm/Lumunarr
                     </a>
                   </Modal.Body>
                 </Modal>
-                <Modal
-                  show={this.state.announce}
-                  fullscreen={this.state.fullscreenAnn}
-                  onHide={this.handleCloseAnn}
-                  size="lg"
-                  animation={true}
-                >
-                  <Modal.Header>
-                    <Modal.Title>Announcement</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    Due to Plex's trademark guidelines for product naming, HuePlex is being rebranded to <b>Lumunarr</b>
-                    .
-                    <br />
-                    <br />
-                    This will be the final release under the name HuePlex. The GitHub repository will be renamed to
-                    <b>https://github.com/chadwpalm/lumunarr</b> and the new Docker repository will be{" "}
-                    <b>chadwpalm/lumunarr</b>.
-                    <br />
-                    <br />
-                    If you are running this app natively, the app will simply be rebranded in the next release found at
-                    the renamed GitHub repo. If you are using Docker, you will need to pull the image from the new
-                    Docker Hub repo and recreate the container or update your Docker Compose file accordingly. This is
-                    important if you are using an auto-update app like Watchtower.
-                    <br />
-                    <br />
-                    Thank you for your support and I look forward to continue growing this app as Lumunarr!
-                    <br />
-                    <br />
-                    <Form.Check
-                      inline
-                      label="Do not show this message again"
-                      id="Dismiss"
-                      name="Dismiss"
-                      onChange={this.handleDismiss}
-                      size="sm"
-                      checked={this.state.dismiss}
-                    />
-                    <br />
-                    <br />
-                    <Button onClick={this.handleCloseAnn}>Dismiss</Button>
-                  </Modal.Body>
-                </Modal>
+                {this.state.announcement ? (
+                  <Announce
+                    announce={this.state.announce}
+                    fullscreenAnn={this.state.fullscreenAnn}
+                    handleCloseAnn={this.handleCloseAnn}
+                    handleDismiss={this.handleDismiss}
+                    dismiss={this.state.dismiss}
+                  />
+                ) : (
+                  <></>
+                )}
+
                 <Row
                   style={{
                     paddingLeft: 30,
                     paddingTop: 30,
                     paddingRight: 30,
                     borderTop: "solid",
-                    borderTopColor: "#ebaf00",
+                    borderTopColor: "#5d36e9",
                   }}
                 >
                   <Routes>

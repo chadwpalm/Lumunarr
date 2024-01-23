@@ -3,7 +3,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import LoginIcon from "bootstrap-icons/icons/box-arrow-in-left.svg";
-import Logo from "../../images/LogoLarge.svg";
+import Logo from "../../images/Logo2.png";
 import Card from "react-bootstrap/Card";
 import { PlexOauth, IPlexClientDetails } from "plex-oauth";
 
@@ -46,7 +46,7 @@ export default class Login extends Component {
 
     let clientInformation: IPlexClientDetails = {
       clientIdentifier: `${this.props.settings.uuid}`, // This is a unique identifier used to identify your app with Plex.
-      product: "HuePlex", // Name of your application
+      product: "Lumunarr", // Name of your application
       device: `${this.props.settings.platform}`, // The type of device your application is running on
       version: `${version}`, // Version of your application
       forwardUrl: "", // Url to forward back to after signing in.
@@ -179,20 +179,22 @@ export default class Login extends Component {
       return (
         <Container
           fluid
-          style={{ backgroundImage: "linear-gradient(to bottom right, black, #ebaf00)", paddingTop: "30px" }}
+          style={{ backgroundImage: "linear-gradient(to bottom right, black, #5d36e9)", paddingTop: "30px" }}
         >
           <Card
             className="mx-auto"
             style={{ width: "350px", paddingTop: "30px", paddingBottom: "30px", backgroundColor: "#fcfcfc" }}
           >
             <Row>
-              <div className="mx-auto" style={{ width: "75px" }}>
-                <img src={Logo} width="75px" />
+              <div className="mx-auto" style={{ width: "125px" }}>
+                <img src={Logo} width="125px" />
+                <br />
+                <br />
               </div>
             </Row>
             <Row style={{ textAlign: "center" }}>
               <p style={{ fontSize: "50px" }}>
-                <b>HuePlex</b>
+                <b>Lumunarr</b>
               </p>
             </Row>
             <Row style={{ textAlign: "center" }}>
@@ -201,21 +203,21 @@ export default class Login extends Component {
             <Row>
               <div className="mx-auto" style={{ width: "350px" }}>
                 {this.state.gettingToken ? (
-                  <Button variant="warning" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
+                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
                     <div style={{ color: "#444" }}>
                       <img src={LoginIcon} />
                       &nbsp;&nbsp; Loading...
                     </div>
                   </Button>
                 ) : this.state.noInternet ? (
-                  <Button variant="warning" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
+                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
                     <div style={{ color: "#444" }}>
                       <img src={LoginIcon} />
                       &nbsp;&nbsp; Sign in
                     </div>
                   </Button>
                 ) : (
-                  <Button variant="warning" style={{ width: "100%" }} onClick={this.handlePlexAuth}>
+                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth}>
                     <div style={{ color: "#444" }}>
                       <img src={LoginIcon} />
                       &nbsp;&nbsp; Sign in
