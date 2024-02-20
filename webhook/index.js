@@ -3,6 +3,8 @@ var router = express.Router();
 var multer = require("multer");
 var fs = require("fs");
 var axios = require("axios").default;
+var https = require("https");
+var path = require("path");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
 const { error } = require("console");
 
@@ -12,7 +14,20 @@ var upload = multer({ dest: "/tmp/" });
 
 const filePath = "/config/settings.js";
 
-let colors = [0, 8000, 15700, 25500, 46920, 51000, 0];
+let colors = [
+  [0.64, 0.33],
+  [0.58, 0.4],
+  [0.49, 0.50525],
+  [0.3, 0.6],
+  [0.15, 0.06],
+  [0.23792, 0.11454],
+  [0.31273, 0.32902],
+];
+
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false, // (NOTE: this will disable client verification)
+  cert: fs.readFileSync(path.resolve(__dirname, "../backend/bridgecert.pem")),
+});
 
 function isInSchedule(sh, sm, sd, eh, em, ed) {
   currentTime = new Date();
@@ -81,24 +96,48 @@ async function isSunRiseSet(lat, long) {
 }
 
 function setScene(scene, transition, ip, user) {
-  var url = `http://${ip}/api/${user}/groups/0/action`;
+  var url = `https://${ip}/clip/v2/resource/scene/${scene}`;
 
   axios
     .put(
       url,
-      { scene: `${scene}`, transitiontime: transition },
+      { recall: { action: "active", duration: transition } },
       {
-        timeout: 1000,
-        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${user}`,
+        },
+        httpsAgent,
       }
     )
     .then(function (response) {
-      // console.log(response);
+      // console.log(response.errors);
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error(error);
-      }
+      var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
+
+      axios
+        .put(
+          url,
+          { recall: { action: "activate" } },
+          {
+            timeout: 5000,
+            headers: {
+              "Content-Type": "application/json;charset=UTF-8",
+              "hue-application-key": `${user}`,
+            },
+            httpsAgent,
+          }
+        )
+        .then(function (response) {
+          // console.log(response.errors);
+        })
+        .catch(function (error) {
+          if (error.request) {
+            console.error(error.description);
+          }
+        });
     });
 }
 
@@ -108,52 +147,109 @@ function convertToMinutes(time) {
 }
 
 async function turnoffGroup(room, ip, user, transition) {
-  var url = `http://${ip}/api/${user}/groups/`;
-  var groups = {};
   var groupNum;
+
+  var url = `https://${ip}/clip/v2/resource/room`;
+  var rooms = {};
 
   await axios
     .get(url, {
       timeout: 5000,
-      headers: { "Content-Type": "application/json;charset=UTF-8" },
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${user}`,
+      },
+      httpsAgent,
     })
     .then(function (response) {
-      groups = response.data;
+      rooms = response.data.data;
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not retrieve groups.");
+        console.error("Could not retrieve rooms.");
       }
     });
 
-  for (const [key, value] of Object.entries(groups)) {
+  rooms.forEach((value) => {
     try {
-      if (value.name === room) {
-        groupNum = key;
+      if (value.metadata.name === room) {
+        var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
+
+        axios
+          .put(
+            url,
+            { on: { on: false }, dynamics: { duration: transition } },
+            {
+              timeout: 5000,
+              headers: {
+                "Content-Type": "application/json;charset=UTF-8",
+                "hue-application-key": `${user}`,
+              },
+              httpsAgent,
+            }
+          )
+          .then(function (response) {})
+          .catch(function (error) {
+            if (error.request) {
+              console.error(error.response.data.errors[0].description);
+            }
+          });
       }
     } catch (error) {
       console.error("GroupList: ", error);
     }
-  }
-  var url = `http://${ip}/api/${user}/groups/${groupNum}/action`;
+  });
 
-  axios
-    .put(
-      url,
-      { transitiontime: transition * 10, on: false },
-      {
-        timeout: 1000,
-        headers: { "Content-Type": "application/json;charset=UTF-8" },
-      }
-    )
+  var url = `https://${ip}/clip/v2/resource/zone`;
+  var zones = {};
+
+  await axios
+    .get(url, {
+      timeout: 5000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${user}`,
+      },
+      httpsAgent,
+    })
     .then(function (response) {
-      // console.log(response);
+      zones = response.data.data;
     })
     .catch(function (error) {
       if (error.request) {
-        console.error(error);
+        console.error("Could not retrieve zones.");
       }
     });
+
+  zones.forEach((value) => {
+    try {
+      if (value.metadata.name === room) {
+        var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
+
+        axios
+          .put(
+            url,
+            { on: { on: false }, dynamics: { duration: transition } },
+            {
+              timeout: 5000,
+              headers: {
+                "Content-Type": "application/json;charset=UTF-8",
+                "hue-application-key": `${user}`,
+              },
+              httpsAgent,
+            }
+          )
+          .then(function (response) {})
+          .catch(function (error) {
+            if (error.request) {
+              console.error(error.response.data.errors[0].description);
+            }
+          });
+      }
+    } catch (error) {
+      console.error("GroupList: ", error);
+    }
+  });
 }
 
 router.post("/", upload.single("thumb"), async function (req, res, next) {
@@ -168,60 +264,72 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
           console.log("Playback has started from an external user");
           if (server.lightPlay !== "-2") {
             if (server.behaviorPlay === "1") {
-              var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightPlay}/state`;
-              var saturation, brightness, hue;
-              server.colorPlay === "6" ? (saturation = 0) : (saturation = 254);
-              brightness = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
-              hue = colors[parseInt(server.colorPlay)];
+              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
+              var brightness = Math.floor(parseInt(server.brightnessPlay));
+              var x = colors[server.colorPlay][0];
+              var y = colors[server.colorPlay][1];
               await axios
                 .put(
                   url,
                   {
-                    transitiontime: 0,
-                    hue: hue,
-                    sat: saturation,
-                    bri: brightness,
-                    on: true,
+                    on: { on: true },
+                    dynamics: { duration: 0 },
+                    dimming: { brightness: brightness },
+                    color: { xy: { x: x, y: y } },
                   },
                   {
-                    timeout: 1000,
-                    headers: { "Content-Type": "application/json;charset=UTF-8" },
+                    timeout: 5000,
+                    headers: {
+                      "Content-Type": "application/json;charset=UTF-8",
+                      "hue-application-key": `${settings.bridge.user}`,
+                    },
+                    httpsAgent,
                   }
                 )
                 .then(function (response) {
                   console.info(`Playback started on server by ${payload.Account.title}`);
                 })
                 .catch(function (error) {
-                  console.error(error.stack);
+                  console.error(error);
                 });
             }
             if (server.behaviorPlay === "2") {
               let state = {};
-              let sat, bri;
-              var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightPlay}`;
+              let x, y, bri;
+              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
 
               await axios
-                .get(url, { timeout: 1000 })
-
+                .get(url, {
+                  timeout: 10000,
+                  headers: {
+                    "Content-Type": "application/json;charset=UTF-8",
+                    "hue-application-key": `${settings.bridge.user}`,
+                  },
+                  httpsAgent,
+                })
                 .then(function (response) {
-                  state = response.data.state;
+                  state = response.data.data[0];
                 })
                 .catch(function (error) {
                   console.error(error.stack);
                 });
 
               for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
-                var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightPlay}/state`;
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
                 await axios
                   .put(
                     url,
                     {
-                      transitiontime: 0,
-                      on: false,
+                      on: { on: false },
+                      dynamics: { duration: 0 },
                     },
                     {
-                      timeout: 1000,
-                      headers: { "Content-Type": "application/json;charset=UTF-8" },
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
                     }
                   )
                   .catch(function (error) {
@@ -229,26 +337,26 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   });
 
                 await setTimeoutPromise(500);
-                if (server.colorPlay === "6") {
-                  sat = 0;
-                } else {
-                  sat = 254;
-                }
-                bri = Math.floor((parseInt(server.brightnessPlay) / 100) * 254);
+                bri = Math.floor(parseInt(server.brightnessPlay));
+                x = colors[server.colorPlay][0];
+                y = colors[server.colorPlay][1];
 
                 await axios
                   .put(
                     url,
                     {
-                      hue: colors[parseInt(server.colorPlay)],
-                      bri: bri,
-                      sat: sat,
-                      transitiontime: 0,
-                      on: true,
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: bri },
+                      color: { xy: { x: x, y: y } },
                     },
                     {
-                      timeout: 1000,
-                      headers: { "Content-Type": "application/json;charset=UTF-8" },
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
                     }
                   )
                   .catch(function (error) {
@@ -261,12 +369,16 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 .put(
                   url,
                   {
-                    transitiontime: 0,
-                    on: false,
+                    on: { on: false },
+                    dynamics: { duration: 0 },
                   },
                   {
-                    timeout: 1000,
-                    headers: { "Content-Type": "application/json;charset=UTF-8" },
+                    timeout: 5000,
+                    headers: {
+                      "Content-Type": "application/json;charset=UTF-8",
+                      "hue-application-key": `${settings.bridge.user}`,
+                    },
+                    httpsAgent,
                   }
                 )
                 .catch(function (error) {
@@ -275,20 +387,23 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
               await setTimeoutPromise(500);
 
-              if (state.on) {
+              if (state.on.on) {
                 await axios
                   .put(
                     url,
                     {
-                      hue: state.hue,
-                      sat: state.sat,
-                      bri: state.bri,
-                      transitiontime: 0,
-                      on: true,
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: state.dimming.brightness },
+                      color: { xy: { x: state.color.xy.x, y: state.color.xy.y } },
                     },
                     {
-                      timeout: 1000,
-                      headers: { "Content-Type": "application/json;charset=UTF-8" },
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
                     }
                   )
                   .catch(function (error) {
@@ -303,31 +418,33 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
           console.log("New media has been added to library");
           if (server.lightNew !== "-2") {
             if (server.behaviorNew === "1") {
-              var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightNew}/state`;
-              var saturation, brightness, hue;
-              server.colorNew === "6" ? (saturation = 0) : (saturation = 254);
-              brightness = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
-              hue = colors[parseInt(server.colorNew)];
+              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+              var brightness = Math.floor(parseInt(server.brightnessNew));
+              var x = colors[server.colorNew][0];
+              var y = colors[server.colorNew][1];
               await axios
                 .put(
                   url,
                   {
-                    transitiontime: 0,
-                    hue: hue,
-                    sat: saturation,
-                    bri: brightness,
-                    on: true,
+                    on: { on: true },
+                    dynamics: { duration: 0 },
+                    dimming: { brightness: brightness },
+                    color: { xy: { x: x, y: y } },
                   },
                   {
-                    timeout: 1000,
-                    headers: { "Content-Type": "application/json;charset=UTF-8" },
+                    timeout: 5000,
+                    headers: {
+                      "Content-Type": "application/json;charset=UTF-8",
+                      "hue-application-key": `${settings.bridge.user}`,
+                    },
+                    httpsAgent,
                   }
                 )
                 .then(function (response) {
-                  console.info(`New item added to library ${payload.Metadata.librarySectionTitle}`);
+                  console.info(`Playback started on server by ${payload.Account.title}`);
                 })
                 .catch(function (error) {
-                  console.error(error.stack);
+                  console.error(error);
                 });
             }
             if (server.behaviorNew === "2") {
@@ -335,30 +452,40 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 flag = true;
                 let state = {};
                 let sat, bri;
-                var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightNew}`;
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
 
                 await axios
-                  .get(url, { timeout: 1000 })
-
+                  .get(url, {
+                    timeout: 10000,
+                    headers: {
+                      "Content-Type": "application/json;charset=UTF-8",
+                      "hue-application-key": `${settings.bridge.user}`,
+                    },
+                    httpsAgent,
+                  })
                   .then(function (response) {
-                    state = response.data.state;
+                    state = response.data.data[0];
                   })
                   .catch(function (error) {
                     console.error(error.stack);
                   });
 
                 for (let i = 0; i < parseInt(server.intervalsNew); i++) {
-                  var url = `http://${settings.bridge.ip}/api/${settings.bridge.user}/lights/${server.lightNew}/state`;
+                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
                   await axios
                     .put(
                       url,
                       {
-                        transitiontime: 0,
-                        on: false,
+                        on: { on: false },
+                        dynamics: { duration: 0 },
                       },
                       {
-                        timeout: 1000,
-                        headers: { "Content-Type": "application/json;charset=UTF-8" },
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
                       }
                     )
                     .catch(function (error) {
@@ -366,26 +493,26 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     });
 
                   await setTimeoutPromise(500);
-                  if (server.colorNew === "6") {
-                    sat = 0;
-                  } else {
-                    sat = 254;
-                  }
-                  bri = Math.floor((parseInt(server.brightnessNew) / 100) * 254);
+                  bri = Math.floor(parseInt(server.brightnessNew));
+                  x = colors[server.colorNew][0];
+                  y = colors[server.colorNew][1];
 
                   await axios
                     .put(
                       url,
                       {
-                        hue: colors[parseInt(server.colorNew)],
-                        bri: bri,
-                        sat: sat,
-                        transitiontime: 0,
-                        on: true,
+                        on: { on: true },
+                        dynamics: { duration: 0 },
+                        dimming: { brightness: bri },
+                        color: { xy: { x: x, y: y } },
                       },
                       {
-                        timeout: 1000,
-                        headers: { "Content-Type": "application/json;charset=UTF-8" },
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
                       }
                     )
                     .catch(function (error) {
@@ -398,12 +525,16 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                   .put(
                     url,
                     {
-                      transitiontime: 0,
-                      on: false,
+                      on: { on: false },
+                      dynamics: { duration: 0 },
                     },
                     {
-                      timeout: 1000,
-                      headers: { "Content-Type": "application/json;charset=UTF-8" },
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
                     }
                   )
                   .catch(function (error) {
@@ -412,20 +543,23 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
                 await setTimeoutPromise(500);
 
-                if (state.on) {
+                if (state.on.on) {
                   await axios
                     .put(
                       url,
                       {
-                        hue: state.hue,
-                        sat: state.sat,
-                        bri: state.bri,
-                        transitiontime: 0,
-                        on: true,
+                        on: { on: true },
+                        dynamics: { duration: 0 },
+                        dimming: { brightness: state.dimming.brightness },
+                        color: { xy: { x: state.color.xy.x, y: state.color.xy.y } },
                       },
                       {
-                        timeout: 1000,
-                        headers: { "Content-Type": "application/json;charset=UTF-8" },
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
                       }
                     )
                     .catch(function (error) {
@@ -484,12 +618,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (payload.event === "media.play" && client.play !== "None") {
                         if (client.transitionType == "1") {
                           if (client.play === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Play trigger has turned off lights");
                           } else {
                             setScene(
                               client.play,
-                              parseFloat(client.transition) * 10,
+                              parseFloat(client.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -497,12 +636,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         } else {
                           if (client.play === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Play trigger has turned off lights");
                           } else {
                             setScene(
                               client.play,
-                              parseFloat(global.transition) * 10,
+                              parseFloat(global.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -513,12 +657,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (payload.event === "media.stop" && client.stop !== "None") {
                         if (client.transitionType == "1") {
                           if (client.stop === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Stop trigger has turned off lights");
                           } else {
                             setScene(
                               client.stop,
-                              parseFloat(client.transition) * 10,
+                              parseFloat(client.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -526,12 +675,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         } else {
                           if (client.stop === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Stop trigger has turned off lights");
                           } else {
                             setScene(
                               client.stop,
-                              parseFloat(global.transition) * 10,
+                              parseFloat(global.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -542,12 +696,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (payload.event === "media.pause" && client.pause !== "None") {
                         if (client.transitionType == "1") {
                           if (client.pause === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Pause trigger has turned off lights");
                           } else {
                             setScene(
                               client.pause,
-                              parseFloat(client.transition) * 10,
+                              parseFloat(client.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -555,12 +714,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         } else {
                           if (client.pause === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Pause trigger has turned off lights");
                           } else {
                             setScene(
                               client.pause,
-                              parseFloat(global.transition) * 10,
+                              parseFloat(global.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -571,12 +735,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       if (payload.event === "media.resume" && client.resume !== "None") {
                         if (client.transitionType == "1") {
                           if (client.resume === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Resume trigger has turned off lights");
                           } else {
                             setScene(
                               client.resume,
-                              parseFloat(client.transition) * 10,
+                              parseFloat(client.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -584,12 +753,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         } else {
                           if (client.resume === "Off") {
-                            turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                            turnoffGroup(
+                              client.room,
+                              settings.bridge.ip,
+                              settings.bridge.user,
+                              parseFloat(client.transition) * 1000
+                            );
                             console.info("Resume trigger has turned off lights");
                           } else {
                             setScene(
                               client.resume,
-                              parseFloat(global.transition) * 10,
+                              parseFloat(global.transition) * 1000,
                               settings.bridge.ip,
                               settings.bridge.user
                             );
@@ -601,12 +775,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         const recallScrobbleScene = async () => {
                           if (client.transitionType == "1") {
                             if (client.scrobble === "Off") {
-                              turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, client.transition);
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(client.transition) * 1000
+                              );
                               console.info("Scrobble trigger has turned off lights");
                             } else {
                               setScene(
                                 client.scrobble,
-                                parseFloat(client.transition) * 10,
+                                parseFloat(client.transition) * 1000,
                                 settings.bridge.ip,
                                 settings.bridge.user
                               );
@@ -614,12 +793,17 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             }
                           } else {
                             if (client.scrobble === "Off") {
-                              turnoffGroup(client.room, settings.bridge.ip, settings.bridge.user, global.transition);
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(client.transition) * 1000
+                              );
                               console.info("Scrobble trigger has turned off lights");
                             } else {
                               setScene(
                                 client.scrobble,
-                                parseFloat(global.transition) * 10,
+                                parseFloat(global.transition) * 1000,
                                 settings.bridge.ip,
                                 settings.bridge.user
                               );

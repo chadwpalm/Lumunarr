@@ -3,6 +3,7 @@ var router = express.Router();
 var fs = require("fs");
 var os = require("os");
 var uuid = require("uuid").v4;
+var updates = require("./migrate.js");
 
 var appVersion, branch, UID, GID, build;
 var hostname = os.hostname;
@@ -35,48 +36,94 @@ if (process.env.BUILD) {
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[]}`;
+}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[], "api": "v2"}`;
 
 try {
   fileData = fs.readFileSync("/config/settings.js");
   var temp = JSON.parse(fileData);
 
-  if (temp.version !== appVersion || temp.build !== build || temp.branch !== branch) {
-    console.info(
-      "Version updated from",
-      temp.version,
-      "build",
-      temp.build,
-      "branch",
-      temp.branch,
-      "to",
-      appVersion,
-      "build",
-      build,
-      "branch",
-      branch
-    );
-    temp.version = appVersion;
-    temp.build = build;
-    temp.branch = branch;
-    temp.appId = `Lumunarr#${hostname}`;
-    temp.message = true;
+  if (temp.api !== "v2") {
+    console.info('Backing up old settings file to "settings_v1.bak"');
+    fs.writeFileSync("/config/settings_v1.bak", JSON.stringify(temp));
+    updates.updateScenes(temp).then((temp2) => {
+      updates.updateLights(temp2).then((newTemp) => {
+        newTemp.api = "v2";
+        if (newTemp.version !== appVersion || newTemp.build !== build || newTemp.branch !== branch) {
+          console.info(
+            "Version updated from",
+            newTemp.version,
+            "build",
+            newTemp.build,
+            "branch",
+            newTemp.branch,
+            "to",
+            appVersion,
+            "build",
+            build,
+            "branch",
+            branch
+          );
+          newTemp.version = appVersion;
+          newTemp.build = build;
+          newTemp.branch = branch;
+          newTemp.appId = `Lumunarr#${hostname}`;
+          newTemp.message = true;
 
-    delete temp["token"];
-  }
+          delete newTemp["token"];
+        }
 
-  temp.clients.map((client) => {
-    if (client.active === undefined) {
-      client.active = true;
+        newTemp.clients.map((client) => {
+          if (client.active === undefined) {
+            client.active = true;
+          }
+        });
+
+        fs.writeFileSync("/config/settings.js", JSON.stringify(newTemp));
+        fs.chownSync("/config/settings.js", UID, GID, (err) => {
+          if (err) throw err;
+        });
+        console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
+        console.info("Settings file read");
+      });
+    });
+  } else {
+    if (temp.version !== appVersion || temp.build !== build || temp.branch !== branch) {
+      console.info(
+        "Version updated from",
+        temp.version,
+        "build",
+        temp.build,
+        "branch",
+        temp.branch,
+        "to",
+        appVersion,
+        "build",
+        build,
+        "branch",
+        branch
+      );
+      temp.version = appVersion;
+      temp.build = build;
+      temp.branch = branch;
+      temp.appId = `Lumunarr#${hostname}`;
+      temp.message = true;
+
+      delete temp["token"];
     }
-  });
 
-  fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
-  fs.chownSync("/config/settings.js", UID, GID, (err) => {
-    if (err) throw err;
-  });
-  console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
-  console.info("Settings file read");
+    temp.clients.map((client) => {
+      if (client.active === undefined) {
+        client.active = true;
+      }
+    });
+
+    fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
+    fs.chownSync("/config/settings.js", UID, GID, (err) => {
+      if (err) throw err;
+    });
+    console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
+    console.info("Settings file read");
+  }
 } catch (err) {
   console.info("Settings file not found, creating");
   try {
@@ -95,7 +142,6 @@ try {
 }
 
 router.get("/", function (req, res, next) {
-  // var fileData = `{"connected": "false","platform":"${os.platform}","uuid":"${uuid()}","version":"${appVersion}"}`;
   try {
     fileData = fs.readFileSync("/config/settings.js");
     console.info("Settings file read");

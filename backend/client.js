@@ -1,60 +1,117 @@
 var express = require("express");
 var router = express.Router();
 var axios = require("axios").default;
+var https = require("https");
 var parser = require("xml-js");
+var fs = require("fs");
+var path = require("path");
 
 router.post("/", async function (req, res, next) {
-  var groups = {};
+  var rooms = {};
+  var zones = {};
   var scenes = [];
   var users = [];
   var data = [];
   var groupList = [];
   var message = [];
-  var flag = false;
 
-  var url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/groups`;
+  const httpsAgent = new https.Agent({
+    rejectUnauthorized: false, // (NOTE: this will disable client verification)
+    cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
+  });
+
+  var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
 
   await axios
-    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${req.body.bridge.user}`,
+      },
+      httpsAgent,
+    })
     .then(function (response) {
-      console.info("Retrieving Light Groups");
-      groups = response.data;
-      for (const [key, value] of Object.entries(groups)) {
+      console.info("Retrieving Rooms");
+      rooms = response.data.data;
+      for (const [key, value] of Object.entries(rooms)) {
         try {
-          if (value.type === "Room" || value.type === "Zone") {
-            let array = `{ "Room":"${value.name}", "Type":"${value.type}"}`;
+          let array = `{ "Room":"${value.metadata.name}", "Type":"Room"}`;
 
-            groupList.push(JSON.parse(array));
-          }
+          groupList.push(JSON.parse(array));
         } catch (error) {
           console.error("GroupList: ", error);
         }
       }
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting light groups: ", error.message);
-      message.push("Could not connect to the Hue Bridge while requesting light groups");
+      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
+      message.push("Could not connect to the Hue Bridge while requesting rooms");
     });
 
-  url = `http://${req.body.bridge.ip}/api/${req.body.bridge.user}/scenes`;
+  var url = `https://${req.body.bridge.ip}/clip/v2/resource/zone`;
 
   await axios
-    .get(url, { timeout: 5000, headers: { "Content-Type": "application/json;charset=UTF-8" } })
+    .get(url, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${req.body.bridge.user}`,
+      },
+      httpsAgent,
+    })
+    .then(function (response) {
+      console.info("Retrieving Zones");
+      zones = response.data.data;
+
+      for (const [key, value] of Object.entries(zones)) {
+        try {
+          let array = `{ "Room":"${value.metadata.name}", "Type":"Zone"}`;
+
+          groupList.push(JSON.parse(array));
+        } catch (error) {
+          console.error("GroupList: ", error);
+        }
+      }
+    })
+    .catch(function (error) {
+      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
+      message.push("Could not connect to the Hue Bridge while requesting rooms");
+    });
+
+  var url = `https://${req.body.bridge.ip}/clip/v2/resource/scene`;
+
+  await axios
+    .get(url, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${req.body.bridge.user}`,
+      },
+      httpsAgent,
+    })
     .then(function (response) {
       console.info("Retrieving Light Scenes");
-      var data = {};
-      data = response.data;
-      for (const [key, value] of Object.entries(data)) {
+      var data = [];
+      data = response.data.data;
+      data.forEach((scene) => {
         try {
-          if (groups[value.group]) {
-            let array = `{ "Id":"${key}", "Name":"${value.name}", "Room":"${groups[value.group].name}"}`;
-
-            scenes.push(JSON.parse(array));
-          }
+          rooms.forEach((room) => {
+            if (room.id === scene.group.rid) {
+              let array = `{ "Id":"${scene.id}", "Name":"${scene.metadata.name}", "Room":"${room.metadata.name}"}`;
+              scenes.push(JSON.parse(array));
+            }
+          });
+          zones.forEach((zone) => {
+            if (zone.id === scene.group.rid) {
+              let array = `{ "Id":"${scene.id}", "Name":"${scene.metadata.name}", "Room":"${zone.metadata.name}"}`;
+              scenes.push(JSON.parse(array));
+            }
+          });
         } catch (error) {
           console.error("Scenes: ", error);
         }
-      }
+      });
       scenes.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
     })
@@ -63,10 +120,51 @@ router.post("/", async function (req, res, next) {
       message.push("Could not connect to the Hue bridge while requesting scenes");
     });
 
-  var url = "https://plex.tv/pms/friends/all";
+  var url = `https://${req.body.bridge.ip}/clip/v2/resource/smart_scene`;
 
   await axios
-    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${req.body.bridge.user}`,
+      },
+      httpsAgent,
+    })
+    .then(function (response) {
+      console.info("Retrieving Smart Scenes");
+      var data = [];
+      data = response.data.data;
+      data.forEach((scene) => {
+        try {
+          rooms.forEach((room) => {
+            if (room.id === scene.group.rid) {
+              let array = `{ "Id":"${scene.id}", "Name":"${scene.metadata.name}", "Room":"${room.metadata.name}"}`;
+              scenes.push(JSON.parse(array));
+            }
+          });
+          zones.forEach((zone) => {
+            if (zone.id === scene.group.rid) {
+              let array = `{ "Id":"${scene.id}", "Name":"${scene.metadata.name}", "Room":"${zone.metadata.name}"}`;
+              scenes.push(JSON.parse(array));
+            }
+          });
+        } catch (error) {
+          console.error("Scenes: ", error);
+        }
+      });
+      scenes.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
+      scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
+    })
+    .catch(function (error) {
+      console.error("Error while trying to connect to the Hue bridge while requesting smart scenes: ", error.message);
+      message.push("Could not connect to the Hue bridge while requesting smart scenes");
+    });
+
+  var url = "https://plex.tv/api/users";
+
+  await axios
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
@@ -89,7 +187,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
@@ -115,7 +213,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { timeout: 5000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Clients");
