@@ -640,7 +640,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               client.room,
                               settings.bridge.ip,
                               settings.bridge.user,
-                              parseFloat(client.transition) * 1000
+                              parseFloat(global.transition) * 1000
                             );
                             console.info("Play trigger has turned off lights");
                           } else {
@@ -679,7 +679,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               client.room,
                               settings.bridge.ip,
                               settings.bridge.user,
-                              parseFloat(client.transition) * 1000
+                              parseFloat(global.transition) * 1000
                             );
                             console.info("Stop trigger has turned off lights");
                           } else {
@@ -718,7 +718,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               client.room,
                               settings.bridge.ip,
                               settings.bridge.user,
-                              parseFloat(client.transition) * 1000
+                              parseFloat(global.transition) * 1000
                             );
                             console.info("Pause trigger has turned off lights");
                           } else {
@@ -757,7 +757,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               client.room,
                               settings.bridge.ip,
                               settings.bridge.user,
-                              parseFloat(client.transition) * 1000
+                              parseFloat(global.transition) * 1000
                             );
                             console.info("Resume trigger has turned off lights");
                           } else {
@@ -797,7 +797,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 client.room,
                                 settings.bridge.ip,
                                 settings.bridge.user,
-                                parseFloat(client.transition) * 1000
+                                parseFloat(global.transition) * 1000
                               );
                               console.info("Scrobble trigger has turned off lights");
                             } else {

@@ -1,5 +1,17 @@
 # Lumunarr Version History
 
+## 1.4.0
+
+This update now utilizes Hue API v2 for all API calls to the Hue bridge. Since Hue API v2 uses a different schema for scene and light IDs, the settings.js file will be automatically migrated to support the new IDs. Since this is a breaking change for previous versions of Lumunarr, a backup of the old settings file will be made in case you wish to revert back to an older version.
+
+### Added
+
+- Smart scenes are now supported (such as the Natural Light scene) due to the Hue API update. {[#23](https://github.com/chadwpalm/Lumunarr/issues/23)} Note: Hue currently does not support on/off transitions for smart scenes. Please be aware of this before submitting an issue.
+
+### Changes
+
+- Also due to the Hue API update, the way colors are selected have changes from hue/saturation to using the X/Y coordinates of CIE color space. Hopefully this will bring all variations of lights closer to the correct colors when using the Server behavior options. {[#19](https://github.com/chadwpalm/Lumunarr/issues/19)}
+
 ## 1.3.1
 
 ### Hotfix
