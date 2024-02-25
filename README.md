@@ -1,4 +1,4 @@
-#Lumunarr
+# Lumunarr
 
 Lumunarr is a connector application for controlling Philips Hue lighting using Plex webhooks. Actions like play, pause, stop, & resume will trigger lighting scenes through a Hue bridge. Lumunarr uses a graphical web interface for setting up multiple Plex client profiles which can be fine-tuned down to individual Plex users and media types.
 

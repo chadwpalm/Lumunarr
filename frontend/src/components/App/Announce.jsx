@@ -21,21 +21,24 @@ export default class Client extends Component {
           <Modal.Title>Announcement</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Welcome to <b>Lumunarr</b>!
+          <b>Welcome to Lumunarr v1.4.0</b>
           <br />
           <br />
-          This release and all future releases will be under the product name Lumunarr (formerly known at HuePlex).
+          This update now utilizes Hue API v2 for all API calls to the Hue bridge. Since Hue API v2 uses a different
+          schema for scene and light IDs, the settings.js file will be automatically migrated to support the new IDs.
+          Since this is a breaking change for previous versions of Lumunarr, a backup of the old settings file will be
+          made in case you wish to revert back to an older version.
           <br />
           <br />
-          As a reminder, the new GitHub repository for Lumunarr is <b>https://github.com/chadwpalm/Lumunarr</b> and the
-          new Docker repository is <b>chadwpalm/lumunarr</b>.
+          Smart scenes are now supported (such as the Natural Light scene) due to the Hue API update.
+          <br />
+          Note: Hue currently does not support on/off transitions for smart scenes. Please be aware of this before
+          submitting an issue.
           <br />
           <br />
-          As always, if you have any support issues with the app, you can file them under the GitHub issues tab:{" "}
-          <b>https://github.com/chadwpalm/Lumunarr/issues</b>
-          <br />
-          <br />
-          Aagin, thank you for your support and I look forward to continue growing this app as Lumunarr!
+          Also due to the Hue API update, the way colors are selected have changes from hue/saturation to using the X/Y
+          coordinates of CIE color space. Hopefully this will bring all variations of lights closer to the correct
+          colors when using the Server behavior options.
           <br />
           <br />
           <Form.Check
