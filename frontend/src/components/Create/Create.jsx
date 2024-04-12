@@ -111,18 +111,10 @@ export default class Create extends Component {
           this.setState({ groupsList: json[3] });
           this.setState({ isLoading: false });
 
-          if (this.props.isEdit) {
-            var room = json[2].find(({ Id }) => Id === this.state.playScene).Room;
-            if (this.state.room === undefined) this.setState({ room: room });
-          }
           var temp = [];
           this.setState({ roomSceneList: [] });
           json[2].forEach((scene) => {
-            if (this.state.room === undefined) {
-              if (scene.Room === room) temp.push(scene);
-            } else {
-              if (scene.Room === this.state.room) temp.push(scene);
-            }
+            if (scene.Room === this.state.room) temp.push(scene);
           });
 
           this.setState({ roomSceneList: temp });
