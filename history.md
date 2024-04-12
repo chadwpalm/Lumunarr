@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.4.1
+
+### Hotfix
+
+- Fixed issue where scenes were not properly populating when editing a client profile. {[#27](https://github.com/chadwpalm/Lumunarr/issues/27)}
+
 ## 1.4.0
 
 This update now utilizes Hue API v2 for all API calls to the Hue bridge. Since Hue API v2 uses a different schema for scene and light IDs, the settings.js file will be automatically migrated to support the new IDs. Since this is a breaking change for previous versions of Lumunarr, a backup of the old settings file will be made in case you wish to revert back to an older version.

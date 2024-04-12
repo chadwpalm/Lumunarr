@@ -37,7 +37,7 @@ export default class App extends Component {
     announce: false,
     first: false,
     dismiss: false,
-    announcement: true, //master key to show an announcement after version update
+    announcement: false, //master key to show an announcement after version update
   };
 
   componentDidMount() {
