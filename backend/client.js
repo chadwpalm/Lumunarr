@@ -15,6 +15,8 @@ router.post("/", async function (req, res, next) {
   var groupList = [];
   var message = [];
 
+  var unauth = false;
+
   const httpsAgent = new https.Agent({
     rejectUnauthorized: false, // (NOTE: this will disable client verification)
     cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
@@ -180,8 +182,11 @@ router.post("/", async function (req, res, next) {
       }
     })
     .catch(function (error) {
+      if (error.response.status === 401) {
+        unauth = true;
+      }
       console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
-      message.push("Issue with connection to online Plex account which requesting friends. Check logs for reason.");
+      message.push("Issue with connection to online Plex account while requesting friends. Check logs for reason.");
     });
 
   var url = "https://plex.tv/users/account";
@@ -240,7 +245,11 @@ router.post("/", async function (req, res, next) {
     });
 
   if (message.length !== 0) {
-    res.status(403).send(JSON.stringify(message));
+    if (unauth) {
+      res.status(401).send(JSON.stringify([]));
+    } else {
+      res.status(403).send(JSON.stringify(message));
+    }
   } else {
     res.send(JSON.stringify(data));
   }
