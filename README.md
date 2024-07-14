@@ -24,6 +24,6 @@ Lumunarr is a connector application for controlling Philips Hue lighting using P
 ### Licenses
 
 - [GNU GPL v3](http://www.gnu.org/licenses/gpl.html)
-- Copyright 2023
+- Copyright 2024
 
 _Lumunarr is not affiliated or endorsed by Plex Inc._

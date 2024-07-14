@@ -17,7 +17,7 @@ router.post("/", async function (req, res, next) {
   var url = `http://${settings.bridge.ip}/api`;
   var username;
 
-  while (!flag && new Date().getTime() - startTime < 10000) {
+  while (!flag && new Date().getTime() - startTime < 30000) {
     await axios
       .post(url, { devicetype: `${settings.appId}` })
       .then(function (response) {

@@ -1,5 +1,15 @@
 # Lumunarr Version History
 
+## 1.4.2
+
+### Changes
+
+- Increase Hue Bridge button press authorization time from 10 to 30 seconds. {[#29](https://github.com/chadwpalm/Lumunarr/discussions/29)}
+
+### Added
+
+- Lumunarr will now automatically sign out and require signing back in when Plex credentials are invalid or expired. {[#29](https://github.com/chadwpalm/Lumunarr/discussions/29)}
+
 ## 1.4.1
 
 ### Hotfix

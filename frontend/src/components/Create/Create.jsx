@@ -118,6 +118,8 @@ export default class Create extends Component {
           });
 
           this.setState({ roomSceneList: temp });
+        } else if (xhr.status === 401) {
+          this.props.logout();
         } else {
           // error
           this.setState({

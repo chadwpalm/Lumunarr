@@ -37,7 +37,7 @@ export default class App extends Component {
     announce: false,
     first: false,
     dismiss: false,
-    announcement: false, //master key to show an announcement after version update
+    announcement: true, //master key to show an announcement after version update
   };
 
   componentDidMount() {
@@ -399,7 +399,7 @@ export default class App extends Component {
                       <Route path="*" element={<Navigate replace to="/bridge" />} />
                     ) : (
                       <>
-                        <Route path="/" element={<Device settings={this.state.config} />} />
+                        <Route path="/" element={<Device settings={this.state.config} logout={this.handleLogout} />} />
                         <Route path="/server" element={<Server settings={this.state.config} />} />
                         <Route path="/settings" element={<Settings settings={this.state.config} />} />
                         <Route path="*" element={<Navigate replace to="/" />} />

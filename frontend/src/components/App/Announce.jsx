@@ -21,24 +21,25 @@ export default class Client extends Component {
           <Modal.Title>Announcement</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <b>Welcome to Lumunarr v1.4.0</b>
+          <b>Lumunarr v1.4.2 Update</b>
           <br />
           <br />
-          This update now utilizes Hue API v2 for all API calls to the Hue bridge. Since Hue API v2 uses a different
-          schema for scene and light IDs, the settings.js file will be automatically migrated to support the new IDs.
-          Since this is a breaking change for previous versions of Lumunarr, a backup of the old settings file will be
-          made in case you wish to revert back to an older version.
+          This update addresses one change and one fix.
           <br />
           <br />
-          Smart scenes are now supported (such as the Natural Light scene) due to the Hue API update.
-          <br />
-          Note: Hue currently does not support on/off transitions for smart scenes. Please be aware of this before
-          submitting an issue.
+          <b>Change:</b>
           <br />
           <br />
-          Also due to the Hue API update, the way colors are selected have changes from hue/saturation to using the X/Y
-          coordinates of CIE color space. Hopefully this will bring all variations of lights closer to the correct
-          colors when using the Server behavior options.
+          Increased the Hue Bridge button press authorization time from 10 to 30 seconds. This should give users more
+          time to press the button if it is in a more remote location.
+          <br />
+          <br />
+          <b>Fix:</b>
+          <br />
+          <br />
+          Lumunarr will now automatically sign out and require signing back in when Plex credentials are invalid or
+          expired. Previously the user needed to manually sign out and sign back in to recreate the auth token. Now it
+          will automatically log the user out.
           <br />
           <br />
           <Form.Check

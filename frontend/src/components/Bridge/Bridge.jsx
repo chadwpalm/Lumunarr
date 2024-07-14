@@ -388,7 +388,7 @@ export default class Bridge extends Component {
                 </div>
                 <h2>Click Press Me when ready</h2>
                 <h6>
-                  You will have 10 seconds to press the button on
+                  You will have 30 seconds to press the button on
                   <br />
                   the Hue Bridge
                   <br />
