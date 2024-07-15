@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.4.3
+
+### Fix
+
+- Improved Hue Bridge discovery to help locate bridges on local network more efficiently when searching using mDNS.
+
 ## 1.4.2
 
 ### Changes
