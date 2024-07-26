@@ -122,6 +122,7 @@ export default class Bridge extends Component {
             isBridge: false,
             isActive: false,
             hasFailed: false,
+            isLoaded: false,
             bridges: [],
           });
         } else {
