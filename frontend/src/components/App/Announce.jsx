@@ -21,25 +21,19 @@ export default class Client extends Component {
           <Modal.Title>Announcement</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <b>Lumunarr v1.4.2 Update</b>
-          <br />
-          <br />
-          This update addresses one change and one fix.
-          <br />
-          <br />
-          <b>Change:</b>
-          <br />
-          <br />
-          Increased the Hue Bridge button press authorization time from 10 to 30 seconds. This should give users more
-          time to press the button if it is in a more remote location.
+          <b>Lumunarr v1.4.4 Update</b>
           <br />
           <br />
           <b>Fix:</b>
           <br />
           <br />
-          Lumunarr will now automatically sign out and require signing back in when Plex credentials are invalid or
-          expired. Previously the user needed to manually sign out and sign back in to recreate the auth token. Now it
-          will automatically log the user out.
+          This updated adds a "Default" option to the scene transtion time (slider far left). This will prevent Lumunarr
+          from overriding the scene transition time saved in the scene. If no transition time is saved in the scene it
+          will use Hue's default time of 0.4 seconds. Newly created scenes will now default to the "Default" setting
+          both locally and globally*.
+          <br />
+          <br />
+          * Only globally on first startup. Any existing global times will not change.
           <br />
           <br />
           <Form.Check
