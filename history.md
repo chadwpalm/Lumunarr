@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.4.4
+
+### Fix
+
+- Added a "Default" option to the scene transtion time (slider far left). This will prevent Lumunarr from overriding the scene transition time saved in the scene. If no transition time is saved in the scene it will use Hue's default time of 0.4 seconds. Newly created scenes will now default the the "Default" setting both locally and globally (Only globally on first startup. Existing times will not change).
+
 ## 1.4.3
 
 ### Fix

@@ -98,47 +98,91 @@ async function isSunRiseSet(lat, long) {
 function setScene(scene, transition, ip, user) {
   var url = `https://${ip}/clip/v2/resource/scene/${scene}`;
 
-  axios
-    .put(
-      url,
-      { recall: { action: "active", duration: transition } },
-      {
-        timeout: 5000,
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          "hue-application-key": `${user}`,
-        },
-        httpsAgent,
-      }
-    )
-    .then(function (response) {
-      // console.log(response.errors);
-    })
-    .catch(function (error) {
-      var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
+  if (transition === 0) {
+    axios
+      .put(
+        url,
+        { recall: { action: "active" } },
+        {
+          timeout: 5000,
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "hue-application-key": `${user}`,
+          },
+          httpsAgent,
+        }
+      )
+      .then(function (response) {
+        // console.log(response.errors);
+      })
+      .catch(function (error) {
+        var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
 
-      axios
-        .put(
-          url,
-          { recall: { action: "activate" } },
-          {
-            timeout: 5000,
-            headers: {
-              "Content-Type": "application/json;charset=UTF-8",
-              "hue-application-key": `${user}`,
-            },
-            httpsAgent,
-          }
-        )
-        .then(function (response) {
-          // console.log(response.errors);
-        })
-        .catch(function (error) {
-          if (error.request) {
-            console.error(error.description);
-          }
-        });
-    });
+        axios
+          .put(
+            url,
+            { recall: { action: "activate" } },
+            {
+              timeout: 5000,
+              headers: {
+                "Content-Type": "application/json;charset=UTF-8",
+                "hue-application-key": `${user}`,
+              },
+              httpsAgent,
+            }
+          )
+          .then(function (response) {
+            // console.log(response.errors);
+          })
+          .catch(function (error) {
+            if (error.request) {
+              console.error(error.description);
+            }
+          });
+      });
+  } else {
+    axios
+      .put(
+        url,
+        { recall: { action: "active", duration: transition } },
+        {
+          timeout: 5000,
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "hue-application-key": `${user}`,
+          },
+          httpsAgent,
+        }
+      )
+      .then(function (response) {
+        // console.log(response.errors);
+      })
+      .catch(function (error) {
+        var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
+
+        axios
+          .put(
+            url,
+            { recall: { action: "activate" } },
+            {
+              timeout: 5000,
+              headers: {
+                "Content-Type": "application/json;charset=UTF-8",
+                "hue-application-key": `${user}`,
+              },
+              httpsAgent,
+            }
+          )
+          .then(function (response) {
+            // console.log(response.errors);
+          })
+          .catch(function (error) {
+            if (error.request) {
+              console.error(error.description);
+            }
+          });
+      });
+  }
 }
 
 function convertToMinutes(time) {

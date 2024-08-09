@@ -12,7 +12,7 @@ export default class Settings extends Component {
     super(props);
     if (this.props.settings.settings) {
       this.state = {
-        transition: this.props.settings.settings.transition ?? "0.4",
+        transition: this.props.settings.settings.transition ?? "0",
         startHour: this.props.settings.settings.startHour ?? "1",
         startMin: this.props.settings.settings.startMin ?? "0",
         startMed: this.props.settings.settings.startMed ?? "1",
@@ -28,7 +28,7 @@ export default class Settings extends Component {
       };
     } else {
       this.state = {
-        transition: "0.4",
+        transition: "0",
         startHour: "1",
         startMin: "0",
         startMed: "1",
@@ -150,7 +150,20 @@ export default class Settings extends Component {
               Scene Transition Time (s) &nbsp;&nbsp;
               <OverlayTrigger
                 placement="right"
-                overlay={<Tooltip>This is the time in seconds for the scene to transition.</Tooltip>}
+                overlay={
+                  <Tooltip>
+                    {" "}
+                    This is the time in seconds for the scene to transition.
+                    <br />
+                    <br />
+                    If set to "Default", Lumunarr will use the transition time that is saved in the scene (through a
+                    third-party app). If there is no saved transition time, the Hue default of 0.4 seconds will be used.
+                    <br />
+                    <br />
+                    Setting a specific time will override the transition time saved in the scene and use the selected
+                    time instead.
+                  </Tooltip>
+                }
               >
                 <img src={Info} alt="Info" />
               </OverlayTrigger>
@@ -160,12 +173,20 @@ export default class Settings extends Component {
                 id="transition"
                 className="me-auto"
                 value={this.state.transition}
-                min={0.2}
+                min={0}
                 max={10}
                 step={0.2}
                 onChange={this.handleTransition}
               />
-              <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
+              {this.state.transition === "0" ? (
+                <>
+                  <div style={{ width: 80, textAlign: "right" }}>Default</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
+                </>
+              )}
             </Stack>
             <div style={{ paddingBottom: "0.75rem" }} />
             {/* Schedule */}
