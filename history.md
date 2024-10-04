@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.4.5
+
+### Hotfix
+
+- Fixed issue where not having default settings was causing Lumunarr to not work if a Client profile used Global settings and the Settings page hadn't been saved yet. {[#32](https://github.com/chadwpalm/Lumunarr/issues/32)}
+
 ## 1.4.4
 
 ### Fix
