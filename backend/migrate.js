@@ -50,31 +50,35 @@ async function updateScenes(temp) {
 }
 
 async function updateLights(temp) {
-  var url2 = `https://${temp.bridge.ip}/clip/v2/resource/light`;
-  return axios
-    .get(url2, {
-      timeout: 10000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": `${temp.bridge.user}`,
-      },
-      httpsAgent,
-    })
-    .then(function (response) {
-      var data = response.data.data;
-      data.forEach((element) => {
-        if (temp.server.lightPlay === element.id_v1.split("/")[2]) {
-          temp.server.lightPlay = element.id;
-        }
-        if (temp.server.lightNew === element.id_v1.split("/")[2]) {
-          temp.server.lightNew = element.id;
-        }
+  if (temp.server) {
+    var url2 = `https://${temp.bridge.ip}/clip/v2/resource/light`;
+    return axios
+      .get(url2, {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${temp.bridge.user}`,
+        },
+        httpsAgent,
+      })
+      .then(function (response) {
+        var data = response.data.data;
+        data.forEach((element) => {
+          if (temp.server.lightPlay === element.id_v1.split("/")[2]) {
+            temp.server.lightPlay = element.id;
+          }
+          if (temp.server.lightNew === element.id_v1.split("/")[2]) {
+            temp.server.lightNew = element.id;
+          }
+        });
+        return temp;
+      })
+      .catch(function (error) {
+        console.error("Error while trying to connect to the Hue bridge while migrating settings: ", error.message);
       });
-      return temp;
-    })
-    .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while migrating settings: ", error.message);
-    });
+  } else {
+    return temp;
+  }
 }
 
 exports.updateScenes = updateScenes;
