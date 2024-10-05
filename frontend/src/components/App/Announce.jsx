@@ -33,7 +33,10 @@ export default class Client extends Component {
           1. Fixed issue where not having default settings was causing Lumunarr to not work if a Client profile used
           Global settings and the Settings page hadn't been saved yet.
           <br />
+          <br />
           2. Fixed issue where migration fails if no server settings have been created/saved.
+          <br />
+          <br />
           <Form.Check
             inline
             label="Do not show this message again"
