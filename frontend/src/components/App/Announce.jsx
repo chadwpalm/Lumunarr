@@ -21,21 +21,19 @@ export default class Client extends Component {
           <Modal.Title>Announcement</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <b>Lumunarr v1.4.4 Update</b>
+          <b>Lumunarr v1.4.5 Update</b>
           <br />
           <br />
-          <b>Fix:</b>
+          <b>Hotfix:</b>
           <br />
           <br />
-          This updated adds a "Default" option to the scene transtion time (slider far left). This will prevent Lumunarr
-          from overriding the scene transition time saved in the scene. If no transition time is saved in the scene it
-          will use Hue's default time of 0.4 seconds. Newly created scenes will now default to the "Default" setting
-          both locally and globally*.
+          This updated addresses two minor issues:
           <br />
           <br />
-          * Only globally on first startup. Any existing global times will not change.
+          1. Fixed issue where not having default settings was causing Lumunarr to not work if a Client profile used
+          Global settings and the Settings page hadn't been saved yet.
           <br />
-          <br />
+          2. Fixed issue where migration fails if no server settings have been created/saved.
           <Form.Check
             inline
             label="Do not show this message again"
