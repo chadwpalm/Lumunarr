@@ -744,7 +744,8 @@ export default class Create extends Component {
                     Range: The schedule will be based on a time range daily.
                     <br />
                     <br />
-                    Sunset/Sunrise: The active schedule will be between sunset and sunrise.
+                    Sunset/Sunrise: The active schedule will be between sunset and sunrise. In order for this to work a
+                    Latitude and Longitude must be set in the Settings tab.
                   </Tooltip>
                 }
               >

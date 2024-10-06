@@ -36,7 +36,7 @@ if (process.env.BUILD) {
 
 var fileData = `{"connected": "false","platform":"${
   os.platform
-}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[], "api": "v2"}`;
+}","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[],"settings":{"transition":"0","startHour":"12","startMin":"0","startMed":"1","endHour":"11","endMin":"59","endMed":"2"},"api": "v2"}`;
 
 try {
   fileData = fs.readFileSync("/config/settings.js");
