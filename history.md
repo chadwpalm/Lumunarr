@@ -1,5 +1,16 @@
 # Lumunarr Version History
 
+## 1.5.0
+
+### Added
+
+- Confirmation now shown for saving/updating settings
+
+### Fix
+
+- Fixed issue where AM/PM for schedule ending times were displaying the same as the starting times on both clients and settings.
+- Updated the Sunrise/Sunset schedule code to work more reliably.
+
 ## 1.4.5
 
 ### Hotfix

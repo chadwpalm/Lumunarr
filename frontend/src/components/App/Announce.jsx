@@ -21,20 +21,25 @@ export default class Client extends Component {
           <Modal.Title>Announcement</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <b>Lumunarr v1.4.5 Update</b>
+          <b>Lumunarr v1.5.0 Update</b>
           <br />
           <br />
-          <b>Hotfix:</b>
+          After taking time to work on other projects I decided to come back and complete some of the things I've been
+          wanting to do with this app for a while. This will probably be the last major update for this app since I feel
+          it is at a point that I am satisfied with. It grew much larger than I originally expected and that is due to a
+          great community offering suggestions and helping report bugs.
           <br />
           <br />
-          This updated addresses two minor issues:
+          Any future work on this app will be mostly fixing any bugs that rear their heads or if any 3rd party APIs
+          change forcing an update for functionality.
           <br />
           <br />
-          1. Fixed issue where not having default settings was causing Lumunarr to not work if a Client profile used
-          Global settings and the Settings page hadn't been saved yet.
-          <br />
-          <br />
-          2. Fixed issue where migration fails if no server settings have been created/saved.
+          You can find the changelog for this version here:{" "}
+          {this.props.branch === "dev" ? (
+            <a href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md">Changelog</a>
+          ) : (
+            <a href="https://github.com/chadwpalm/Lumunarr/blob/main/history.md">Changelog</a>
+          )}
           <br />
           <br />
           <Form.Check

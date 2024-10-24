@@ -30,7 +30,7 @@ const httpsAgent = new https.Agent({
 });
 
 function isInSchedule(sh, sm, sd, eh, em, ed) {
-  currentTime = new Date();
+  let currentTime = new Date();
   var startHour, startMin, endHour, endMin;
 
   parseInt(sd) === 2
@@ -62,37 +62,34 @@ function isInSchedule(sh, sm, sd, eh, em, ed) {
 }
 
 async function isSunRiseSet(lat, long) {
-  if (lat === "" || long === "") return false;
+  if (!lat || !long) return false;
 
-  var currentDate = new Date();
-  var currentEpoch = currentDate.getTime();
-  var sunTimes, sunset, sunrise;
+  const currentDate = new Date();
+  const currentEpoch = currentDate.getTime();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get system timezone
+  let sunTimes, sunset, sunrise;
 
-  if (currentDate.getHours() < 12) {
-    var date = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1) + "-" + (currentDate.getDate() - 1);
-  } else {
-    var date = currentDate.getFullYear() + "-" + (currentDate.getMonth() + 1) + "-" + currentDate.getDate();
-  }
+  const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${long}&tzid=${timeZone}&formatted=0`;
 
-  var url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${long}&date=${date}&formatted=0`;
-
-  await axios
-    .get(url, {
+  try {
+    const response = await axios.get(url, {
       timeout: 5000,
       headers: { "Content-Type": "application/json;charset=UTF-8" },
-    })
-    .then(function (response) {
-      sunTimes = response.data;
-      sunset = new Date(sunTimes.results.sunset).getTime();
-      sunrise = new Date(sunTimes.results.sunrise).getTime();
-    })
-    .catch(function (error) {
-      if (error.request) {
-        console.error("Could not retrieve sunrise/sunset times. Lat/Long must be valid entries");
-      }
     });
 
-  return sunset <= currentEpoch && sunrise + 86400000 > currentEpoch;
+    sunTimes = response.data.results;
+    sunrise = new Date(sunTimes.sunrise).getTime(); // Local sunrise time in epoch
+    sunset = new Date(sunTimes.sunset).getTime(); // Local sunset time in epoch
+
+    // If the current time is before sunrise of today, add 24 hours to make it "next day sunrise"
+    const nextSunrise = sunrise + 24 * 60 * 60 * 1000;
+
+    // Check if current time is between sunrise and sunset
+    return currentEpoch >= sunset && currentEpoch <= nextSunrise;
+  } catch (error) {
+    console.error("Could not retrieve sunrise/sunset times. Lat/Long must be valid entries");
+    return false;
+  }
 }
 
 function setScene(scene, transition, ip, user) {

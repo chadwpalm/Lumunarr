@@ -36,7 +36,7 @@ export default class Create extends Component {
         startMed: info.startMed ?? "1",
         endHour: info.endHour ?? "1",
         endMin: info.endMin ?? "0",
-        endMed: info.startMed ?? "1",
+        endMed: info.endMed ?? "1",
         transitionType: info.transitionType ?? "1",
         transition: info.transition ?? "0",
         active: info.active,
@@ -745,7 +745,8 @@ export default class Create extends Component {
                     <br />
                     <br />
                     Sunset/Sunrise: The active schedule will be between sunset and sunrise. In order for this to work a
-                    Latitude and Longitude must be set in the Settings tab.
+                    Latitude and Longitude must be set in the Settings tab. If using Docker the timezone environment
+                    variable must also be set.
                   </Tooltip>
                 }
               >

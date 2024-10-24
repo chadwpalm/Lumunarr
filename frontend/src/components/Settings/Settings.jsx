@@ -18,10 +18,11 @@ export default class Settings extends Component {
         startMed: this.props.settings.settings.startMed ?? "1",
         endHour: this.props.settings.settings.endHour ?? "1",
         endMin: this.props.settings.settings.endMin ?? "0",
-        endMed: this.props.settings.settings.startMed ?? "1",
+        endMed: this.props.settings.settings.endMed ?? "1",
         latitude: this.props.settings.settings.latitude ?? "",
         longitude: this.props.settings.settings.longitude ?? "",
         isLoading: true,
+        isSaved: false,
         isError: false,
         errorRes: "",
         isEdit: true,
@@ -38,6 +39,7 @@ export default class Settings extends Component {
         latitude: "",
         longitude: "",
         isLoading: true,
+        isSaved: false,
         errorRes: "",
         isEdit: false,
       };
@@ -64,6 +66,7 @@ export default class Settings extends Component {
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
+          this.setState({ isSaved: true });
         } else {
           // error
           this.setState({
@@ -83,6 +86,7 @@ export default class Settings extends Component {
   handleTransition = (e) => {
     this.setState({
       transition: e.target.value.toString(),
+      isSaved: false,
     });
   };
 
@@ -107,14 +111,15 @@ export default class Settings extends Component {
         this.setState({ endMed: e.target.value.toString() });
         break;
     }
+    this.setState({ isSaved: false });
   };
 
   handleLatitude = (e) => {
-    this.setState({ latitude: e.target.value.toString() });
+    this.setState({ latitude: e.target.value.toString(), isSaved: false });
   };
 
   handleLongitude = (e) => {
-    this.setState({ longitude: e.target.value.toString() });
+    this.setState({ longitude: e.target.value.toString(), isSaved: false });
   };
 
   render() {
@@ -337,13 +342,19 @@ export default class Settings extends Component {
             <div style={{ paddingBottom: "0.75rem" }} />
             {/* Cancel/Save */}
             {this.state.isEdit ? (
-              <Button type="submit" variant="secondary">
-                Update
-              </Button>
+              <>
+                <Button type="submit" variant="secondary">
+                  Update
+                </Button>
+                {this.state.isSaved ? <i style={{ color: "#00a700" }}>&nbsp; Settings updated. </i> : <></>}
+              </>
             ) : (
-              <Button type="submit" variant="secondary">
-                Save
-              </Button>
+              <>
+                <Button type="submit" variant="secondary">
+                  Save
+                </Button>
+                {this.state.isSaved ? <i style={{ color: "#00a700" }}>&nbsp; Settings saved. </i> : <></>}
+              </>
             )}
             <div style={{ paddingBottom: "1rem" }} />
           </Form>

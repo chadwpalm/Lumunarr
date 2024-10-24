@@ -375,6 +375,7 @@ export default class App extends Component {
                     handleCloseAnn={this.handleCloseAnn}
                     handleDismiss={this.handleDismiss}
                     dismiss={this.state.dismiss}
+                    branch={this.state.config.branch}
                   />
                 ) : (
                   <></>
