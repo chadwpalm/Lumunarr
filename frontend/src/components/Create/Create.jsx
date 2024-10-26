@@ -8,6 +8,7 @@ import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Stack from "react-bootstrap/Stack";
+import "./Create.css";
 
 export default class Create extends Component {
   constructor(props) {
@@ -379,7 +380,7 @@ export default class Create extends Component {
       }
       return (
         <div>
-          <Form onSubmit={this.handleFormSubmit}>
+          <Form onSubmit={this.handleFormSubmit} className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}>
             {/* Select Client */}
             <Form.Label for="client">
               Client &nbsp;&nbsp;
@@ -392,7 +393,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.clientId} id="client" name="client" onChange={this.handleClient} size="sm">
@@ -410,7 +411,7 @@ export default class Create extends Component {
                 )
               )}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Select User */}
             <Form.Label for="user">
               User &nbsp;&nbsp;
@@ -426,7 +427,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.userId} id="user" name="user" onChange={this.handleUser} size="sm">
@@ -439,7 +440,7 @@ export default class Create extends Component {
                 </option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Select Media Type */}
             <Form.Label for="media">
               Media &nbsp;&nbsp;
@@ -452,7 +453,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.media} id="media" name="media" onChange={this.handleMedia} size="sm">
@@ -462,7 +463,7 @@ export default class Create extends Component {
               <option value="show">TV Show</option>
               <option value="cinemaTrailer">Trailer/Preroll</option>
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Select Room */}
             <Form.Label for="room">
               Room &nbsp;&nbsp;
@@ -470,7 +471,7 @@ export default class Create extends Component {
                 placement="right"
                 overlay={<Tooltip>This is the room/group of lights you want to use.</Tooltip>}
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.room} id="room" name="room" onChange={this.handleRoom} size="sm">
@@ -481,7 +482,7 @@ export default class Create extends Component {
                 </option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Play Action */}
             <Form.Label for="play">
               Play &nbsp;&nbsp;
@@ -494,7 +495,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.playScene} id="play" name="play" onChange={this.handlePlay} size="sm">
@@ -505,7 +506,7 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Stop Action */}
             <Form.Label for="stop">
               Stop &nbsp;&nbsp;
@@ -518,7 +519,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.stopScene} id="stop" name="stop" onChange={this.handleStop} size="sm">
@@ -529,7 +530,7 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Pause Action */}
             <Form.Label for="pause">
               Pause &nbsp;&nbsp;
@@ -542,7 +543,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select value={this.state.pauseScene} id="pause" name="pause" onChange={this.handlePause} size="sm">
@@ -553,7 +554,7 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Resume Action */}
             <Form.Label for="resume">
               Resume &nbsp;&nbsp;
@@ -566,7 +567,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
@@ -583,7 +584,7 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Scrobble Action */}
             <Form.Label for="scrobble">
               Scrobble &nbsp;&nbsp;
@@ -604,7 +605,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Form.Select
@@ -621,7 +622,7 @@ export default class Create extends Component {
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Scrobble Delay */}
             <Form.Label for="scrobbleDelay">
               Scrobble Delay (ms) &nbsp;&nbsp;
@@ -634,7 +635,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Stack gap={1} direction="horizontal">
@@ -647,9 +648,9 @@ export default class Create extends Component {
                 step={100}
                 onChange={this.handleScrobbleDelay}
               />
-              <div style={{ width: 80, textAlign: "right" }}>{this.state.scrobbleDelayMs} ms</div>
+              <div className="slider-style">{this.state.scrobbleDelayMs} ms</div>
             </Stack>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Scene Transition */}
             <Form.Label for="transition">
               Scene Transition Time (s) &nbsp;&nbsp;
@@ -669,7 +670,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <div>
@@ -696,7 +697,7 @@ export default class Create extends Component {
                 checked={this.state.transitionType === "2"}
               />
             </div>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {this.state.transitionType === "1" ? (
               <>
                 <Stack gap={1} direction="horizontal">
@@ -711,15 +712,15 @@ export default class Create extends Component {
                   />
                   {this.state.transition === "0" ? (
                     <>
-                      <div style={{ width: 80, textAlign: "right" }}>Default</div>
+                      <div className="slider-style">Default</div>
                     </>
                   ) : (
                     <>
-                      <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
+                      <div className="slider-style">{this.state.transition} s</div>
                     </>
                   )}
                 </Stack>
-                <div style={{ paddingBottom: "0.75rem" }} />
+                <div className="div-seperator" />
               </>
             ) : (
               <></>
@@ -750,7 +751,7 @@ export default class Create extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Schedule" />
+                <img src={Info} className="image-info" alt="Schedule" />
               </OverlayTrigger>
             </Form.Label>
             <div>
@@ -799,7 +800,7 @@ export default class Create extends Component {
                 checked={this.state.scheduleType === "2"}
               />
             </div>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {this.state.scheduleType === "1" ? (
               <>
                 <Stack gap={1} direction="horizontal">
@@ -810,7 +811,7 @@ export default class Create extends Component {
                     name="startHour"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "65px" }}
+                    className="sched-style"
                   >
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -831,7 +832,7 @@ export default class Create extends Component {
                     name="startMin"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "65px" }}
+                    className="sched-style"
                   >
                     {options}
                   </Form.Select>
@@ -841,13 +842,13 @@ export default class Create extends Component {
                     name="startMed"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "68px" }}
+                    className="sched-style"
                   >
                     <option value="1">AM</option>
                     <option value="2">PM</option>
                   </Form.Select>
                 </Stack>
-                <div style={{ paddingBottom: "0.50rem" }} />
+                <div className="div-seperator" />
                 <Stack gap={1} direction="horizontal">
                   End:&nbsp;&nbsp;&nbsp;&nbsp;
                   <Form.Select
@@ -856,7 +857,7 @@ export default class Create extends Component {
                     name="endHour"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "65px" }}
+                    className="sched-style"
                   >
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -877,7 +878,7 @@ export default class Create extends Component {
                     name="endMin"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "65px" }}
+                    className="sched-style"
                   >
                     {options}
                   </Form.Select>
@@ -887,17 +888,18 @@ export default class Create extends Component {
                     name="endMed"
                     onChange={this.handleTime}
                     size="sm"
-                    style={{ width: "68px" }}
+                    className="sched-style"
                   >
                     <option value="1">AM</option>
                     <option value="2">PM</option>
                   </Form.Select>
                 </Stack>
-                <div style={{ paddingBottom: "0.75rem" }} />
+                <div className="div-seperator" />
               </>
             ) : (
               <></>
             )}
+            <div className="div-seperator" />
             {/* Cancel/Save */}
             <Button onClick={this.props.cancel} variant="light">
               Cancel

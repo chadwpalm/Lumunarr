@@ -1,0 +1,18 @@
+.div-seperator {
+    padding-bottom: 0.75rem;
+}
+.button-style {
+    width: auto !important;
+
+}
+.input-style {
+    width: 300px !important;
+}
+.row-style {
+    margin-left: 0px !important;
+}
+.form-content.dark-mode .form-control {
+    color: white;
+    background-color: rgb(46, 46, 46);
+    border-color: #898989;
+}

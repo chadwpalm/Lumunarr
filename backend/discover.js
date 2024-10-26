@@ -57,6 +57,7 @@ router.post("/", function (req, res, next) {
           });
       }
     } else {
+      ips = [];
       ips.push(req.body.ip);
     }
 

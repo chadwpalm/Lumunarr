@@ -6,6 +6,8 @@ import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Stack from "react-bootstrap/Stack";
+import Image from "react-bootstrap/Image";
+import "./Settings.css";
 
 export default class Settings extends Component {
   constructor(props) {
@@ -136,9 +138,9 @@ export default class Settings extends Component {
         <Row>
           <h3>Settings</h3>
         </Row>
-        <div style={{ paddingBottom: "0.75rem" }} />
+        <div className="div-seperator" />
         <Row>
-          <Form onSubmit={this.handleFormSubmit}>
+          <Form onSubmit={this.handleFormSubmit} className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}>
             <h5>
               Global Settings &nbsp;&nbsp;
               <OverlayTrigger
@@ -147,10 +149,10 @@ export default class Settings extends Component {
                   <Tooltip>These settings will be applied toward profile settings that are set as "global".</Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} className="image-info" />
               </OverlayTrigger>
             </h5>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Form.Label for="transition">
               Scene Transition Time (s) &nbsp;&nbsp;
               <OverlayTrigger
@@ -170,7 +172,7 @@ export default class Settings extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Stack gap={1} direction="horizontal">
@@ -185,15 +187,15 @@ export default class Settings extends Component {
               />
               {this.state.transition === "0" ? (
                 <>
-                  <div style={{ width: 80, textAlign: "right" }}>Default</div>
+                  <div className="range-text">Default</div>
                 </>
               ) : (
                 <>
-                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
+                  <div className="range-text">{this.state.transition} s</div>
                 </>
               )}
             </Stack>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Schedule */}
             <Form.Label for="schedule">
               Schedule &nbsp;&nbsp;
@@ -201,10 +203,10 @@ export default class Settings extends Component {
                 placement="right"
                 overlay={<Tooltip>Add a global schedule for when the triggers will be active.</Tooltip>}
               >
-                <img src={Info} alt="Schedule" />
+                <img src={Info} className="image-info" alt="Schedule" />
               </OverlayTrigger>
             </Form.Label>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Stack gap={1} direction="horizontal">
               Start:&nbsp;&nbsp;
               <Form.Select
@@ -213,7 +215,7 @@ export default class Settings extends Component {
                 name="startHour"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -234,7 +236,7 @@ export default class Settings extends Component {
                 name="startMin"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 {options}
               </Form.Select>
@@ -244,13 +246,13 @@ export default class Settings extends Component {
                 name="startMed"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "68px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">AM</option>
                 <option value="2">PM</option>
               </Form.Select>
             </Stack>
-            <div style={{ paddingBottom: "0.50rem" }} />
+            <div className="div-seperator" />
             <Stack gap={1} direction="horizontal">
               End:&nbsp;&nbsp;&nbsp;&nbsp;
               <Form.Select
@@ -259,7 +261,7 @@ export default class Settings extends Component {
                 name="endHour"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -280,7 +282,7 @@ export default class Settings extends Component {
                 name="endMin"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 {options}
               </Form.Select>
@@ -290,13 +292,14 @@ export default class Settings extends Component {
                 name="endMed"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "68px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">AM</option>
                 <option value="2">PM</option>
               </Form.Select>
             </Stack>
-            <div style={{ paddingBottom: "1.5rem" }} />
+            <div className="div-seperator" />
+            <div className="div-seperator" />
             {/* Location */}
             <h5>
               Geographical Location &nbsp;&nbsp;
@@ -308,10 +311,10 @@ export default class Settings extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Location" />
+                <img src={Info} className="image-info" alt="Location" />
               </OverlayTrigger>
             </h5>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             1. Visit{" "}
             <a href="https://www.latlong.net/" target="_blank">
               LatLong.net
@@ -330,7 +333,7 @@ export default class Settings extends Component {
               onChange={this.handleLatitude}
               size="sm"
             />
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Form.Label for="longitude">Longitude</Form.Label>
             <Form.Control
               value={this.state.longitude}
@@ -339,24 +342,24 @@ export default class Settings extends Component {
               onChange={this.handleLongitude}
               size="sm"
             />
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Cancel/Save */}
             {this.state.isEdit ? (
               <>
                 <Button type="submit" variant="secondary">
                   Update
                 </Button>
-                {this.state.isSaved ? <i style={{ color: "#00a700" }}>&nbsp; Settings updated. </i> : <></>}
+                {this.state.isSaved ? <i className="conf-text">&nbsp; Settings updated. </i> : <></>}
               </>
             ) : (
               <>
                 <Button type="submit" variant="secondary">
                   Save
                 </Button>
-                {this.state.isSaved ? <i style={{ color: "#00a700" }}>&nbsp; Settings saved. </i> : <></>}
+                {this.state.isSaved ? <i className="conf-text">&nbsp; Settings saved. </i> : <></>}
               </>
             )}
-            <div style={{ paddingBottom: "1rem" }} />
+            <div className="div-seperator" />
           </Form>
         </Row>
       </>

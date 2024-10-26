@@ -7,6 +7,7 @@ import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Loading from "../../images/loading-gif.gif";
 import Stack from "react-bootstrap/Stack";
+import "./Server.css";
 
 export default class Server extends Component {
   constructor(props) {
@@ -37,6 +38,7 @@ export default class Server extends Component {
         isOffPlay: false,
         isOffNew: false,
         isEdit: true,
+        isSaved: false,
       };
     } else {
       this.state = {
@@ -63,6 +65,7 @@ export default class Server extends Component {
         isOffPlay: false,
         isOffNew: false,
         isEdit: false,
+        isSaved: false,
       };
     }
   }
@@ -191,6 +194,7 @@ export default class Server extends Component {
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
+          this.setState({ isSaved: true });
         } else {
           // error
           this.setState({
@@ -210,30 +214,30 @@ export default class Server extends Component {
   handleLightPlay = (e) => {
     this.setState({ lightPlay: e.target.value.toString() });
     if (e.target.value.toString() === "-2") {
-      this.setState({ isOffPlay: true, roomPlay: "-1" });
+      this.setState({ isOffPlay: true, roomPlay: "-1", isSaved: false });
     } else {
-      this.setState({ isOffPlay: false });
+      this.setState({ isOffPlay: false, isSaved: false });
     }
   };
 
   handleBehaviorPlay = (e) => {
-    this.setState({ behaviorPlay: e.target.value.toString() });
+    this.setState({ behaviorPlay: e.target.value.toString(), isSaved: false });
   };
 
   handleIntervalsPlay = (e) => {
-    this.setState({ intervalsPlay: e.target.value.toString() });
+    this.setState({ intervalsPlay: e.target.value.toString(), isSaved: false });
   };
 
   handleColorPlay = (e) => {
-    this.setState({ colorPlay: e.target.value.toString() });
+    this.setState({ colorPlay: e.target.value.toString(), isSaved: false });
   };
 
   handleBrightnessPlay = (e) => {
-    this.setState({ brightnessPlay: e.target.value.toString() });
+    this.setState({ brightnessPlay: e.target.value.toString(), isSaved: false });
   };
 
   handleRoomPlay = (e) => {
-    this.setState({ roomPlay: e.target.value.toString() });
+    this.setState({ roomPlay: e.target.value.toString(), isSaved: false });
     var temp = [];
     this.setState({ roomLightListPlay: [] });
     this.state.lightList.forEach((light) => {
@@ -244,7 +248,7 @@ export default class Server extends Component {
   };
 
   handleRoomNew = (e) => {
-    this.setState({ roomNew: e.target.value.toString() });
+    this.setState({ roomNew: e.target.value.toString(), isSaved: false });
     var temp = [];
     this.setState({ roomLightListNew: [] });
     this.state.lightList.forEach((light) => {
@@ -255,7 +259,7 @@ export default class Server extends Component {
   };
 
   handleLightNew = (e) => {
-    this.setState({ lightNew: e.target.value.toString() });
+    this.setState({ lightNew: e.target.value.toString(), isSaved: false });
     if (e.target.value.toString() === "-2") {
       this.setState({ isOffNew: true, roomNew: "-1" });
     } else {
@@ -264,19 +268,19 @@ export default class Server extends Component {
   };
 
   handleBehaviorNew = (e) => {
-    this.setState({ behaviorNew: e.target.value.toString() });
+    this.setState({ behaviorNew: e.target.value.toString(), isSaved: false });
   };
 
   handleIntervalsNew = (e) => {
-    this.setState({ intervalsNew: e.target.value.toString() });
+    this.setState({ intervalsNew: e.target.value.toString(), isSaved: false });
   };
 
   handleColorNew = (e) => {
-    this.setState({ colorNew: e.target.value.toString() });
+    this.setState({ colorNew: e.target.value.toString(), isSaved: false });
   };
 
   handleBrightnessNew = (e) => {
-    this.setState({ brightnessNew: e.target.value.toString() });
+    this.setState({ brightnessNew: e.target.value.toString(), isSaved: false });
   };
 
   render() {
@@ -294,9 +298,12 @@ export default class Server extends Component {
           <Row>
             <h3>Server</h3>
           </Row>
-          <div style={{ paddingBottom: "0.75rem" }} />
+          <div className="div-seperator" />
           <Row>
-            <Form onSubmit={this.handleFormSubmit}>
+            <Form
+              onSubmit={this.handleFormSubmit}
+              className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}
+            >
               <h5>
                 Playback Started &nbsp;&nbsp;
                 <OverlayTrigger
@@ -307,13 +314,13 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </h5>
               <Form.Label for="roomPlay">
                 Room &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -330,11 +337,11 @@ export default class Server extends Component {
                   </option>
                 ))}
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="lightPlay">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -350,7 +357,7 @@ export default class Server extends Component {
                   <option value={light.Id}>{light.Name}</option>
                 ))}
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="behaviorPlay">
                 Behavior &nbsp;&nbsp;
                 <OverlayTrigger
@@ -368,7 +375,7 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -383,7 +390,7 @@ export default class Server extends Component {
                 <option value="1">Turn On</option>
                 <option value="2">Blink</option>
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               {this.state.behaviorPlay === "2" ? (
                 <>
                   <Form.Label for="intervalsPlay">
@@ -392,11 +399,11 @@ export default class Server extends Component {
                       placement="right"
                       overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
-                      <img src={Info} />
+                      <img src={Info} className="image-info" />
                     </OverlayTrigger>
                   </Form.Label>
                   <Stack gap={1} direction="horizontal">
-                    <div style={{ width: 40, textAlign: "left" }}>{this.state.intervalsPlay}</div>
+                    <div className="slider-style">{this.state.intervalsPlay}</div>
                     <Form.Range
                       id="intervalsPlay"
                       className="me-auto"
@@ -408,7 +415,7 @@ export default class Server extends Component {
                       disabled={this.state.isOffPlay}
                     />
                   </Stack>
-                  <div style={{ paddingBottom: "0.75rem" }} />
+                  <div className="div-seperator" />
                 </>
               ) : (
                 <></>
@@ -416,7 +423,7 @@ export default class Server extends Component {
               <Form.Label for="colorPlay">
                 Color &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -436,18 +443,18 @@ export default class Server extends Component {
                 <option value="5">Purple</option>
                 <option value="6">White</option>
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="brightnessPlay">
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
                   overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Stack gap={1} direction="horizontal">
-                <div style={{ width: 50, textAlign: "left" }}>{this.state.brightnessPlay}%</div>
+                <div className="slider-style">{this.state.brightnessPlay}%</div>
                 <Form.Range
                   id="brightnessPlay"
                   className="me-auto"
@@ -470,13 +477,13 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </h5>
               <Form.Label for="roomNew">
                 Room &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -493,11 +500,11 @@ export default class Server extends Component {
                   </option>
                 ))}
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="lightNew">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -513,7 +520,7 @@ export default class Server extends Component {
                   <option value={light.Id}>{light.Name}</option>
                 ))}
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="behaviorNew">
                 Behavior &nbsp;&nbsp;
                 <OverlayTrigger
@@ -531,7 +538,7 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -546,7 +553,7 @@ export default class Server extends Component {
                 <option value="1">Turn On</option>
                 <option value="2">Blink</option>
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               {this.state.behaviorNew === "2" ? (
                 <>
                   <Form.Label for="intervalsNew">
@@ -555,11 +562,11 @@ export default class Server extends Component {
                       placement="right"
                       overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
-                      <img src={Info} />
+                      <img src={Info} className="image-info" />
                     </OverlayTrigger>
                   </Form.Label>
                   <Stack gap={1} direction="horizontal">
-                    <div style={{ width: 40, textAlign: "left" }}>{this.state.intervalsNew}</div>
+                    <div className="slider-style">{this.state.intervalsNew}</div>
                     <Form.Range
                       id="intervalsNew"
                       className="me-auto"
@@ -570,7 +577,7 @@ export default class Server extends Component {
                       onChange={this.handleIntervalsNew}
                     />
                   </Stack>
-                  <div style={{ paddingBottom: "0.75rem" }} />
+                  <div className="div-seperator" />
                 </>
               ) : (
                 <></>
@@ -578,7 +585,7 @@ export default class Server extends Component {
               <Form.Label for="colorNew">
                 Color &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -598,18 +605,18 @@ export default class Server extends Component {
                 <option value="5">Purple</option>
                 <option value="6">White</option>
               </Form.Select>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               <Form.Label for="brightnessNew">
                 Brightness &nbsp;&nbsp;
                 <OverlayTrigger
                   placement="right"
                   overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
-                  <img src={Info} />
+                  <img src={Info} className="image-info" />
                 </OverlayTrigger>
               </Form.Label>
               <Stack gap={1} direction="horizontal">
-                <div style={{ width: 50, textAlign: "left" }}>{this.state.brightnessNew}%</div>
+                <div className="slider-style">{this.state.brightnessNew}%</div>
                 <Form.Range
                   id="brightnessNew"
                   className="me-auto"
@@ -621,23 +628,29 @@ export default class Server extends Component {
                   disabled={this.state.isOffNew}
                 />
               </Stack>
-              <div style={{ paddingBottom: "0.75rem" }} />
+              <div className="div-seperator" />
               {/* Cancel/Save */}
               {this.state.isEdit ? (
-                <Button type="submit" variant="secondary">
-                  Update
-                </Button>
+                <>
+                  <Button type="submit" variant="secondary">
+                    Update
+                  </Button>
+                  {this.state.isSaved ? <i className="conf-text">&nbsp; Settings Updated. </i> : <></>}
+                </>
               ) : (
-                <Button type="submit" variant="secondary">
-                  Save
-                </Button>
+                <>
+                  <Button type="submit" variant="secondary">
+                    Save
+                  </Button>
+                  {this.state.isSaved ? <i className="conf-text">&nbsp; Settings saved. </i> : <></>}
+                </>
               )}
               {this.state.isIncomplete ? (
                 <i style={{ color: "#f00" }}>&nbsp; All parameters must be selected </i>
               ) : (
                 <></>
               )}
-              <div style={{ paddingBottom: "1rem" }} />
+              <div className="div-seperator" />
             </Form>
           </Row>
         </>
