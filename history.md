@@ -6,11 +6,13 @@
 
 - Confirmation now shown for saving/updating in settings and server pages.
 - Dark mode
+- Logging to file. Logs will be found in /config for native installs and the mounted config folder for Docker installs.
 
 ### Changes
 
 - Client cards are highlighted when creating/editing.
 - Title bar is now sticky to the top of the page
+- Improved logging output. Removed logging of frontend to backend web router calls.
 
 ### Fix
 

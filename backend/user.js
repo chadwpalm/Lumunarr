@@ -9,7 +9,7 @@ router.post("/", async function (req, res, next) {
   var settings = req.body;
   var user;
 
-  console.log(settings.bridge.ip);
+  console.info("IP: ", settings.bridge.ip);
   console.info("Hue Application Name:", `${settings.appId}`);
 
   var flag = false;

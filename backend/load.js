@@ -146,7 +146,7 @@ router.get("/", function (req, res, next) {
     fileData = fs.readFileSync("/config/settings.js");
     console.info("Settings file read");
   } catch (err) {
-    console.info("Settings file not found");
+    console.error("Settings file not found");
   }
 
   res.send(fileData);

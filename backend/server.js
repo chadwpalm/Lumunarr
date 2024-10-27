@@ -17,6 +17,8 @@ router.post("/", async function (req, res, next) {
   var groupList = [];
   var output = [];
 
+  console.info("Retrieving information for server page...");
+
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
 
   await axios
@@ -40,6 +42,7 @@ router.post("/", async function (req, res, next) {
           console.error("GroupList: ", error);
         }
       }
+      console.log(`${rooms.length} total room(s) retrieved`);
     })
     .catch(function (error) {
       console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
@@ -69,6 +72,7 @@ router.post("/", async function (req, res, next) {
           console.error("GroupList: ", error);
         }
       }
+      console.log(`${zones.length} total zones(s) retrieved`);
     })
     .catch(function (error) {
       console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
@@ -123,6 +127,8 @@ router.post("/", async function (req, res, next) {
       lights.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       lights.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
 
+      console.log(`${lights.length} total lights(s) retrieved`);
+
       output.push(lights);
       output.push(groupList);
     })
@@ -133,6 +139,7 @@ router.post("/", async function (req, res, next) {
       }
     });
 
+  console.info("Sending server information to user interface...");
   res.send(JSON.stringify(output));
 });
 
