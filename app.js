@@ -15,6 +15,7 @@ var discover = require("./backend/discover");
 var thumb = require("./backend/thumb");
 var client = require("./backend/client");
 var server = require("./backend/server");
+require("./backend/monitor.js");
 
 var app = express();
 

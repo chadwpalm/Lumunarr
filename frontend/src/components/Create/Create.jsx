@@ -99,7 +99,7 @@ export default class Create extends Component {
     var settings = { ...this.props.settings };
 
     var xhr = new XMLHttpRequest();
-    xhr.timeout = 10000;
+    xhr.timeout = 30000;
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {

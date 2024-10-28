@@ -7,6 +7,7 @@
 - Confirmation now shown for saving/updating in settings and server pages.
 - Dark mode
 - Logging to file. Logs will be found in /config for native installs and the mounted config folder for Docker installs.
+- Continuous monitoring of Hue Bridge IP address for when using a dynamic IP. The bridge is pinged every 15 minutes and if the bridge becomes unresponsive it searches for the bridge ID for all discovered bridges on the network.
 
 ### Changes
 
