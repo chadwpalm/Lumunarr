@@ -28,6 +28,13 @@ export default class Server extends Component {
         intervalsNew: this.props.settings.server.intervalsNew.toString(),
         roomIdPlay: this.props.settings.server.roomIdPlay,
         roomIdNew: this.props.settings.server.roomIdNew,
+        scheduleType: this.props.settings.server.scheduleType ?? "0",
+        startHour: this.props.settings.server.startHour ?? "1",
+        startMin: this.props.settings.server.startMin ?? "0",
+        startMed: this.props.settings.server.startMed ?? "1",
+        endHour: this.props.settings.server.endHour ?? "1",
+        endMin: this.props.settings.server.endMin ?? "0",
+        endMed: this.props.settings.server.endMed ?? "1",
         groupsList: [],
         lightList: [],
         roomLightListPlay: [],
@@ -59,6 +66,13 @@ export default class Server extends Component {
         intervalsNew: "1",
         roomIdPlay: "",
         roomIdNew: "",
+        scheduleType: "0",
+        startHour: "1",
+        startMin: "0",
+        startMed: "1",
+        endHour: "1",
+        endMin: "0",
+        endMed: "1",
         groupsList: [],
         lightList: [],
         roomLightListPlay: [],
@@ -202,6 +216,13 @@ export default class Server extends Component {
     this.props.settings.server.colorNew = this.state.colorNew;
     this.props.settings.server.brightnessNew = this.state.brightnessNew;
     this.props.settings.server.intervalsNew = this.state.intervalsNew;
+    this.props.settings.server.scheduleType = this.state.scheduleType;
+    this.props.settings.server.startHour = this.state.startHour;
+    this.props.settings.server.startMin = this.state.startMin;
+    this.props.settings.server.startMed = this.state.startMed;
+    this.props.settings.server.endHour = this.state.endHour;
+    this.props.settings.server.endMin = this.state.endMin;
+    this.props.settings.server.endMed = this.state.endMed;
 
     var xhr = new XMLHttpRequest();
 
@@ -297,6 +318,33 @@ export default class Server extends Component {
     this.setState({ brightnessNew: e.target.value.toString(), isSaved: false });
   };
 
+  handleSchedule = (e) => {
+    this.setState({ scheduleType: e.target.value.toString() });
+  };
+
+  handleTime = (e) => {
+    switch (e.target.name) {
+      case "startHour":
+        this.setState({ startHour: e.target.value.toString() });
+        break;
+      case "startMin":
+        this.setState({ startMin: e.target.value.toString() });
+        break;
+      case "startMed":
+        this.setState({ startMed: e.target.value.toString() });
+        break;
+      case "endHour":
+        this.setState({ endHour: e.target.value.toString() });
+        break;
+      case "endMin":
+        this.setState({ endMin: e.target.value.toString() });
+        break;
+      case "endMed":
+        this.setState({ endMed: e.target.value.toString() });
+        break;
+    }
+  };
+
   render() {
     if (this.state.isError) {
       return <>{this.state.errorRes}</>;
@@ -307,6 +355,14 @@ export default class Server extends Component {
         </div>
       );
     } else {
+      const options = [];
+      for (var i = 0; i < 60; i++) {
+        options.push(
+          <option value={i.toString()}>
+            {i.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false })}
+          </option>
+        );
+      }
       return (
         <>
           <Row>
@@ -644,6 +700,181 @@ export default class Server extends Component {
                   disabled={this.state.isOffNew}
                 />
               </Stack>
+              <div className="div-seperator" />
+              {/* Schedule */}
+              <Form.Label for="schedule">
+                Schedule &nbsp;&nbsp;
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip>
+                      Add a schedule for when the triggers will be active.
+                      <br />
+                      <br />
+                      None: There will be no schedule. Profiles will be active based on the switch located on the
+                      profile tile.
+                      <br />
+                      <br />
+                      Global: Use the global setting for schedules.
+                      <br />
+                      <br />
+                      Range: The schedule will be based on a time range daily.
+                      <br />
+                      <br />
+                      Sunset/Sunrise: The active schedule will be between sunset and sunrise. In order for this to work
+                      a Latitude and Longitude must be set in the Settings tab. If using Docker the timezone environment
+                      variable must also be set.
+                    </Tooltip>
+                  }
+                >
+                  <img src={Info} className="image-info" alt="Schedule" />
+                </OverlayTrigger>
+              </Form.Label>
+              <div>
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="None"
+                  value="0"
+                  id="schedule"
+                  name="schedule"
+                  onChange={this.handleSchedule}
+                  size="sm"
+                  checked={this.state.scheduleType === "0"}
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="Global"
+                  value="3"
+                  id="schedule"
+                  name="schedule"
+                  onChange={this.handleSchedule}
+                  size="sm"
+                  checked={this.state.scheduleType === "3"}
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="Range"
+                  value="1"
+                  id="schedule"
+                  name="schedule"
+                  onChange={this.handleSchedule}
+                  size="sm"
+                  checked={this.state.scheduleType === "1"}
+                />
+                <Form.Check
+                  inline
+                  type="radio"
+                  label="Sunset/Sunrise"
+                  value="2"
+                  id="schedule"
+                  name="schedule"
+                  onChange={this.handleSchedule}
+                  size="sm"
+                  checked={this.state.scheduleType === "2"}
+                />
+              </div>
+              <div className="div-seperator" />
+              {this.state.scheduleType === "1" ? (
+                <>
+                  <Stack gap={1} direction="horizontal">
+                    Start:&nbsp;&nbsp;
+                    <Form.Select
+                      value={this.state.startHour}
+                      id="startHour"
+                      name="startHour"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </Form.Select>
+                    <Form.Select
+                      value={this.state.startMin}
+                      id="startMin"
+                      name="startMin"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      {options}
+                    </Form.Select>
+                    <Form.Select
+                      value={this.state.startMed}
+                      id="startMed"
+                      name="startMed"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      <option value="1">AM</option>
+                      <option value="2">PM</option>
+                    </Form.Select>
+                  </Stack>
+                  <div className="div-seperator" />
+                  <Stack gap={1} direction="horizontal">
+                    End:&nbsp;&nbsp;&nbsp;&nbsp;
+                    <Form.Select
+                      value={this.state.endHour}
+                      id="endHour"
+                      name="endHour"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </Form.Select>
+                    <Form.Select
+                      value={this.state.endMin}
+                      id="endMin"
+                      name="endMin"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      {options}
+                    </Form.Select>
+                    <Form.Select
+                      value={this.state.endMed}
+                      id="endMed"
+                      name="endMed"
+                      onChange={this.handleTime}
+                      size="sm"
+                      className="sched-style"
+                    >
+                      <option value="1">AM</option>
+                      <option value="2">PM</option>
+                    </Form.Select>
+                  </Stack>
+                  <div className="div-seperator" />
+                </>
+              ) : (
+                <></>
+              )}
               <div className="div-seperator" />
               {/* Cancel/Save */}
               {this.state.isEdit ? (
