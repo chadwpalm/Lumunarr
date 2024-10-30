@@ -20,11 +20,14 @@ export default class Server extends Component {
         colorPlay: this.props.settings.server.colorPlay.toString(),
         brightnessPlay: this.props.settings.server.brightnessPlay.toString(),
         intervalsPlay: this.props.settings.server.intervalsPlay.toString(),
+        roomNew: this.props.settings.server.roomNew,
         lightNew: this.props.settings.server.lightNew.toString(),
         behaviorNew: this.props.settings.server.behaviorNew.toString(),
         colorNew: this.props.settings.server.colorNew.toString(),
         brightnessNew: this.props.settings.server.brightnessNew.toString(),
         intervalsNew: this.props.settings.server.intervalsNew.toString(),
+        roomIdPlay: this.props.settings.server.roomIdPlay,
+        roomIdNew: this.props.settings.server.roomIdNew,
         groupsList: [],
         lightList: [],
         roomLightListPlay: [],
@@ -48,11 +51,14 @@ export default class Server extends Component {
         colorPlay: "-1",
         brightnessPlay: "5",
         intervalsPlay: "1",
+        roomNew: "-1",
         lightNew: "-1",
         behaviorNew: "-1",
         colorNew: "-1",
         brightnessNew: "5",
         intervalsNew: "1",
+        roomIdPlay: "",
+        roomIdNew: "",
         groupsList: [],
         lightList: [],
         roomLightListPlay: [],
@@ -96,19 +102,26 @@ export default class Server extends Component {
           this.setState({ isLoading: false });
 
           if (this.props.settings.server) {
-            if (this.state.lightPlay !== "-2") {
+            if (this.state.lightPlay !== "-2" && this.state.lightPlay !== "-3") {
               var roomPlay = json[0].find(({ Id }) => Id === this.state.lightPlay).Room;
+              var roomIdPlay = json[1].find(({ Room }) => Room === roomPlay).Id;
             } else {
               roomPlay = "-1";
+              roomIdPlay = "";
             }
-            if (this.state.lightNew !== "-2") {
+            if (this.state.lightNew !== "-2" && this.state.lightNew !== "-3") {
               var roomNew = json[0].find(({ Id }) => Id === this.state.lightNew).Room;
+              var roomIdNew = json[1].find(({ Room }) => Room === roomNew).Id;
             } else {
               roomNew = "-1";
+              roomIdNew = "";
             }
             if (this.state.roomPlay === undefined) this.setState({ roomPlay: roomPlay });
+            if (this.state.roomIdPlay === undefined) this.setState({ roomIdPlay: roomIdPlay });
             if (this.state.roomNew === undefined) this.setState({ roomNew: roomNew });
+            if (this.state.roomIdNew === undefined) this.setState({ roomIdNew: roomIdNew });
           }
+
           var tempPlay = [];
           var tempNew = [];
           this.setState({ roomLightListPlay: [] });
@@ -127,7 +140,6 @@ export default class Server extends Component {
               if (light.Room === this.state.roomNew) tempNew.push(light);
             }
           });
-
           this.setState({ roomLightListPlay: tempPlay });
           this.setState({ roomLightListNew: tempNew });
         } else {
@@ -177,7 +189,9 @@ export default class Server extends Component {
     if (!this.props.settings.server) this.props.settings.server = {};
 
     this.props.settings.server.roomPlay = this.state.roomPlay;
+    this.props.settings.server.roomIdPlay = this.state.roomIdPlay;
     this.props.settings.server.roomNew = this.state.roomNew;
+    this.props.settings.server.roomIdNew = this.state.roomIdNew;
     this.props.settings.server.lightPlay = this.state.lightPlay;
     this.props.settings.server.behaviorPlay = this.state.behaviorPlay;
     this.props.settings.server.colorPlay = this.state.colorPlay;
@@ -243,8 +257,8 @@ export default class Server extends Component {
     this.state.lightList.forEach((light) => {
       if (light.Room === e.target.value.toString()) temp.push(light);
     });
-
-    this.setState({ roomLightListPlay: temp });
+    var roomIdPlay = this.state.groupsList.find(({ Room }) => Room === e.target.value.toString()).Id;
+    this.setState({ roomLightListPlay: temp, roomIdPlay: roomIdPlay });
   };
 
   handleRoomNew = (e) => {
@@ -254,8 +268,8 @@ export default class Server extends Component {
     this.state.lightList.forEach((light) => {
       if (light.Room === e.target.value.toString()) temp.push(light);
     });
-
-    this.setState({ roomLightListNew: temp });
+    var roomIdNew = this.state.groupsList.find(({ Room }) => Room === e.target.value.toString()).Id;
+    this.setState({ roomLightListNew: temp, roomIdNew: roomIdNew });
   };
 
   handleLightNew = (e) => {
@@ -353,6 +367,7 @@ export default class Server extends Component {
               >
                 <option value="-1">Select a Light</option>
                 <option value="-2">None</option>
+                <option value="-3">All</option>
                 {this.state.roomLightListPlay.map((light) => (
                   <option value={light.Id}>{light.Name}</option>
                 ))}
@@ -516,6 +531,7 @@ export default class Server extends Component {
               >
                 <option value="-1">Select a Light</option>
                 <option value="-2">None</option>
+                <option value="-3">All</option>
                 {this.state.roomLightListNew.map((light) => (
                   <option value={light.Id}>{light.Name}</option>
                 ))}

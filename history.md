@@ -4,10 +4,12 @@
 
 ### Added
 
-- Confirmation now shown for saving/updating in settings and server pages.
-- Dark mode
+- Confirmation now shown for saving/updating in Settings and Server pages.
+- Dark mode and Light mode can now be toggled.
 - Logging to file. Logs will be found in /config for native installs and the mounted config folder for Docker installs.
 - Continuous monitoring of Hue Bridge IP address for when using a dynamic IP. The bridge is pinged every 15 minutes and if the bridge becomes unresponsive it searches for the bridge ID for all discovered bridges on the network.
+- All lights in a room or zone can be used for Playback Started and Library New alerts in the Server page.
+- Server alert behavior can now be scheduled to prevent lights from changing during scheduled hours.
 
 ### Changes
 

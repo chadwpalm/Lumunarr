@@ -6,7 +6,6 @@ var axios = require("axios").default;
 var https = require("https");
 var path = require("path");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
-const { error } = require("console");
 
 var flag = false;
 
@@ -293,6 +292,77 @@ async function turnoffGroup(room, ip, user, transition) {
   });
 }
 
+async function getChildren(type, roomName, ip, key) {
+  const roomUrl = `https://${ip}/clip/v2/resource/${type}`;
+  const lightUrl = `https://${ip}/clip/v2/resource/light`;
+  let children = [];
+
+  try {
+    // Fetch the room data
+    const roomResponse = await axios.get(roomUrl, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": key,
+      },
+      httpsAgent,
+    });
+
+    const room = roomResponse.data.data.find(({ metadata }) => metadata.name === roomName);
+    console.log(JSON.stringify(room));
+
+    // if (!room) {
+    //   console.error("Room not found");
+    //   return children;
+    // }
+
+    // Fetch all lights
+    const lightResponse = await axios.get(lightUrl, {
+      timeout: 10000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": key,
+      },
+      httpsAgent,
+    });
+
+    const lights = lightResponse.data.data;
+
+    // Match lights to the room's children
+    for (const light of lights) {
+      for (const child of room.children) {
+        if (type === "room") {
+          if (child.rid === light.owner.rid) {
+            try {
+              children.push(light);
+            } catch (error) {
+              console.error("Error adding light to children:", error);
+            }
+          }
+        } else {
+          if (child.rid === light.id) {
+            try {
+              children.push(light);
+            } catch (error) {
+              console.error("Error adding light to children:", error);
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.errors) {
+      error.response.data.errors.forEach((desc) => {
+        console.error("Error description:", desc.description);
+      });
+    } else {
+      console.error("Error:", error);
+    }
+  }
+
+  return children;
+}
+
 router.post("/", upload.single("thumb"), async function (req, res, next) {
   var payload = JSON.parse(req.body.payload);
   var settings = JSON.parse(fs.readFileSync(filePath));
@@ -305,58 +375,165 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
           console.log("Playback has started from an external user");
           if (server.lightPlay !== "-2") {
             if (server.behaviorPlay === "1") {
-              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
-              var brightness = Math.floor(parseInt(server.brightnessPlay));
-              var x = colors[server.colorPlay][0];
-              var y = colors[server.colorPlay][1];
-              await axios
-                .put(
-                  url,
-                  {
-                    on: { on: true },
-                    dynamics: { duration: 0 },
-                    dimming: { brightness: brightness },
-                    color: { xy: { x: x, y: y } },
-                  },
-                  {
-                    timeout: 5000,
-                    headers: {
-                      "Content-Type": "application/json;charset=UTF-8",
-                      "hue-application-key": `${settings.bridge.user}`,
+              if (server.lightPlay === "-3") {
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/grouped_light/${server.roomIdPlay}`;
+                var brightness = Math.floor(parseInt(server.brightnessPlay));
+                var x = colors[server.colorPlay][0];
+                var y = colors[server.colorPlay][1];
+                await axios
+                  .put(
+                    url,
+                    {
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: brightness },
+                      color: { xy: { x: x, y: y } },
                     },
-                    httpsAgent,
-                  }
-                )
-                .then(function (response) {
-                  console.info(`Playback started on server by ${payload.Account.title}`);
-                })
-                .catch(function (error) {
-                  console.error(error);
-                });
+                    {
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
+                    }
+                  )
+                  .then(function (response) {
+                    console.info(`...Playback started on server by ${payload.Account.title}`, response);
+                  })
+                  .catch(function (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                      error.response.data.errors.forEach(function (desc) {
+                        console.error("Error description:", desc.description);
+                      });
+                    } else {
+                      console.error("Error data:", error);
+                    }
+                  });
+              } else {
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
+                var brightness = Math.floor(parseInt(server.brightnessPlay));
+                var x = colors[server.colorPlay][0];
+                var y = colors[server.colorPlay][1];
+                await axios
+                  .put(
+                    url,
+                    {
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: brightness },
+                      color: { xy: { x: x, y: y } },
+                    },
+                    {
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
+                    }
+                  )
+                  .then(function (response) {
+                    console.info(`Playback started on server by ${payload.Account.title}`);
+                  })
+                  .catch(function (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                      error.response.data.errors.forEach(function (desc) {
+                        console.error("Error description:", desc.description);
+                      });
+                    } else {
+                      console.error("Error data:", error);
+                    }
+                  });
+              }
             }
             if (server.behaviorPlay === "2") {
-              let state = {};
-              let x, y, bri;
-              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
+              if (server.lightPlay === "-3") {
+                let children = [];
+                await getChildren("room", server.roomPlay, settings.bridge.ip, settings.bridge.user)
+                  .then((c) => {
+                    c.forEach((child) => {
+                      children.push(child);
+                    });
+                  })
+                  .catch((error) => {
+                    console.error("Error retrieving children:", error);
+                  });
 
-              await axios
-                .get(url, {
-                  timeout: 10000,
-                  headers: {
-                    "Content-Type": "application/json;charset=UTF-8",
-                    "hue-application-key": `${settings.bridge.user}`,
-                  },
-                  httpsAgent,
-                })
-                .then(function (response) {
-                  state = response.data.data[0];
-                })
-                .catch(function (error) {
-                  console.error(error.stack);
-                });
+                await getChildren("zone", server.roomPlay, settings.bridge.ip, settings.bridge.user)
+                  .then((c) => {
+                    c.forEach((child) => {
+                      children.push(child);
+                    });
+                  })
+                  .catch((error) => {
+                    console.error("Error retrieving children:", error);
+                  });
 
-              for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
-                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
+                for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
+                  var url = `https://${settings.bridge.ip}/clip/v2/resource/grouped_light/${server.roomIdPlay}`;
+                  await axios
+                    .put(
+                      url,
+                      {
+                        on: { on: false },
+                        dynamics: { duration: 0 },
+                      },
+                      {
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
+                      }
+                    )
+                    .catch(function (error) {
+                      if (error.response && error.response.data && error.response.data.errors) {
+                        error.response.data.errors.forEach(function (desc) {
+                          console.error("Error description:", desc.description);
+                        });
+                      } else {
+                        console.error("Error data:", error);
+                      }
+                      grouped_;
+                    });
+
+                  await setTimeoutPromise(500);
+                  bri = Math.floor(parseInt(server.brightnessPlay));
+                  x = colors[server.colorPlay][0];
+                  y = colors[server.colorPlay][1];
+
+                  await axios
+                    .put(
+                      url,
+                      {
+                        on: { on: true },
+                        dynamics: { duration: 0 },
+                        dimming: { brightness: bri },
+                        color: { xy: { x: x, y: y } },
+                      },
+                      {
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
+                      }
+                    )
+                    .catch(function (error) {
+                      if (error.response && error.response.data && error.response.data.errors) {
+                        error.response.data.errors.forEach(function (desc) {
+                          console.error("Error description:", desc.description);
+                        });
+                      } else {
+                        console.error("Error data:", error);
+                      }
+                    });
+
+                  await setTimeoutPromise(500);
+                }
                 await axios
                   .put(
                     url,
@@ -374,126 +551,53 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     }
                   )
                   .catch(function (error) {
-                    console.error(error.stack);
+                    if (error.response && error.response.data && error.response.data.errors) {
+                      error.response.data.errors.forEach(function (desc) {
+                        console.error("Error description:", desc.description);
+                      });
+                    } else {
+                      console.error("Error data:", error);
+                    }
                   });
 
                 await setTimeoutPromise(500);
-                bri = Math.floor(parseInt(server.brightnessPlay));
-                x = colors[server.colorPlay][0];
-                y = colors[server.colorPlay][1];
 
-                await axios
-                  .put(
-                    url,
-                    {
-                      on: { on: true },
-                      dynamics: { duration: 0 },
-                      dimming: { brightness: bri },
-                      color: { xy: { x: x, y: y } },
-                    },
-                    {
-                      timeout: 5000,
-                      headers: {
-                        "Content-Type": "application/json;charset=UTF-8",
-                        "hue-application-key": `${settings.bridge.user}`,
-                      },
-                      httpsAgent,
-                    }
-                  )
-                  .catch(function (error) {
-                    console.error(error.stack);
-                  });
-
-                await setTimeoutPromise(500);
-              }
-              await axios
-                .put(
-                  url,
-                  {
-                    on: { on: false },
-                    dynamics: { duration: 0 },
-                  },
-                  {
-                    timeout: 5000,
-                    headers: {
-                      "Content-Type": "application/json;charset=UTF-8",
-                      "hue-application-key": `${settings.bridge.user}`,
-                    },
-                    httpsAgent,
+                children.forEach((child) => {
+                  if (child.on.on) {
+                    var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                    axios
+                      .put(
+                        url,
+                        {
+                          on: { on: true },
+                          dynamics: { duration: 0 },
+                          dimming: { brightness: child.dimming.brightness },
+                          color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        if (error.response && error.response.data && error.response.data.errors) {
+                          error.response.data.errors.forEach(function (desc) {
+                            console.error("Error description restore:", desc.description);
+                          });
+                        } else {
+                          console.error("Error data restore:", error);
+                        }
+                      });
                   }
-                )
-                .catch(function (error) {
-                  console.error(error.stack);
                 });
-
-              await setTimeoutPromise(500);
-
-              if (state.on.on) {
-                await axios
-                  .put(
-                    url,
-                    {
-                      on: { on: true },
-                      dynamics: { duration: 0 },
-                      dimming: { brightness: state.dimming.brightness },
-                      color: { xy: { x: state.color.xy.x, y: state.color.xy.y } },
-                    },
-                    {
-                      timeout: 5000,
-                      headers: {
-                        "Content-Type": "application/json;charset=UTF-8",
-                        "hue-application-key": `${settings.bridge.user}`,
-                      },
-                      httpsAgent,
-                    }
-                  )
-                  .catch(function (error) {
-                    console.error(error.stack);
-                  });
-              }
-            }
-          }
-        }
-
-        if (payload.event === "library.new") {
-          console.log("New media has been added to library");
-          if (server.lightNew !== "-2") {
-            if (server.behaviorNew === "1") {
-              var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
-              var brightness = Math.floor(parseInt(server.brightnessNew));
-              var x = colors[server.colorNew][0];
-              var y = colors[server.colorNew][1];
-              await axios
-                .put(
-                  url,
-                  {
-                    on: { on: true },
-                    dynamics: { duration: 0 },
-                    dimming: { brightness: brightness },
-                    color: { xy: { x: x, y: y } },
-                  },
-                  {
-                    timeout: 5000,
-                    headers: {
-                      "Content-Type": "application/json;charset=UTF-8",
-                      "hue-application-key": `${settings.bridge.user}`,
-                    },
-                    httpsAgent,
-                  }
-                )
-                .then(function (response) {
-                  console.info(`Playback started on server by ${payload.Account.title}`);
-                })
-                .catch(function (error) {
-                  console.error(error);
-                });
-            }
-            if (server.behaviorNew === "2") {
-              if (!flag) {
-                flag = true;
+              } else {
                 let state = {};
-                let sat, bri;
-                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+                let x, y, bri;
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
 
                 await axios
                   .get(url, {
@@ -511,8 +615,8 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     console.error(error.stack);
                   });
 
-                for (let i = 0; i < parseInt(server.intervalsNew); i++) {
-                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+                for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
+                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
                   await axios
                     .put(
                       url,
@@ -534,9 +638,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     });
 
                   await setTimeoutPromise(500);
-                  bri = Math.floor(parseInt(server.brightnessNew));
-                  x = colors[server.colorNew][0];
-                  y = colors[server.colorNew][1];
+                  bri = Math.floor(parseInt(server.brightnessPlay));
+                  x = colors[server.colorPlay][0];
+                  y = colors[server.colorPlay][1];
 
                   await axios
                     .put(
@@ -606,7 +710,365 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     .catch(function (error) {
                       console.error(error.stack);
                     });
+                }
+              }
+            }
+          }
+        }
+
+        if (payload.event === "library.new") {
+          console.log("New media has been added to library");
+          if (server.lightNew !== "-2") {
+            if (server.behaviorNew === "1") {
+              if (server.lightNew === "-3") {
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/grouped_light/${server.roomIdNew}`;
+                var brightness = Math.floor(parseInt(server.brightnessNew));
+                var x = colors[server.colorNew][0];
+                var y = colors[server.colorNew][1];
+                await axios
+                  .put(
+                    url,
+                    {
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: brightness },
+                      color: { xy: { x: x, y: y } },
+                    },
+                    {
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
+                    }
+                  )
+                  .then(function (response) {
+                    console.info("New media has been added to the Plex server");
+                  })
+                  .catch(function (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                      error.response.data.errors.forEach(function (desc) {
+                        console.error("Error description:", desc.description);
+                      });
+                    } else {
+                      console.error("Error data:", error);
+                    }
+                  });
+              } else {
+                var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+                var brightness = Math.floor(parseInt(server.brightnessNew));
+                var x = colors[server.colorNew][0];
+                var y = colors[server.colorNew][1];
+                await axios
+                  .put(
+                    url,
+                    {
+                      on: { on: true },
+                      dynamics: { duration: 0 },
+                      dimming: { brightness: brightness },
+                      color: { xy: { x: x, y: y } },
+                    },
+                    {
+                      timeout: 5000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
+                    }
+                  )
+                  .then(function (response) {
+                    console.info(`New media has been added to the Plex server`);
+                  })
+                  .catch(function (error) {
+                    if (error.response && error.response.data && error.response.data.errors) {
+                      error.response.data.errors.forEach(function (desc) {
+                        console.error("Error description:", desc.description);
+                      });
+                    } else {
+                      console.error("Error data:", error);
+                    }
+                  });
+              }
+            }
+            if (server.behaviorNew === "2") {
+              if (server.lightNew === "-3") {
+                if (!flag) {
+                  flag = true;
+                  let children = [];
+                  await getChildren("room", server.roomNew, settings.bridge.ip, settings.bridge.user)
+                    .then((c) => {
+                      c.forEach((child) => {
+                        children.push(child);
+                      });
+                    })
+                    .catch((error) => {
+                      console.error("Error retrieving children:", error);
+                    });
+
+                  await getChildren("zone", server.roomNew, settings.bridge.ip, settings.bridge.user)
+                    .then((c) => {
+                      c.forEach((child) => {
+                        children.push(child);
+                      });
+                    })
+                    .catch((error) => {
+                      console.error("Error retrieving children:", error);
+                    });
+
+                  for (let i = 0; i < parseInt(server.intervalsNew); i++) {
+                    var url = `https://${settings.bridge.ip}/clip/v2/resource/grouped_light/${server.roomIdNew}`;
+                    await axios
+                      .put(
+                        url,
+                        {
+                          on: { on: false },
+                          dynamics: { duration: 0 },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        if (error.response && error.response.data && error.response.data.errors) {
+                          error.response.data.errors.forEach(function (desc) {
+                            console.error("Error description:", desc.description);
+                          });
+                        } else {
+                          console.error("Error data:", error);
+                        }
+                        grouped_;
+                      });
+
+                    await setTimeoutPromise(500);
+                    bri = Math.floor(parseInt(server.brightnessNew));
+                    x = colors[server.colorNew][0];
+                    y = colors[server.colorNew][1];
+
+                    await axios
+                      .put(
+                        url,
+                        {
+                          on: { on: true },
+                          dynamics: { duration: 0 },
+                          dimming: { brightness: bri },
+                          color: { xy: { x: x, y: y } },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        if (error.response && error.response.data && error.response.data.errors) {
+                          error.response.data.errors.forEach(function (desc) {
+                            console.error("Error description:", desc.description);
+                          });
+                        } else {
+                          console.error("Error data:", error);
+                        }
+                      });
+
+                    await setTimeoutPromise(500);
+                  }
+                  await axios
+                    .put(
+                      url,
+                      {
+                        on: { on: false },
+                        dynamics: { duration: 0 },
+                      },
+                      {
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
+                      }
+                    )
+                    .catch(function (error) {
+                      if (error.response && error.response.data && error.response.data.errors) {
+                        error.response.data.errors.forEach(function (desc) {
+                          console.error("Error description:", desc.description);
+                        });
+                      } else {
+                        console.error("Error data:", error);
+                      }
+                    });
+
+                  await setTimeoutPromise(500);
+
+                  children.forEach((child) => {
+                    if (child.on.on) {
+                      var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                      axios
+                        .put(
+                          url,
+                          {
+                            on: { on: true },
+                            dynamics: { duration: 0 },
+                            dimming: { brightness: child.dimming.brightness },
+                            color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                          },
+                          {
+                            timeout: 5000,
+                            headers: {
+                              "Content-Type": "application/json;charset=UTF-8",
+                              "hue-application-key": `${settings.bridge.user}`,
+                            },
+                            httpsAgent,
+                          }
+                        )
+                        .catch(function (error) {
+                          if (error.response && error.response.data && error.response.data.errors) {
+                            error.response.data.errors.forEach(function (desc) {
+                              console.error("Error description restore:", desc.description);
+                            });
+                          } else {
+                            console.error("Error data restore:", error);
+                          }
+                        });
+                    }
+                  });
                   flag = false;
+                }
+              } else {
+                if (!flag) {
+                  flag = true;
+                  let state = {};
+                  let sat, bri;
+                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+
+                  await axios
+                    .get(url, {
+                      timeout: 10000,
+                      headers: {
+                        "Content-Type": "application/json;charset=UTF-8",
+                        "hue-application-key": `${settings.bridge.user}`,
+                      },
+                      httpsAgent,
+                    })
+                    .then(function (response) {
+                      state = response.data.data[0];
+                    })
+                    .catch(function (error) {
+                      console.error(error.stack);
+                    });
+
+                  for (let i = 0; i < parseInt(server.intervalsNew); i++) {
+                    var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
+                    await axios
+                      .put(
+                        url,
+                        {
+                          on: { on: false },
+                          dynamics: { duration: 0 },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        console.error(error.stack);
+                      });
+
+                    await setTimeoutPromise(500);
+                    bri = Math.floor(parseInt(server.brightnessNew));
+                    x = colors[server.colorNew][0];
+                    y = colors[server.colorNew][1];
+
+                    await axios
+                      .put(
+                        url,
+                        {
+                          on: { on: true },
+                          dynamics: { duration: 0 },
+                          dimming: { brightness: bri },
+                          color: { xy: { x: x, y: y } },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        console.error(error.stack);
+                      });
+
+                    await setTimeoutPromise(500);
+                  }
+                  await axios
+                    .put(
+                      url,
+                      {
+                        on: { on: false },
+                        dynamics: { duration: 0 },
+                      },
+                      {
+                        timeout: 5000,
+                        headers: {
+                          "Content-Type": "application/json;charset=UTF-8",
+                          "hue-application-key": `${settings.bridge.user}`,
+                        },
+                        httpsAgent,
+                      }
+                    )
+                    .catch(function (error) {
+                      console.error(error.stack);
+                    });
+
+                  await setTimeoutPromise(500);
+
+                  if (state.on.on) {
+                    await axios
+                      .put(
+                        url,
+                        {
+                          on: { on: true },
+                          dynamics: { duration: 0 },
+                          dimming: { brightness: state.dimming.brightness },
+                          color: { xy: { x: state.color.xy.x, y: state.color.xy.y } },
+                        },
+                        {
+                          timeout: 5000,
+                          headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                            "hue-application-key": `${settings.bridge.user}`,
+                          },
+                          httpsAgent,
+                        }
+                      )
+                      .catch(function (error) {
+                        if (error.response && error.response.data && error.response.data.errors) {
+                          error.response.data.errors.forEach(function (desc) {
+                            console.error("Error description restore:", desc.description);
+                          });
+                        } else {
+                          console.error("Error data restore:", error);
+                        }
+                      });
+                    flag = false;
+                  }
                 }
               }
             }

@@ -35,7 +35,11 @@ router.post("/", async function (req, res, next) {
       rooms = response.data.data;
       for (const [key, value] of Object.entries(rooms)) {
         try {
-          let array = `{ "Room":"${value.metadata.name}", "Type":"Room"}`;
+          const groupedLightService = value.services.find((service) => service.rtype === "grouped_light");
+
+          let array = groupedLightService
+            ? `{ "Room":"${value.metadata.name}", "Type":"Room", "Id":"${groupedLightService.rid}"}`
+            : `{ "Room":"${value.metadata.name}", "Type":"Room", "Id":"" }`;
 
           groupList.push(JSON.parse(array));
         } catch (error) {
@@ -65,7 +69,11 @@ router.post("/", async function (req, res, next) {
       zones = response.data.data;
       for (const [key, value] of Object.entries(zones)) {
         try {
-          let array = `{ "Room":"${value.metadata.name}", "Type":"Zone"}`;
+          const groupedLightService = value.services.find((service) => service.rtype === "grouped_light");
+
+          let array = groupedLightService
+            ? `{ "Room":"${value.metadata.name}", "Type":"Zone", "Id":"${groupedLightService.rid}"}`
+            : `{ "Room":"${value.metadata.name}", "Type":"Zone", "Id":"" }`;
 
           groupList.push(JSON.parse(array));
         } catch (error) {
