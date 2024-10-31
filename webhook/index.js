@@ -23,6 +23,8 @@ let colors = [
   [0.31273, 0.32902],
 ];
 
+var playStorage = [];
+
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false, // (NOTE: this will disable client verification)
   cert: fs.readFileSync(path.resolve(__dirname, "../backend/bridgecert.pem")),
@@ -292,54 +294,46 @@ async function turnoffGroup(room, ip, user, transition) {
   });
 }
 
-async function getChildren(type, roomName, ip, key) {
-  const roomUrl = `https://${ip}/clip/v2/resource/${type}`;
-  const lightUrl = `https://${ip}/clip/v2/resource/light`;
-  let children = [];
+async function getChildren(types, roomName, ip, key) {
+  const children = [];
 
-  try {
-    // Fetch the room data
-    const roomResponse = await axios.get(roomUrl, {
-      timeout: 10000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": key,
-      },
-      httpsAgent,
-    });
+  for (const type of types) {
+    const roomUrl = `https://${ip}/clip/v2/resource/${type}`;
+    const lightUrl = `https://${ip}/clip/v2/resource/light`;
 
-    const room = roomResponse.data.data.find(({ metadata }) => metadata.name === roomName);
+    try {
+      // Fetch the room or zone data
+      const roomResponse = await axios.get(roomUrl, {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": key,
+        },
+        httpsAgent,
+      });
 
-    // if (!room) {
-    //   console.error("Room not found");
-    //   return children;
-    // }
+      const room = roomResponse.data.data.find(({ metadata }) => metadata.name === roomName);
+      if (!room) {
+        console.error(`${type} not found`);
+        continue; // Skip to the next type if no matching room/zone is found
+      }
 
-    // Fetch all lights
-    const lightResponse = await axios.get(lightUrl, {
-      timeout: 10000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": key,
-      },
-      httpsAgent,
-    });
+      // Fetch all lights
+      const lightResponse = await axios.get(lightUrl, {
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": key,
+        },
+        httpsAgent,
+      });
 
-    const lights = lightResponse.data.data;
+      const lights = lightResponse.data.data;
 
-    // Match lights to the room's children
-    for (const light of lights) {
-      for (const child of room.children) {
-        if (type === "room") {
-          if (child.rid === light.owner.rid) {
-            try {
-              children.push(light);
-            } catch (error) {
-              console.error("Error adding light to children:", error);
-            }
-          }
-        } else {
-          if (child.rid === light.id) {
+      // Match lights to the room's or zone's children
+      for (const light of lights) {
+        for (const child of room.children) {
+          if ((type === "room" && child.rid === light.owner.rid) || (type === "zone" && child.rid === light.id)) {
             try {
               children.push(light);
             } catch (error) {
@@ -348,14 +342,14 @@ async function getChildren(type, roomName, ip, key) {
           }
         }
       }
-    }
-  } catch (error) {
-    if (error.response && error.response.data && error.response.data.errors) {
-      error.response.data.errors.forEach((desc) => {
-        console.error("Error description:", desc.description);
-      });
-    } else {
-      console.error("Error:", error);
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.errors) {
+        error.response.data.errors.forEach((desc) => {
+          console.error(`Error description for ${type}:`, desc.description);
+        });
+      } else {
+        console.error(`Error retrieving ${type}:`, error);
+      }
     }
   }
 
@@ -478,17 +472,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               if (server.behaviorPlay === "2") {
                 if (server.lightPlay === "-3") {
                   let children = [];
-                  await getChildren("room", server.roomPlay, settings.bridge.ip, settings.bridge.user)
-                    .then((c) => {
-                      c.forEach((child) => {
-                        children.push(child);
-                      });
-                    })
-                    .catch((error) => {
-                      console.error("Error retrieving children:", error);
-                    });
-
-                  await getChildren("zone", server.roomPlay, settings.bridge.ip, settings.bridge.user)
+                  await getChildren(["room", "zone"], server.roomNew, settings.bridge.ip, settings.bridge.user)
                     .then((c) => {
                       c.forEach((child) => {
                         children.push(child);
@@ -590,7 +574,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
                   await setTimeoutPromise(500);
 
-                  children.forEach((child) => {
+                  for (const child of children) {
                     if (child.on.on) {
                       var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
                       axios
@@ -621,7 +605,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         });
                     }
-                  });
+                  }
                 } else {
                   let state = {};
                   let x, y, bri;
@@ -828,17 +812,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 if (!flag) {
                   flag = true;
                   let children = [];
-                  await getChildren("room", server.roomNew, settings.bridge.ip, settings.bridge.user)
-                    .then((c) => {
-                      c.forEach((child) => {
-                        children.push(child);
-                      });
-                    })
-                    .catch((error) => {
-                      console.error("Error retrieving children:", error);
-                    });
-
-                  await getChildren("zone", server.roomNew, settings.bridge.ip, settings.bridge.user)
+                  await getChildren(["room", "zone"], server.roomNew, settings.bridge.ip, settings.bridge.user)
                     .then((c) => {
                       c.forEach((child) => {
                         children.push(child);
@@ -940,7 +914,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
                   await setTimeoutPromise(500);
 
-                  children.forEach((child) => {
+                  for (const child of children) {
                     if (child.on.on) {
                       var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
                       axios
@@ -971,7 +945,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           }
                         });
                     }
-                  });
+                  }
                   flag = false;
                 }
               } else {
@@ -1150,6 +1124,15 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
                     ) {
                       if (payload.event === "media.play" && client.play !== "None") {
+                        await getChildren(["room", "zone"], client.room, settings.bridge.ip, settings.bridge.user)
+                          .then((c) => {
+                            c.forEach((child) => {
+                              playStorage.push(child);
+                            });
+                          })
+                          .catch((error) => {
+                            console.error("Error retrieving children:", error);
+                          });
                         if (client.transitionType == "1") {
                           if (client.play === "Off") {
                             turnoffGroup(
@@ -1199,13 +1182,49 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             );
                             console.info("Stop trigger has turned off lights");
                           } else {
-                            setScene(
-                              client.stop,
-                              parseFloat(client.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            if (client.stop === "-2") {
+                              for (const child of playStorage) {
+                                if (child.on.on) {
+                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                                  await axios
+                                    .put(
+                                      url,
+                                      {
+                                        on: { on: true },
+                                        dynamics: { duration: 0 },
+                                        dimming: { brightness: child.dimming.brightness },
+                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                                        dynamics: { duration: parseFloat(client.transition) * 1000 },
+                                      },
+                                      {
+                                        timeout: 5000,
+                                        headers: {
+                                          "Content-Type": "application/json;charset=UTF-8",
+                                          "hue-application-key": `${settings.bridge.user}`,
+                                        },
+                                        httpsAgent,
+                                      }
+                                    )
+                                    .catch(function (error) {
+                                      if (error.response && error.response.data && error.response.data.errors) {
+                                        error.response.data.errors.forEach(function (desc) {
+                                          console.error("Error description restore:", desc.description);
+                                        });
+                                      } else {
+                                        console.error("Error data restore:", error);
+                                      }
+                                    });
+                                }
+                              }
+                            } else {
+                              setScene(
+                                client.stop,
+                                parseFloat(client.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            }
                           }
                         } else {
                           if (client.stop === "Off") {
@@ -1217,13 +1236,49 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             );
                             console.info("Stop trigger has turned off lights");
                           } else {
-                            setScene(
-                              client.stop,
-                              parseFloat(global.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            if (client.stop === "-2") {
+                              for (const child of playStorage) {
+                                if (child.on.on) {
+                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                                  await axios
+                                    .put(
+                                      url,
+                                      {
+                                        on: { on: true },
+                                        dynamics: { duration: 0 },
+                                        dimming: { brightness: child.dimming.brightness },
+                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                                        dynamics: { duration: parseFloat(global.transition) * 1000 },
+                                      },
+                                      {
+                                        timeout: 5000,
+                                        headers: {
+                                          "Content-Type": "application/json;charset=UTF-8",
+                                          "hue-application-key": `${settings.bridge.user}`,
+                                        },
+                                        httpsAgent,
+                                      }
+                                    )
+                                    .catch(function (error) {
+                                      if (error.response && error.response.data && error.response.data.errors) {
+                                        error.response.data.errors.forEach(function (desc) {
+                                          console.error("Error description restore:", desc.description);
+                                        });
+                                      } else {
+                                        console.error("Error data restore:", error);
+                                      }
+                                    });
+                                }
+                              }
+                            } else {
+                              setScene(
+                                client.stop,
+                                parseFloat(global.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            }
                           }
                         }
                       }
@@ -1238,13 +1293,49 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             );
                             console.info("Pause trigger has turned off lights");
                           } else {
-                            setScene(
-                              client.pause,
-                              parseFloat(client.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            if (client.stop === "-2") {
+                              for (const child of playStorage) {
+                                if (child.on.on) {
+                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                                  await axios
+                                    .put(
+                                      url,
+                                      {
+                                        on: { on: true },
+                                        dynamics: { duration: 0 },
+                                        dimming: { brightness: child.dimming.brightness },
+                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                                        dynamics: { duration: parseFloat(client.transition) * 1000 },
+                                      },
+                                      {
+                                        timeout: 5000,
+                                        headers: {
+                                          "Content-Type": "application/json;charset=UTF-8",
+                                          "hue-application-key": `${settings.bridge.user}`,
+                                        },
+                                        httpsAgent,
+                                      }
+                                    )
+                                    .catch(function (error) {
+                                      if (error.response && error.response.data && error.response.data.errors) {
+                                        error.response.data.errors.forEach(function (desc) {
+                                          console.error("Error description restore:", desc.description);
+                                        });
+                                      } else {
+                                        console.error("Error data restore:", error);
+                                      }
+                                    });
+                                }
+                              }
+                            } else {
+                              setScene(
+                                client.pause,
+                                parseFloat(client.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            }
                           }
                         } else {
                           if (client.pause === "Off") {
@@ -1256,13 +1347,49 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             );
                             console.info("Pause trigger has turned off lights");
                           } else {
-                            setScene(
-                              client.pause,
-                              parseFloat(global.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            if (client.stop === "-2") {
+                              for (const child of playStorage) {
+                                if (child.on.on) {
+                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
+                                  await axios
+                                    .put(
+                                      url,
+                                      {
+                                        on: { on: true },
+                                        dynamics: { duration: 0 },
+                                        dimming: { brightness: child.dimming.brightness },
+                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
+                                        dynamics: { duration: parseFloat(global.transition) * 1000 },
+                                      },
+                                      {
+                                        timeout: 5000,
+                                        headers: {
+                                          "Content-Type": "application/json;charset=UTF-8",
+                                          "hue-application-key": `${settings.bridge.user}`,
+                                        },
+                                        httpsAgent,
+                                      }
+                                    )
+                                    .catch(function (error) {
+                                      if (error.response && error.response.data && error.response.data.errors) {
+                                        error.response.data.errors.forEach(function (desc) {
+                                          console.error("Error description restore:", desc.description);
+                                        });
+                                      } else {
+                                        console.error("Error data restore:", error);
+                                      }
+                                    });
+                                }
+                              }
+                            } else {
+                              setScene(
+                                client.pause,
+                                parseFloat(global.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            }
                           }
                         }
                       }

@@ -526,6 +526,7 @@ export default class Create extends Component {
               <option value="-1">Select Stop Action Scene</option>
               <option value="None">None</option>
               <option value="Off">Off</option>
+              <option value="-2">Restore Pre-Play</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
@@ -550,6 +551,7 @@ export default class Create extends Component {
               <option value="-1">Select Pause Action Scene</option>
               <option value="None">None</option>
               <option value="Off">Off</option>
+              <option value="-2">Restore Pre-Play</option>
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
