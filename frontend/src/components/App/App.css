@@ -35,6 +35,10 @@
     width: 20px;
     cursor: pointer;
 }
+.icon-size {
+    width: 12px; /* or any size that fits your layout */
+    height: auto; /* maintain aspect ratio */
+}
 /* Dark Mode Styles */
 body.dark-mode {
     background-color: #121212; /* Dark background */

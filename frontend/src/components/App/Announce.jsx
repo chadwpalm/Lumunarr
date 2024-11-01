@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
 
 const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismiss, dismiss, isDarkMode }) => {
@@ -31,11 +32,27 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         forcing an update for functionality.
         <br />
         <br />
+        This is a large feature update, so please check out the changelog to see what's been added so you can take
+        advantage of anything new.
+        <br />
+        <br />
         You can find the changelog for this version here:{" "}
         {branch === "dev" ? (
-          <a href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md">Changelog</a>
+          <>
+            <a href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md" target="_blank">
+              Changelog
+            </a>
+            &nbsp;&nbsp;
+            <img src={Extern} className="icon-size" />
+          </>
         ) : (
-          <a href="https://github.com/chadwpalm/Lumunarr/blob/main/history.md">Changelog</a>
+          <>
+            <a href="https://github.com/chadwpalm/Lumunarr/blob/main/history.md" target="_blank">
+              Changelog
+            </a>
+            &nbsp;&nbsp;
+            <img src={Extern} className="icon-size" />
+          </>
         )}
         <br />
         <br />

@@ -23,6 +23,7 @@ import Badge from "react-bootstrap/Badge";
 import { default as axios } from "axios";
 import Moon from "bootstrap-icons/icons/moon-stars.svg";
 import Sun from "bootstrap-icons/icons/sun.svg";
+import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
 
 export default class App extends Component {
@@ -399,11 +400,15 @@ export default class App extends Component {
                     <a href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general" target="_blank">
                       chadwpalm/lumunarr
                     </a>
+                    &nbsp;&nbsp;
+                    <img src={Extern} className="icon-size" />
                     <br />
                     <b>Source:</b>&nbsp;
                     <a href="https://github.com/chadwpalm/Lumunarr" target="_blank">
                       github.com/chadwpalm/Lumunarr
                     </a>
+                    &nbsp;&nbsp;
+                    <img src={Extern} className="icon-size" />
                   </Modal.Body>
                 </Modal>
                 {this.state.announcement ? (
