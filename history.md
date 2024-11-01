@@ -10,7 +10,7 @@
 - Continuous monitoring of Hue Bridge IP address for when using a dynamic IP. The bridge is pinged every 15 minutes and if the bridge becomes unresponsive it searches for the bridge ID for all discovered bridges on the network.
 - All lights in a room or zone can be used for Playback Started and Library New alerts in the Server page. {[#1](https://github.com/chadwpalm/Lumunarr/issues/1)}
 - Server alert behavior can now be scheduled to prevent lights from changing/blinking during scheduled hours.
-- Added "Restore Pre-Play" to Stop and Resume actions to restore the state of the lights from when playback started.
+- Added "Restore Pre-Play" to Stop and Resume actions to restore the state of the lights from when playback started. {[#2](https://github.com/chadwpalm/Lumunarr/issues/2)}
 
 ### Changes
 
