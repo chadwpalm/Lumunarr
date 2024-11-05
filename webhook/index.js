@@ -70,7 +70,9 @@ async function isSunRiseSet(lat, long) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get system timezone
   let sunTimes, sunset, sunrise;
 
-  const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${long}&tzid=${timeZone}&formatted=0`;
+  const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${long}&tzid=${timeZone}&formatted=0&date=${currentDate.getFullYear()}-${
+    currentDate.getMonth() + 1
+  }-${currentDate.getDate()}`;
 
   try {
     const response = await axios.get(url, {
@@ -82,11 +84,14 @@ async function isSunRiseSet(lat, long) {
     sunrise = new Date(sunTimes.sunrise).getTime(); // Local sunrise time in epoch
     sunset = new Date(sunTimes.sunset).getTime(); // Local sunset time in epoch
 
-    // If the current time is before sunrise of today, add 24 hours to make it "next day sunrise"
-    const nextSunrise = sunrise + 24 * 60 * 60 * 1000;
+    if (currentDate.getHours() < 12) {
+      sunset -= 24 * 60 * 60 * 1000;
+    } else {
+      sunrise += 24 * 60 * 60 * 1000;
+    }
 
     // Check if current time is between sunrise and sunset
-    return currentEpoch >= sunset && currentEpoch <= nextSunrise;
+    return currentEpoch >= sunset && currentEpoch <= sunrise;
   } catch (error) {
     console.error("Could not retrieve sunrise/sunset times. Lat/Long must be valid entries");
     return false;
@@ -1483,7 +1488,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     }
                   }
                 } else {
-                  console.info("Not within schedule");
+                  console.info("Not within schedule: ", client.uid);
                 }
               }
             }
