@@ -7,6 +7,8 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
+import "./Device.css";
 
 export default class Device extends Component {
   constructor(props) {
@@ -14,7 +16,7 @@ export default class Device extends Component {
     this.state = {
       clients: [],
       isCreating: false,
-      uid: "",
+      uid: "-1",
       isEdit: false,
       show: false,
       tempID: "",
@@ -26,6 +28,7 @@ export default class Device extends Component {
     this.setState({
       isCreating: true,
       isEdit: false,
+      uid: "-1",
     });
   };
 
@@ -128,6 +131,7 @@ export default class Device extends Component {
                 user={client.user.name}
                 media={client.media}
                 id={client.uid}
+                stateId={this.state.uid}
                 click={this.handleEditClient}
                 saved={this.handleSaveCreate}
                 isEdit={this.state.isEdit}
@@ -135,6 +139,7 @@ export default class Device extends Component {
                 delete={this.handleOpen}
                 checked={client.active}
                 isChecked={this.handleChecked}
+                isDarkMode={this.props.isDarkMode}
               />
               <br />
             </Col>
@@ -142,24 +147,28 @@ export default class Device extends Component {
 
           <Col>
             {this.state.isEdit || this.state.isCreating ? (
-              <Card style={{ width: "10rem", height: "14rem", backgroundColor: "#f8f9fa" }}>
+              <Card
+                className={`card-global ${this.state.uid === "-1" ? "card-error" : "card-default"} ${
+                  this.props.isDarkMode ? "dark-mode" : ""
+                }`}
+              >
                 <Card.Body className="d-flex align-items-center justify-content-center">
-                  <img src={AddIcon} width="100" height="100" />
+                  <img src={AddIcon} width="100" height="100" className="plus-image" />
                 </Card.Body>
               </Card>
             ) : (
               <Card
-                style={{ width: "10rem", height: "14rem", backgroundColor: "#f8f9fa", cursor: "pointer" }}
+                className={`card-global card-unselected ${this.props.isDarkMode ? "dark-mode" : ""}`}
                 onClick={this.handleAddClient}
               >
                 <Card.Body className="d-flex align-items-center justify-content-center">
-                  <img src={AddIcon} width="100" height="100" />
+                  <img src={AddIcon} width="100" height="100" className="plus-image" />
                 </Card.Body>
               </Card>
             )}
           </Col>
         </Row>
-        <Row style={{ paddingLeft: "10px", paddingTop: "20px" }}>
+        <Row className="row-custom">
           {this.state.isCreating ? (
             <Create
               settings={this.props.settings}
@@ -168,6 +177,7 @@ export default class Device extends Component {
               uid={this.state.uid}
               isEdit={this.state.isEdit}
               logout={this.props.logout}
+              isDarkMode={this.props.isDarkMode}
             />
           ) : (
             <h6>Click the plus to add a new device.</h6>
@@ -179,11 +189,15 @@ export default class Device extends Component {
           onHide={this.handleClose}
           size="sm"
           backdrop="static"
+          className={this.props.isDarkMode ? "dark-mode" : ""}
         >
           <Modal.Body>
             <h4> Are you sure?</h4>
-            <Button onClick={this.handleDelete}>Yes</Button>&nbsp;&nbsp;&nbsp;
-            <Button variant="" onClick={this.handleClose}>
+            <Button variant={this.props.isDarkMode ? "secondary" : "primary"} onClick={this.handleDelete}>
+              Yes
+            </Button>
+            &nbsp;&nbsp;&nbsp;
+            <Button variant={this.props.isDarkMode ? "outline-light" : ""} onClick={this.handleClose}>
               Cancel
             </Button>
           </Modal.Body>

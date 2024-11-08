@@ -6,6 +6,8 @@ import Tooltip from "react-bootstrap/Tooltip";
 import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Stack from "react-bootstrap/Stack";
+import Image from "react-bootstrap/Image";
+import "./Settings.css";
 
 export default class Settings extends Component {
   constructor(props) {
@@ -18,10 +20,11 @@ export default class Settings extends Component {
         startMed: this.props.settings.settings.startMed ?? "1",
         endHour: this.props.settings.settings.endHour ?? "1",
         endMin: this.props.settings.settings.endMin ?? "0",
-        endMed: this.props.settings.settings.startMed ?? "1",
+        endMed: this.props.settings.settings.endMed ?? "1",
         latitude: this.props.settings.settings.latitude ?? "",
         longitude: this.props.settings.settings.longitude ?? "",
         isLoading: true,
+        isSaved: false,
         isError: false,
         errorRes: "",
         isEdit: true,
@@ -38,6 +41,7 @@ export default class Settings extends Component {
         latitude: "",
         longitude: "",
         isLoading: true,
+        isSaved: false,
         errorRes: "",
         isEdit: false,
       };
@@ -64,6 +68,7 @@ export default class Settings extends Component {
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
+          this.setState({ isSaved: true });
         } else {
           // error
           this.setState({
@@ -83,6 +88,7 @@ export default class Settings extends Component {
   handleTransition = (e) => {
     this.setState({
       transition: e.target.value.toString(),
+      isSaved: false,
     });
   };
 
@@ -107,14 +113,15 @@ export default class Settings extends Component {
         this.setState({ endMed: e.target.value.toString() });
         break;
     }
+    this.setState({ isSaved: false });
   };
 
   handleLatitude = (e) => {
-    this.setState({ latitude: e.target.value.toString() });
+    this.setState({ latitude: e.target.value.toString(), isSaved: false });
   };
 
   handleLongitude = (e) => {
-    this.setState({ longitude: e.target.value.toString() });
+    this.setState({ longitude: e.target.value.toString(), isSaved: false });
   };
 
   render() {
@@ -131,9 +138,9 @@ export default class Settings extends Component {
         <Row>
           <h3>Settings</h3>
         </Row>
-        <div style={{ paddingBottom: "0.75rem" }} />
+        <div className="div-seperator" />
         <Row>
-          <Form onSubmit={this.handleFormSubmit}>
+          <Form onSubmit={this.handleFormSubmit} className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}>
             <h5>
               Global Settings &nbsp;&nbsp;
               <OverlayTrigger
@@ -142,10 +149,10 @@ export default class Settings extends Component {
                   <Tooltip>These settings will be applied toward profile settings that are set as "global".</Tooltip>
                 }
               >
-                <img src={Info} />
+                <img src={Info} className="image-info" />
               </OverlayTrigger>
             </h5>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Form.Label for="transition">
               Scene Transition Time (s) &nbsp;&nbsp;
               <OverlayTrigger
@@ -165,7 +172,7 @@ export default class Settings extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Info" />
+                <img src={Info} className="image-info" alt="Info" />
               </OverlayTrigger>
             </Form.Label>
             <Stack gap={1} direction="horizontal">
@@ -180,15 +187,15 @@ export default class Settings extends Component {
               />
               {this.state.transition === "0" ? (
                 <>
-                  <div style={{ width: 80, textAlign: "right" }}>Default</div>
+                  <div className="range-text">Default</div>
                 </>
               ) : (
                 <>
-                  <div style={{ width: 80, textAlign: "right" }}>{this.state.transition} s</div>
+                  <div className="range-text">{this.state.transition} s</div>
                 </>
               )}
             </Stack>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Schedule */}
             <Form.Label for="schedule">
               Schedule &nbsp;&nbsp;
@@ -196,10 +203,10 @@ export default class Settings extends Component {
                 placement="right"
                 overlay={<Tooltip>Add a global schedule for when the triggers will be active.</Tooltip>}
               >
-                <img src={Info} alt="Schedule" />
+                <img src={Info} className="image-info" alt="Schedule" />
               </OverlayTrigger>
             </Form.Label>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Stack gap={1} direction="horizontal">
               Start:&nbsp;&nbsp;
               <Form.Select
@@ -208,7 +215,7 @@ export default class Settings extends Component {
                 name="startHour"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -229,7 +236,7 @@ export default class Settings extends Component {
                 name="startMin"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 {options}
               </Form.Select>
@@ -239,13 +246,13 @@ export default class Settings extends Component {
                 name="startMed"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "68px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">AM</option>
                 <option value="2">PM</option>
               </Form.Select>
             </Stack>
-            <div style={{ paddingBottom: "0.50rem" }} />
+            <div className="div-seperator" />
             <Stack gap={1} direction="horizontal">
               End:&nbsp;&nbsp;&nbsp;&nbsp;
               <Form.Select
@@ -254,7 +261,7 @@ export default class Settings extends Component {
                 name="endHour"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -275,7 +282,7 @@ export default class Settings extends Component {
                 name="endMin"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "65px" }}
+                className="schedule-pulldown"
               >
                 {options}
               </Form.Select>
@@ -285,13 +292,14 @@ export default class Settings extends Component {
                 name="endMed"
                 onChange={this.handleTime}
                 size="sm"
-                style={{ width: "68px" }}
+                className="schedule-pulldown"
               >
                 <option value="1">AM</option>
                 <option value="2">PM</option>
               </Form.Select>
             </Stack>
-            <div style={{ paddingBottom: "1.5rem" }} />
+            <div className="div-seperator" />
+            <div className="div-seperator" />
             {/* Location */}
             <h5>
               Geographical Location &nbsp;&nbsp;
@@ -303,10 +311,10 @@ export default class Settings extends Component {
                   </Tooltip>
                 }
               >
-                <img src={Info} alt="Location" />
+                <img src={Info} className="image-info" alt="Location" />
               </OverlayTrigger>
             </h5>
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             1. Visit{" "}
             <a href="https://www.latlong.net/" target="_blank">
               LatLong.net
@@ -325,7 +333,7 @@ export default class Settings extends Component {
               onChange={this.handleLatitude}
               size="sm"
             />
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             <Form.Label for="longitude">Longitude</Form.Label>
             <Form.Control
               value={this.state.longitude}
@@ -334,18 +342,24 @@ export default class Settings extends Component {
               onChange={this.handleLongitude}
               size="sm"
             />
-            <div style={{ paddingBottom: "0.75rem" }} />
+            <div className="div-seperator" />
             {/* Cancel/Save */}
             {this.state.isEdit ? (
-              <Button type="submit" variant="secondary">
-                Update
-              </Button>
+              <>
+                <Button type="submit" variant="secondary">
+                  Update
+                </Button>
+                {this.state.isSaved ? <i className="conf-text">&nbsp; Settings updated. </i> : <></>}
+              </>
             ) : (
-              <Button type="submit" variant="secondary">
-                Save
-              </Button>
+              <>
+                <Button type="submit" variant="secondary">
+                  Save
+                </Button>
+                {this.state.isSaved ? <i className="conf-text">&nbsp; Settings saved. </i> : <></>}
+              </>
             )}
-            <div style={{ paddingBottom: "1rem" }} />
+            <div className="div-seperator" />
           </Form>
         </Row>
       </>

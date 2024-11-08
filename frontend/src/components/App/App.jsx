@@ -21,6 +21,10 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Image from "react-bootstrap/Image";
 import Badge from "react-bootstrap/Badge";
 import { default as axios } from "axios";
+import Moon from "bootstrap-icons/icons/moon-stars.svg";
+import Sun from "bootstrap-icons/icons/sun.svg";
+import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
+import "./App.css";
 
 export default class App extends Component {
   state = {
@@ -34,6 +38,7 @@ export default class App extends Component {
     isLoggedIn: false,
     isUpdate: false,
     isOnline: true,
+    isDarkMode: false,
     announce: false,
     first: false,
     dismiss: false,
@@ -99,6 +104,10 @@ export default class App extends Component {
             }
 
             if (json.message) this.setState({ first: true });
+
+            this.setState({ isDarkMode: json.darkMode }, () => {
+              this.toggleBodyClass();
+            });
           }
         } else {
           // error
@@ -113,6 +122,14 @@ export default class App extends Component {
     xhr.open("GET", "/backend/load", true);
     xhr.send();
   }
+
+  toggleBodyClass = () => {
+    if (this.state.isDarkMode) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+  };
 
   handleLogin = () => {
     window.location.reload(false);
@@ -201,6 +218,30 @@ export default class App extends Component {
     xhr.send(JSON.stringify(settings));
   };
 
+  handleDark = () => {
+    this.setState((prevState) => {
+      const newMode = !prevState.isDarkMode;
+      var settings = { ...this.state.config };
+      settings.darkMode = newMode;
+      var xhr = new XMLHttpRequest();
+      xhr.addEventListener("readystatechange", () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+          } else {
+            // error
+            this.setState({
+              error: xhr.responseText,
+            });
+          }
+        }
+      });
+      xhr.open("POST", "/backend/save", true);
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhr.send(JSON.stringify(settings));
+      return { isDarkMode: newMode };
+    }, this.toggleBodyClass);
+  };
+
   render() {
     if (!this.state.isOnline) {
       return (
@@ -226,17 +267,12 @@ export default class App extends Component {
           return (
             <Router>
               <Container fluid>
-                <Row style={{ borderBottom: "solid", borderBottomColor: "black" }}>
-                  <Navbar
-                    style={{
-                      backgroundColor: "#ddd",
-                      paddingLeft: "15px",
-                      paddingRight: "15px",
-                    }}
-                    expand="md"
-                  >
+                <Row className={`navbar-row ${this.state.isDarkMode ? "dark-mode" : ""}`}>
+                  <Navbar className={`navbar-content ${this.state.isDarkMode ? "dark-mode" : ""}`} expand="md">
                     <Navbar.Brand>
-                      <img src={Logo} className="d-inline-block align-top" />
+                      <h2>
+                        <b>Lumunarr</b>
+                      </h2>
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
@@ -277,18 +313,20 @@ export default class App extends Component {
                           </>
                         )}
                       </Nav>
-                      <Nav className="ms-auto">
+                      <Nav className="ms-auto d-flex align-items-center">
+                        <Image
+                          src={this.state.isDarkMode ? Sun : Moon}
+                          className="moon-icon"
+                          onClick={this.handleDark}
+                        />
+                        &nbsp;&nbsp;
                         <NavDropdown
-                          menuVariant="secondary"
+                          menuVariant={this.state.isDarkMode ? "dark" : "secondary"}
                           id="dropdown-menu-align-end"
                           align="end"
                           title={
                             <>
-                              <Image
-                                roundedCircle
-                                src={this.state.config.thumb}
-                                style={{ height: "40px", width: "40px" }}
-                              />
+                              <Image roundedCircle src={this.state.config.thumb} className="img-thumbnail" />
                               {this.state.isUpdate ? (
                                 <Badge pill bg="danger" className="position-absolute top-20 translate-middle start-55">
                                   !
@@ -316,15 +354,15 @@ export default class App extends Component {
                             <NavDropdown.Item
                               href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md"
                               target="_blank"
-                              style={{ color: "red" }}
+                              className="nav-dropdown-update"
                             >
                               Update Available
                             </NavDropdown.Item>
                           ) : (
                             <></>
                           )}
-                          <NavDropdown.Item onClick={this.handleLogout}>
-                            <img src={Logout} style={{ verticalAlign: "middle" }} />
+                          <NavDropdown.Item onClick={this.handleLogout} className="d-flex align-items-center">
+                            <img src={Logout} className="logout-icon" />
                             &nbsp; Sign Out
                           </NavDropdown.Item>
                         </NavDropdown>
@@ -340,8 +378,9 @@ export default class App extends Component {
                   onHide={this.handleClose}
                   size="lg"
                   animation={true}
+                  className={this.state.isDarkMode ? "dark-mode" : ""}
                 >
-                  <Modal.Header closeButton>
+                  <Modal.Header closeButton closeVariant={this.state.isDarkMode ? "white" : ""}>
                     <Modal.Title>About</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -361,11 +400,15 @@ export default class App extends Component {
                     <a href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general" target="_blank">
                       chadwpalm/lumunarr
                     </a>
+                    &nbsp;&nbsp;
+                    <img src={Extern} className="icon-size" />
                     <br />
                     <b>Source:</b>&nbsp;
                     <a href="https://github.com/chadwpalm/Lumunarr" target="_blank">
                       github.com/chadwpalm/Lumunarr
                     </a>
+                    &nbsp;&nbsp;
+                    <img src={Extern} className="icon-size" />
                   </Modal.Body>
                 </Modal>
                 {this.state.announcement ? (
@@ -375,33 +418,47 @@ export default class App extends Component {
                     handleCloseAnn={this.handleCloseAnn}
                     handleDismiss={this.handleDismiss}
                     dismiss={this.state.dismiss}
+                    branch={this.state.config.branch}
+                    isDarkMode={this.state.isDarkMode}
                   />
                 ) : (
                   <></>
                 )}
-
-                <Row
-                  style={{
-                    paddingLeft: 30,
-                    paddingTop: 30,
-                    paddingRight: 30,
-                    borderTop: "solid",
-                    borderTopColor: "#5d36e9",
-                  }}
-                >
+                <Row className="main-row">
                   <Routes>
                     <Route
                       path="/bridge"
-                      element={<Bridge settings={this.state.config} connection={this.handleConnectionChange} />}
+                      element={
+                        <Bridge
+                          settings={this.state.config}
+                          connection={this.handleConnectionChange}
+                          isDarkMode={this.state.isDarkMode}
+                        />
+                      }
                     />
 
                     {!this.state.isConnected ? (
                       <Route path="*" element={<Navigate replace to="/bridge" />} />
                     ) : (
                       <>
-                        <Route path="/" element={<Device settings={this.state.config} logout={this.handleLogout} />} />
-                        <Route path="/server" element={<Server settings={this.state.config} />} />
-                        <Route path="/settings" element={<Settings settings={this.state.config} />} />
+                        <Route
+                          path="/"
+                          element={
+                            <Device
+                              settings={this.state.config}
+                              logout={this.handleLogout}
+                              isDarkMode={this.state.isDarkMode}
+                            />
+                          }
+                        />
+                        <Route
+                          path="/server"
+                          element={<Server settings={this.state.config} isDarkMode={this.state.isDarkMode} />}
+                        />
+                        <Route
+                          path="/settings"
+                          element={<Settings settings={this.state.config} isDarkMode={this.state.isDarkMode} />}
+                        />
                         <Route path="*" element={<Navigate replace to="/" />} />
                       </>
                     )}

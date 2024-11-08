@@ -1,0 +1,7 @@
+.btn.disabled,
+.btn:disabled {
+  opacity: 1 !important;      /* Keep original color opacity */
+  color: inherit !important;   /* Retain the text color */
+  background-color: inherit !important; /* Retain the background color */
+  pointer-events: none;        /* Keep disabled functionality */
+}

@@ -14,9 +14,9 @@ router.post("/", async function (req, res, next) {
   var data = [];
   var groupList = [];
   var message = [];
-
   var unauth = false;
 
+  console.info("Retrieving information for Plex Clients...");
   const httpsAgent = new https.Agent({
     rejectUnauthorized: false, // (NOTE: this will disable client verification)
     cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
@@ -26,7 +26,7 @@ router.post("/", async function (req, res, next) {
 
   await axios
     .get(url, {
-      timeout: 10000,
+      timeout: 2000,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         "hue-application-key": `${req.body.bridge.user}`,
@@ -45,6 +45,7 @@ router.post("/", async function (req, res, next) {
           console.error("GroupList: ", error);
         }
       }
+      console.log(`${rooms.length} total room(s) retrieved`);
     })
     .catch(function (error) {
       console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
@@ -55,7 +56,7 @@ router.post("/", async function (req, res, next) {
 
   await axios
     .get(url, {
-      timeout: 10000,
+      timeout: 2000,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         "hue-application-key": `${req.body.bridge.user}`,
@@ -75,17 +76,18 @@ router.post("/", async function (req, res, next) {
           console.error("GroupList: ", error);
         }
       }
+      console.log(`${zones.length} total zone(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
-      message.push("Could not connect to the Hue Bridge while requesting rooms");
+      console.error("Error while trying to connect to the Hue bridge while requesting zones: ", error.message);
+      message.push("Could not connect to the Hue Bridge while requesting zones");
     });
 
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/scene`;
 
   await axios
     .get(url, {
-      timeout: 10000,
+      timeout: 2000,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         "hue-application-key": `${req.body.bridge.user}`,
@@ -93,7 +95,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Light Scenes");
+      console.info("Retrieving Light Scenes:");
       var data = [];
       data = response.data.data;
       data.forEach((scene) => {
@@ -126,7 +128,7 @@ router.post("/", async function (req, res, next) {
 
   await axios
     .get(url, {
-      timeout: 10000,
+      timeout: 2000,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         "hue-application-key": `${req.body.bridge.user}`,
@@ -157,6 +159,8 @@ router.post("/", async function (req, res, next) {
       });
       scenes.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
+
+      console.log(`${scenes.length} total scene(s) retrieved`);
     })
     .catch(function (error) {
       console.error("Error while trying to connect to the Hue bridge while requesting smart scenes: ", error.message);
@@ -166,7 +170,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/api/users";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
@@ -192,7 +196,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
@@ -207,6 +211,8 @@ router.post("/", async function (req, res, next) {
       users.sort((a, b) =>
         a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0
       );
+
+      console.log(`${users.length} total users(s) retrieved`);
     })
     .catch(function (error) {
       console.error("Issue with connection to online Plex account while requesting account info: ", error.message);
@@ -218,7 +224,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Clients");
@@ -234,6 +240,9 @@ router.post("/", async function (req, res, next) {
           ++i;
         }
       }
+
+      console.log(`${list.length} total Plex clients(s) retrieved`);
+
       data.push(users);
       data.push(list);
       data.push(scenes);
@@ -248,9 +257,11 @@ router.post("/", async function (req, res, next) {
     if (unauth) {
       res.status(401).send(JSON.stringify([]));
     } else {
+      console.log(JSON.stringify(message));
       res.status(403).send(JSON.stringify(message));
     }
   } else {
+    console.info("Sending client information to user interface...");
     res.send(JSON.stringify(data));
   }
 });

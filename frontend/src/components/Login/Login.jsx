@@ -193,12 +193,12 @@ export default class Login extends Component {
               </div>
             </Row>
             <Row style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "50px" }}>
+              <p style={{ fontSize: "50px", color: "black" }}>
                 <b>Lumunarr</b>
               </p>
             </Row>
             <Row style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "20px" }}>Sign in to Plex account to continue</p>
+              <p style={{ fontSize: "20px", color: "black" }}>Sign in to Plex account to continue</p>
             </Row>
             <Row>
               <div className="mx-auto" style={{ width: "350px" }}>

@@ -1,5 +1,29 @@
 # Lumunarr Version History
 
+## 1.5.0
+
+### Added
+
+- Confirmation now shown for saving/updating in Settings and Server pages.
+- Dark mode and Light mode can now be toggled.
+- Logging to file. Logs will be found in /config for native installs and the mounted config folder for Docker installs.
+- Continuous monitoring of Hue Bridge IP address for when using a dynamic IP. The bridge is pinged every 15 minutes and if the bridge becomes unresponsive it searches for the bridge ID for all discovered bridges on the network.
+- All lights in a room or zone can be used for Playback Started and Library New alerts in the Server page. {[#1](https://github.com/chadwpalm/Lumunarr/issues/1)}
+- Server alert behavior can now be scheduled to prevent lights from changing/blinking during scheduled hours.
+- Added "Restore Pre-Play" to Stop and Resume actions to restore the state of the lights from when playback started. {[#2](https://github.com/chadwpalm/Lumunarr/issues/2)}
+
+### Changes
+
+- Client cards are highlighted when creating/editing.
+- Title bar is now sticky to the top of the page
+- Improved logging output. Removed logging of frontend to backend web router calls.
+
+### Fix
+
+- Fixed issue where AM/PM for schedule ending times were displaying the same as the starting times on both clients and settings.
+- Updated the Sunrise/Sunset schedule code to work more reliably.
+- Updated behavior for adding a manual IP for bridge when discovery fails. Also added IPv4 validation.
+
 ## 1.4.5
 
 ### Hotfix

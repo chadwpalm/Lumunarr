@@ -1,4 +1,3 @@
-// import styled from "styled-components";
 import React from "react";
 import { Component } from "react";
 import BridgeInfo from "../Bridgeinfo/BridgeInfo";
@@ -7,6 +6,7 @@ import Button from "react-bootstrap/Button";
 import BridgeImage from "../../images/Bridge.svg";
 import Form from "react-bootstrap/Form";
 import wait from "../../images/loading-gif.gif";
+import "./Bridge.css";
 
 export default class Bridge extends Component {
   state = {
@@ -20,6 +20,9 @@ export default class Bridge extends Component {
     bridges: [],
     manual: "",
     isManual: false,
+    isInvalid: false,
+    isValAdd: false,
+    isValid: true,
   };
   constructor(props) {
     super(props);
@@ -186,6 +189,7 @@ export default class Bridge extends Component {
   handleStartSearch = () => {
     this.setState({
       isActive: "true",
+      isLoaded: false,
     });
 
     if (this.props.settings.connected === "false") {
@@ -223,42 +227,61 @@ export default class Bridge extends Component {
   };
 
   handleManualInput = (e) => {
-    this.setState({ manual: e.target.value.toString() });
+    const ipv4Pattern =
+      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+    this.setState({
+      manual: e.target.value.toString(),
+      isInvalid: false,
+      isValid: true,
+      isValAdd: ipv4Pattern.test(e.target.value),
+    });
   };
 
   handleManualSubmit = (e) => {
     e.preventDefault();
-    this.setState({ isManual: true });
 
-    if (this.props.settings.connected === "false") {
-      var xhr = new XMLHttpRequest();
+    if (this.state.isValAdd) {
+      this.setState({ isManual: true, isInvalid: false });
+      if (this.props.settings.connected === "false") {
+        var xhr = new XMLHttpRequest();
 
-      xhr.addEventListener("readystatechange", () => {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            // request successful
-            var response = xhr.responseText,
-              json = JSON.parse(response);
+        xhr.addEventListener("readystatechange", () => {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              // request successful
+              var response = xhr.responseText,
+                json = JSON.parse(response);
 
-            this.setState({
-              isLoaded: true,
-              bridges: json,
-              manual: "",
-              isManual: false,
-            });
-          } else {
-            // error
-            this.setState({
-              isLoaded: true,
-              error: xhr.responseText,
-            });
+              if (json.length === 0) {
+                this.setState({
+                  isLoaded: true,
+                  isInvalid: true,
+                  isManual: false,
+                });
+              }
+              this.setState({
+                isLoaded: true,
+                bridges: json,
+                manual: "",
+                isManual: false,
+              });
+            } else {
+              // error
+              this.setState({
+                isLoaded: true,
+                error: xhr.responseText,
+              });
+            }
           }
-        }
-      });
+        });
 
-      xhr.open("POST", "/backend/discover", true);
-      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-      xhr.send(JSON.stringify({ ip: this.state.manual }));
+        xhr.open("POST", "/backend/discover", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify({ ip: this.state.manual }));
+      }
+    } else {
+      this.setState({ isValid: false });
     }
   };
 
@@ -268,17 +291,19 @@ export default class Bridge extends Component {
         if (this.state.isActive === false) {
           return (
             <>
-              <Row style={{ paddingBottom: "10px" }}>
+              <Row>
                 <h3>Bridge</h3>
               </Row>
+              <div className="div-seperator" />
               <h4>There are no Hue bridges connected</h4>
               <h6>
                 Press search to start searching for bridges
                 <br />
                 on the network
               </h6>
-              <Row style={{ paddingTop: "20px", marginLeft: "0px" }}>
-                <Button variant="outline-secondary" style={{ width: "100px" }} onClick={this.handleStartSearch}>
+              <div className="div-seperator" />
+              <Row className="row-style">
+                <Button variant="secondary" className="button-style" onClick={this.handleStartSearch}>
                   Search
                 </Button>
               </Row>
@@ -293,22 +318,27 @@ export default class Bridge extends Component {
             if (this.state.bridges.length === 0) {
               return (
                 <>
-                  <Row style={{ paddingBottom: "10px" }}>
+                  <Row>
                     <h3>Bridge</h3>
                   </Row>
                   <h4>There were no bridges found</h4>
-                  <Row style={{ paddingTop: "10px", paddingBottom: "20px", marginLeft: "0px" }}>
-                    <Button variant="outline-info" style={{ width: "120px" }} onClick={this.handleStartSearch}>
+                  <Row className="row-style">
+                    <Button variant="info" className="button-style" onClick={this.handleStartSearch}>
                       Search Again
                     </Button>
                     &nbsp;&nbsp;
-                    <Button variant="danger" size="sm" style={{ width: "100px" }} onClick={this.handleGoBack}>
+                    <Button variant="danger" size="sm" className="button-style" onClick={this.handleGoBack}>
                       Cancel
                     </Button>
                   </Row>
+                  <div className="div-seperator" />
                   <b4>If you know the IP address of the bridge on your network you can manually set it here:</b4>
-                  <Row style={{ paddingTop: "10px", width: "300px" }}>
-                    <Form onSubmit={this.handleManualSubmit}>
+                  <div className="div-seperator" />
+                  <Row className="input-style">
+                    <Form
+                      onSubmit={this.handleManualSubmit}
+                      className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}
+                    >
                       {!this.state.isManual ? (
                         <>
                           <Form.Control
@@ -317,7 +347,7 @@ export default class Bridge extends Component {
                             onChange={this.handleManualInput}
                           />
                           <br />
-                          <Button type="submit" variant="secondary" size="sm" style={{ width: "100px" }}>
+                          <Button type="submit" variant="secondary" size="sm" className="button-style">
                             Submit
                           </Button>
                         </>
@@ -330,11 +360,19 @@ export default class Bridge extends Component {
                             onChange={this.handleManualInput}
                           />
                           <br />
-                          <Button disabled type="submit" variant="secondary" size="sm" style={{ width: "100px" }}>
+                          <Button disabled type="submit" variant="secondary" size="sm" className="button-style">
                             <img src={wait} width="20px" />
                           </Button>
                         </>
                       )}
+                      <br />
+                      <br />
+                      {this.state.isInvalid ? (
+                        <>There was no response from a bridge at this IP address. Try again.</>
+                      ) : (
+                        <></>
+                      )}
+                      {!this.state.isValid ? <>Please enter a valid IPv4 address.</> : <></>}
                     </Form>
                   </Row>
                 </>
@@ -345,15 +383,18 @@ export default class Bridge extends Component {
             } else {
               return (
                 <>
-                  <Row style={{ paddingBottom: "10px" }}>
+                  <Row>
                     <h3>Bridge</h3>
                   </Row>
+                  <div className="div-seperator" />
                   <h4>{this.state.bridges.length} bridges were found</h4>
                   <br />
+                  <div className="div-seperator" />
                   <h5>Please select a bridge to use below</h5>
+                  <div className="div-seperator" />
                   {this.state.bridges.map((bridge) => (
                     <>
-                      <Row style={{ paddingBottom: "10px" }}>
+                      <Row>
                         <div>
                           <BridgeInfo
                             id={bridge.Id}
@@ -361,9 +402,11 @@ export default class Bridge extends Component {
                             name={bridge.name}
                             onActivate={this.handleActivate}
                             isButton={true}
+                            isDarkMode={this.props.isDarkMode}
                           />
                         </div>
                       </Row>
+                      <div className="div-seperator" />
                     </>
                   ))}
                 </>
@@ -376,17 +419,20 @@ export default class Bridge extends Component {
           if (!this.state.isSearching) {
             return (
               <>
-                <Row style={{ paddingBottom: "10px" }}>
+                <Row>
                   <h3>Bridge</h3>
                 </Row>
-                <div style={{ paddingBottom: "10px", marginLeft: "0px" }}>
+                <div className="div-seperator" />
+                <div className="row-style">
                   <BridgeInfo
                     id={this.props.settings.bridge.id}
                     ip={this.props.settings.bridge.ip}
                     name={this.props.settings.bridge.name}
                     isButton={false}
+                    isDarkMode={this.props.isDarkMode}
                   />
                 </div>
+                <div className="div-seperator" />
                 <h2>Click Press Me when ready</h2>
                 <h6>
                   You will have 30 seconds to press the button on
@@ -395,12 +441,12 @@ export default class Bridge extends Component {
                   <br />
                   <br />
                 </h6>
-                <Row style={{ paddingBottom: "10px", marginLeft: "0px" }}>
-                  <Button variant="outline-info" style={{ width: "100px" }} onClick={this.handleCreateUser}>
+                <Row className="row-style">
+                  <Button variant="info" className="button-style" onClick={this.handleCreateUser}>
                     Press Me
                   </Button>
                   &nbsp;&nbsp;
-                  <Button variant="danger" size="sm" style={{ width: "100px" }} onClick={this.handleGoBack}>
+                  <Button variant="danger" size="sm" className="button-style" onClick={this.handleGoBack}>
                     Cancel
                   </Button>
                 </Row>
@@ -409,17 +455,20 @@ export default class Bridge extends Component {
           } else {
             return (
               <>
-                <Row style={{ paddingBottom: "10px" }}>
+                <Row>
                   <h3>Bridge</h3>
                 </Row>
-                <div style={{ paddingBottom: "10px", marginLeft: "0px" }}>
+                <div className="div-seperator" />
+                <div className="row-style">
                   <BridgeInfo
                     id={this.props.settings.bridge.id}
                     ip={this.props.settings.bridge.ip}
                     name={this.props.settings.bridge.name}
                     isButton={false}
+                    isDarkMode={this.props.isDarkMode}
                   />
                 </div>
+                <div className="div-seperator" />
                 <h3>Press the bridge button...</h3>
                 <img src={BridgeImage} style={{ width: "200px" }} />
               </>
@@ -428,28 +477,32 @@ export default class Bridge extends Component {
         } else {
           return (
             <>
-              <Row style={{ paddingBottom: "10px" }}>
+              <Row>
                 <h3>Bridge</h3>
               </Row>
-              <div style={{ paddingBottom: "20px", marginLeft: "0px" }}>
+              <div className="div-seperator" />
+              <div className="row-style">
                 <BridgeInfo
                   id={this.props.settings.bridge.id}
                   ip={this.props.settings.bridge.ip}
                   name={this.props.settings.bridge.name}
                   isButton={false}
+                  isDarkMode={this.props.isDarkMode}
                 />
               </div>
+              <div className="div-seperator" />
               <h5>
                 Button was not pressed in time
                 <br />
                 or bridge not found
               </h5>
-              <Row style={{ paddingTop: "10px", marginLeft: "0px" }}>
-                <Button variant="outline-info" style={{ width: "100px" }} onClick={this.handleTryAgain}>
+              <div className="div-seperator" />
+              <Row className="row-style">
+                <Button variant="info" className="button-style" onClick={this.handleTryAgain}>
                   Try Again
                 </Button>
                 &nbsp;&nbsp;
-                <Button variant="danger" size="sm" style={{ width: "100px" }} onClick={this.handleGoBack}>
+                <Button variant="danger" size="sm" className="button-style" onClick={this.handleGoBack}>
                   Cancel
                 </Button>
               </Row>
@@ -463,12 +516,14 @@ export default class Bridge extends Component {
           <Row>
             <h3>Bridge</h3>
           </Row>
-          <div style={{ paddingBottom: "10px", marginLeft: "0px" }}>
+          <div className="div-seperator" />
+          <div className="row-style">
             <BridgeInfo
               id={this.props.settings.bridge.id}
               ip={this.props.settings.bridge.ip}
               name={this.props.settings.bridge.name}
               isButton={false}
+              isDarkMode={this.props.isDarkMode}
             />
           </div>
           <h5>
@@ -477,8 +532,9 @@ export default class Bridge extends Component {
             <br />
             <br />
           </h5>
-          <Row style={{ marginLeft: "0px" }}>
-            <Button variant="outline-secondary" style={{ width: "150px" }} onClick={this.handleDelete}>
+          <Row className="row-style">
+            <div className="div-seperator" />
+            <Button variant="secondary" className="button-style" onClick={this.handleDelete}>
               Remove Bridge
             </Button>
           </Row>
