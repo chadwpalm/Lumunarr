@@ -59,7 +59,7 @@ export default class Client extends Component {
           {this.props.isEdit || this.props.isCreating ? (
             <Image src={Xclose} alt="Close" className="icon-noclick" />
           ) : (
-            <Image src={Xclose} onClick={this.handleDelete} className="icon-noclick" alt="Close" />
+            <Image src={Xclose} onClick={this.handleDelete} className="icon-clickable" alt="Close" />
           )}
         </Card.Header>
         <Card.Subtitle className="d-flex align-items-center justify-content-center sub-custom">

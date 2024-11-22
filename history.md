@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.5.1
+
+### Minor Fix
+
+- Mouse cursor was not showing the proper pointer when hovering over the "close" and "toggle" icons on a client card.
+
 ## 1.5.0
 
 ### Added
