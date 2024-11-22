@@ -35,6 +35,9 @@
 .div-custom-l {
   text-align: left;
 }
+.div-custom-l .form-check-input {
+  cursor: pointer;
+}
 .div-custom-r {
   text-align: right;
 }
