@@ -1,5 +1,15 @@
 # Lumunarr Version History
 
+## 1.5.2
+
+### Added
+
+- A selecion box in the client add/edit form to ignore Play, Pause, Resume, Stop triggers if all lights are off. {[#33](https://github.com/chadwpalm/Lumunarr/issues/33)}
+
+### Fixes
+
+- Updated code for "Restore Pre-Play" to fix issues with it not working properly. Lights weren't turning back off if they were off when playback started. Fixed errors for non-lightbulb devices like Hue wall plugs. It will also now work with multiple clients in multiple rooms which it previously could not do. {[#33](https://github.com/chadwpalm/Lumunarr/issues/33)}
+
 ## 1.5.1
 
 ### Minor Fix

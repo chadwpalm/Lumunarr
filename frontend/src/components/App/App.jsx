@@ -1,7 +1,6 @@
 import React from "react";
 import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
-import Logo from "../../images/lumunarr-logo.png";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
@@ -42,7 +41,7 @@ export default class App extends Component {
     announce: false,
     first: false,
     dismiss: false,
-    announcement: false, //master key to show an announcement after version update
+    announcement: true, //master key to show an announcement after version update
   };
 
   componentDidMount() {

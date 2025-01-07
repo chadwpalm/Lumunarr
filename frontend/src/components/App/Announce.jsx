@@ -19,43 +19,20 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         <Modal.Title>Announcement</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <b>Lumunarr v1.5.0 Update</b>
+        <b>Lumunarr v1.5.2 Update</b>
         <br />
         <br />
-        After taking time to work on other projects I decided to come back and complete some of the things I've been
-        wanting to do with this app for a while. This will probably be the last major update for this app since I feel
-        it is at a point that I am satisfied with. It grew much larger than I originally expected and that is due to a
-        great community offering suggestions and helping report bugs.
-        <br />
-        <br />
-        Any future work on this app will be mostly fixing any bugs that rear their heads or if any 3rd party APIs change
-        forcing an update for functionality.
-        <br />
-        <br />
-        This is a large feature update, so please check out the changelog to see what's been added so you can take
-        advantage of anything new.
-        <br />
-        <br />
-        You can find the changelog for this version here:{" "}
-        {branch === "dev" ? (
-          <>
-            <a href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md" target="_blank">
-              Changelog
-            </a>
-            &nbsp;&nbsp;
-            <img src={Extern} className="icon-size" />
-          </>
-        ) : (
-          <>
-            <a href="https://github.com/chadwpalm/Lumunarr/blob/main/history.md" target="_blank">
-              Changelog
-            </a>
-            &nbsp;&nbsp;
-            <img src={Extern} className="icon-size" />
-          </>
-        )}
-        <br />
-        <br />
+        <ul>
+          <li>
+            Fixed issues with "Restore Pre-Play" option that was introduced in v1.5.0.
+            <br />
+            <br />
+          </li>
+          <li>
+            Added in a feature in the client add/edit form to ignore Play, Pause, Resume, Stop triggers if all lights
+            are off.
+          </li>
+        </ul>
         <Form.Check
           inline
           label="Do not show this message again"
