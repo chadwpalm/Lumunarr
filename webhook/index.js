@@ -194,10 +194,8 @@ function convertToMinutes(time) {
 }
 
 async function turnoffGroup(room, ip, user, transition) {
-  var groupNum;
-
   var url = `https://${ip}/clip/v2/resource/room`;
-  var rooms = {};
+  var rooms = [];
 
   await axios
     .get(url, {
@@ -209,11 +207,11 @@ async function turnoffGroup(room, ip, user, transition) {
       httpsAgent,
     })
     .then(function (response) {
-      rooms = response.data.data;
+      rooms = Array.isArray(response.data.data) ? response.data.data : [];
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not retrieve rooms.");
+        console.error("Could not retrieve rooms: ", error);
       }
     });
 
@@ -248,7 +246,7 @@ async function turnoffGroup(room, ip, user, transition) {
   });
 
   var url = `https://${ip}/clip/v2/resource/zone`;
-  var zones = {};
+  var zones = [];
 
   await axios
     .get(url, {
@@ -260,7 +258,7 @@ async function turnoffGroup(room, ip, user, transition) {
       httpsAgent,
     })
     .then(function (response) {
-      zones = response.data.data;
+      zones = Array.isArray(response.data.data) ? response.data.data : [];
     })
     .catch(function (error) {
       if (error.request) {
@@ -1145,7 +1143,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         !client.lightsOff ||
                         (client.lightsOff && !(await checkIfOff(client.room, settings.bridge.ip, settings.bridge.user)))
                       ) {
-                        console.log("FOUND ME!");
                         if (payload.event === "media.play" && client.play !== "None") {
                           await getChildren(
                             ["room", "zone"],
@@ -1334,7 +1331,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               );
                               console.info("Pause trigger has turned off lights");
                             } else {
-                              if (client.stop === "-2") {
+                              if (client.pause === "-2") {
                                 const lightGroup = playStorage.find((group) => group.client === client.client.id);
                                 for (const child of lightGroup.lights) {
                                   var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
@@ -1392,7 +1389,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               );
                               console.info("Pause trigger has turned off lights");
                             } else {
-                              if (client.stop === "-2") {
+                              if (client.pause === "-2") {
                                 const lightGroup = playStorage.find((group) => group.client === client.client.id);
                                 for (const child of lightGroup.lights) {
                                   var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
