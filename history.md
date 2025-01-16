@@ -8,7 +8,7 @@
 
 ### Fixes
 
-- Updated code for "Restore Pre-Play" to fix issues with it not working properly. Lights weren't turning back off if they were off when playback started. Fixed errors for non-lightbulb devices like Hue wall plugs. It will also now work with multiple clients in multiple rooms which it previously could not do. {[#33](https://github.com/chadwpalm/Lumunarr/issues/33)}
+- Updated code for "Restore Pre-Play" to fix issues with it not working properly. Lights weren't turning back off if they were off when playback started. Fixed errors for non-lightbulb devices like Hue wall plugs. It will also now work with multiple clients in multiple rooms which it previously could not do. This feature now creates Hue scenes and restores them instead of manipulating each light individually to help make the lights in a room change simultaniously. {[#33](https://github.com/chadwpalm/Lumunarr/issues/33)}
 
 - Fix issue where Off trigger was sometimes crashing the app.
 
