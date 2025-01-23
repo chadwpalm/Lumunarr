@@ -116,9 +116,10 @@ function setScene(scene, transition, ip, user) {
         }
       )
       .then(function (response) {
-        // console.log(response.errors);
+        console.info(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
+        console.info("Not a normal scene....checking if smart scene");
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
 
         axios
@@ -135,11 +136,16 @@ function setScene(scene, transition, ip, user) {
             }
           )
           .then(function (response) {
-            // console.log(response.errors);
+            console.info(`Smart Scene ${scene} recalled`);
           })
           .catch(function (error) {
-            if (error.request) {
-              console.error(error.description);
+            if (error.response) {
+              console.error("Scene retrieval failed:");
+              console.error(`Status Code: ${error.response.status}`);
+              console.error(`Status Text: ${error.response.statusText}`);
+              console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            } else {
+              console.error("Unknown error:", error.message);
             }
           });
       });
@@ -158,17 +164,9 @@ function setScene(scene, transition, ip, user) {
         }
       )
       .then(function (response) {
-        // console.log(response.errors);
+        console.info(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
-        if (error.response) {
-          console.error("Scene retrieval failed:");
-          console.error(`Status Code: ${error.response.status}`);
-          console.error(`Status Text: ${error.response.statusText}`);
-          console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-        } else {
-          console.error("Unknown error:", error.message);
-        }
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
 
         axios
@@ -185,7 +183,7 @@ function setScene(scene, transition, ip, user) {
             }
           )
           .then(function (response) {
-            // console.log(response.errors);
+            console.info(`Smart Scene ${scene} recalled`);
           })
           .catch(function (error) {
             if (error.response) {

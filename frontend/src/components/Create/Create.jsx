@@ -959,7 +959,13 @@ export default class Create extends Component {
           </Form>
           <br />
           <br />
-          <Modal show={this.state.show} onHide={this.handleClose} size="sm" backdrop="static">
+          <Modal
+            show={this.state.show}
+            onHide={this.handleClose}
+            size="sm"
+            backdrop="static"
+            className={this.props.isDarkMode ? "dark-mode" : ""}
+          >
             <Modal.Header>
               <h3>Warning</h3>
             </Modal.Header>
