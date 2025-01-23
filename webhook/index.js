@@ -521,6 +521,8 @@ async function deleteScene(roomName, transition, ip, key) {
 
   setScene(roomId.rid, transition, ip, key);
 
+  await wait(200);
+
   const url = `https://${ip}/clip/v2/resource/scene/${roomId.rid}`;
 
   await axios
