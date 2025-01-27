@@ -93,7 +93,7 @@ async function isSunRiseSet(lat, long) {
     // Check if current time is between sunrise and sunset
     return currentEpoch >= sunset && currentEpoch <= sunrise;
   } catch (error) {
-    console.error("Could not retrieve sunrise/sunset times. Lat/Long must be valid entries");
+    console.error("Could not retrieve sunrise/sunset times", error);
     return false;
   }
 }
@@ -116,9 +116,10 @@ function setScene(scene, transition, ip, user) {
         }
       )
       .then(function (response) {
-        // console.log(response.errors);
+        console.info(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
+        console.info("Not a normal scene....checking if smart scene");
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
 
         axios
@@ -135,11 +136,16 @@ function setScene(scene, transition, ip, user) {
             }
           )
           .then(function (response) {
-            // console.log(response.errors);
+            console.info(`Smart Scene ${scene} recalled`);
           })
           .catch(function (error) {
-            if (error.request) {
-              console.error(error.description);
+            if (error.response) {
+              console.error("Scene retrieval failed:");
+              console.error(`Status Code: ${error.response.status}`);
+              console.error(`Status Text: ${error.response.statusText}`);
+              console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            } else {
+              console.error("Unknown error:", error.message);
             }
           });
       });
@@ -158,7 +164,7 @@ function setScene(scene, transition, ip, user) {
         }
       )
       .then(function (response) {
-        // console.log(response.errors);
+        console.info(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
@@ -177,11 +183,16 @@ function setScene(scene, transition, ip, user) {
             }
           )
           .then(function (response) {
-            // console.log(response.errors);
+            console.info(`Smart Scene ${scene} recalled`);
           })
           .catch(function (error) {
-            if (error.request) {
-              console.error(error.description);
+            if (error.response) {
+              console.error("Scene retrieval failed:");
+              console.error(`Status Code: ${error.response.status}`);
+              console.error(`Status Text: ${error.response.statusText}`);
+              console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+            } else {
+              console.error("Unknown error:", error.message);
             }
           });
       });
@@ -193,114 +204,124 @@ function convertToMinutes(time) {
   return parseInt(hours) * 60 + parseInt(minutes);
 }
 
-async function turnoffGroup(room, ip, user, transition) {
-  var groupNum;
-
-  var url = `https://${ip}/clip/v2/resource/room`;
-  var rooms = {};
-
-  await axios
-    .get(url, {
-      timeout: 5000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": `${user}`,
-      },
-      httpsAgent,
-    })
-    .then(function (response) {
-      rooms = response.data.data;
-    })
-    .catch(function (error) {
-      if (error.request) {
-        console.error("Could not retrieve rooms.");
-      }
-    });
-
-  rooms.forEach((value) => {
-    try {
-      if (value.metadata.name === room) {
-        var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
-
-        axios
-          .put(
-            url,
-            { on: { on: false }, dynamics: { duration: transition } },
-            {
-              timeout: 5000,
-              headers: {
-                "Content-Type": "application/json;charset=UTF-8",
-                "hue-application-key": `${user}`,
-              },
-              httpsAgent,
-            }
-          )
-          .then(function (response) {})
-          .catch(function (error) {
-            if (error.request) {
-              console.error(error.response.data.errors[0].description);
-            }
-          });
-      }
-    } catch (error) {
-      console.error("GroupList: ", error);
-    }
-  });
-
-  var url = `https://${ip}/clip/v2/resource/zone`;
-  var zones = {};
-
-  await axios
-    .get(url, {
-      timeout: 5000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": `${user}`,
-      },
-      httpsAgent,
-    })
-    .then(function (response) {
-      zones = response.data.data;
-    })
-    .catch(function (error) {
-      if (error.request) {
-        console.error("Could not retrieve zones.");
-      }
-    });
-
-  zones.forEach((value) => {
-    try {
-      if (value.metadata.name === room) {
-        var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
-
-        axios
-          .put(
-            url,
-            { on: { on: false }, dynamics: { duration: transition } },
-            {
-              timeout: 5000,
-              headers: {
-                "Content-Type": "application/json;charset=UTF-8",
-                "hue-application-key": `${user}`,
-              },
-              httpsAgent,
-            }
-          )
-          .then(function (response) {})
-          .catch(function (error) {
-            if (error.request) {
-              console.error(error.response.data.errors[0].description);
-            }
-          });
-      }
-    } catch (error) {
-      console.error("GroupList: ", error);
-    }
-  });
+async function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getChildren(types, roomName, ip, key) {
-  const children = [];
+async function retryRequest(url, data, config, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await axios.put(url, data, config);
+    } catch (error) {
+      if (error.response && error.response.status === 429 && i < retries - 1) {
+        console.warn(`Rate limit hit. Retrying in ${100 * 2 ** i}ms...`);
+        await wait(100 * 2 ** i); // Exponential backoff
+      } else {
+        throw error; // Rethrow if not a rate-limit error or retries are exhausted
+      }
+    }
+  }
+}
+
+async function turnoffGroup(room, ip, user, transition) {
+  try {
+    var url = `https://${ip}/clip/v2/resource/room`;
+    var rooms = [];
+
+    await axios
+      .get(url, {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${user}`,
+        },
+        httpsAgent,
+      })
+      .then((response) => {
+        rooms = Array.isArray(response.data.data) ? response.data.data : [];
+      })
+      .catch((error) => {
+        if (error.request) {
+          console.error("Could not retrieve rooms: ", error);
+        }
+      });
+
+    await Promise.all(
+      rooms.map(async (value) => {
+        try {
+          if (value.metadata.name === room && value.services && value.services[0] && value.services[0].rid) {
+            var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
+            await retryRequest(
+              url,
+              { on: { on: false }, dynamics: { duration: transition } },
+              {
+                timeout: 5000,
+                headers: {
+                  "Content-Type": "application/json;charset=UTF-8",
+                  "hue-application-key": `${user}`,
+                },
+                httpsAgent,
+              }
+            );
+          }
+        } catch (error) {
+          console.error("GroupList (room):", error);
+        }
+      })
+    );
+
+    url = `https://${ip}/clip/v2/resource/zone`;
+    var zones = [];
+
+    await axios
+      .get(url, {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${user}`,
+        },
+        httpsAgent,
+      })
+      .then((response) => {
+        zones = Array.isArray(response.data.data) ? response.data.data : [];
+      })
+      .catch(() => {
+        console.error("Could not retrieve zones.");
+      });
+
+    await Promise.all(
+      zones.map(async (value) => {
+        try {
+          if (value.metadata.name === room && value.services && value.services[0] && value.services[0].rid) {
+            var url = `https://${ip}/clip/v2/resource/grouped_light/${value.services[0].rid}`;
+            await retryRequest(
+              url,
+              { on: { on: false }, dynamics: { duration: transition } },
+              {
+                timeout: 5000,
+                headers: {
+                  "Content-Type": "application/json;charset=UTF-8",
+                  "hue-application-key": `${user}`,
+                },
+                httpsAgent,
+              }
+            );
+          }
+        } catch (error) {
+          console.error("GroupList (zone):", error);
+        }
+      })
+    );
+  } catch (error) {
+    console.error("Unexpected error in turnoffGroup:", error);
+  }
+}
+
+async function getChildren(types, roomName, uid, ip, key) {
+  const children = {};
+
+  children.client = uid || "null";
+  children.lights = [];
 
   for (const type of types) {
     const roomUrl = `https://${ip}/clip/v2/resource/${type}`;
@@ -318,10 +339,13 @@ async function getChildren(types, roomName, ip, key) {
       });
 
       const room = roomResponse.data.data.find(({ metadata }) => metadata.name === roomName);
+
       if (!room) {
-        console.error(`${type} not found`);
         continue; // Skip to the next type if no matching room/zone is found
       }
+
+      children.roomId = room.id;
+      children.type = type;
 
       // Fetch all lights
       const lightResponse = await axios.get(lightUrl, {
@@ -340,7 +364,7 @@ async function getChildren(types, roomName, ip, key) {
         for (const child of room.children) {
           if ((type === "room" && child.rid === light.owner.rid) || (type === "zone" && child.rid === light.id)) {
             try {
-              children.push(light);
+              children.lights.push(light);
             } catch (error) {
               console.error("Error adding light to children:", error);
             }
@@ -357,8 +381,181 @@ async function getChildren(types, roomName, ip, key) {
       }
     }
   }
-
   return children;
+}
+
+async function createScene(types, roomName, ip, key, transition) {
+  const url = `https://${ip}/clip/v2/resource/scene`;
+  var originalScene = {};
+
+  await axios
+    .get(url, {
+      timeout: 5000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${key}`,
+      },
+      httpsAgent,
+    })
+    .then((response) => {
+      const res = response.data.data;
+      originalScene = res.find((scene) => scene.metadata.name === `Lumunarr ${roomName}`);
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Scene retrieval failed:");
+        console.error(`Status Code: ${error.response.status}`);
+        console.error(`Status Text: ${error.response.statusText}`);
+        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+      } else {
+        console.error("Unknown error:", error.message);
+      }
+    });
+
+  if (originalScene) {
+    const url = `https://${ip}/clip/v2/resource/scene/${originalScene.id}`;
+
+    await axios
+      .delete(url, {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${key}`,
+        },
+        httpsAgent,
+      })
+      .then(() => {
+        console.info(`Scene ${originalScene.id} was removed`);
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Scene deletion failed:");
+          console.error(`Status Code: ${error.response.status}`);
+          console.error(`Status Text: ${error.response.statusText}`);
+          console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+        } else {
+          console.error("Unknown error:", error.message);
+        }
+      });
+  }
+
+  const lightGroup = await getChildren(types, roomName, null, ip, key);
+
+  const actions = lightGroup.lights.map((light) => {
+    const action = {
+      target: {
+        rid: light.id,
+        rtype: "light",
+      },
+      action: {
+        on: { on: light.on?.on || false },
+        dynamics: {
+          duration: parseFloat(transition) * 1000 || 0,
+        },
+      },
+    };
+
+    if (light.dimming) {
+      action.action.dimming = { brightness: light.dimming?.brightness || 0 };
+    }
+
+    if (light.color) {
+      action.action.color = {
+        xy: {
+          x: light.color?.xy?.x || 0,
+          y: light.color?.xy?.y || 0,
+        },
+      };
+    }
+    return action;
+  });
+
+  await axios
+    .post(
+      url,
+      {
+        actions,
+        metadata: {
+          name: `Lumunarr ${roomName}`,
+        },
+        group: {
+          rid: lightGroup.roomId,
+          rtype: lightGroup.type,
+        },
+      },
+      {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${key}`,
+        },
+        httpsAgent,
+      }
+    )
+    .then((response) => {
+      const res = response.data.data[0];
+      const index = playStorage.findIndex((room) => room.room === roomName);
+
+      if (index !== -1) {
+        playStorage[index] = { room: roomName, rid: res.rid };
+      } else {
+        playStorage.push({ room: roomName, rid: res.rid });
+      }
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Scene creation failed:");
+        console.error(`Status Code: ${error.response.status}`);
+        console.error(`Status Text: ${error.response.statusText}`);
+        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+      } else {
+        console.error("Unknown error:", error.message);
+      }
+    });
+}
+
+async function deleteScene(roomName, transition, ip, key) {
+  const roomId = playStorage.find((room) => room.room === roomName);
+
+  setScene(roomId.rid, transition, ip, key);
+
+  await wait(200);
+
+  const url = `https://${ip}/clip/v2/resource/scene/${roomId.rid}`;
+
+  await axios
+    .delete(url, {
+      timeout: 5000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${key}`,
+      },
+      httpsAgent,
+    })
+    .then((response) => {
+      console.info(`Scene ${roomId.rid} was removed`);
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Scene creation failed:");
+        console.error(`Status Code: ${error.response.status}`);
+        console.error(`Status Text: ${error.response.statusText}`);
+        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+      } else {
+        console.error("Unknown error:", error.message);
+      }
+    });
+}
+
+async function checkIfOff(roomName, ip, key) {
+  const lights = await getChildren(["room", "zone"], roomName, null, ip, key);
+
+  for (const light of lights.lights) {
+    if (light.on.on) {
+      return false;
+    }
+  }
+  return true;
 }
 
 router.post("/", upload.single("thumb"), async function (req, res, next) {
@@ -477,9 +674,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               if (server.behaviorPlay === "2") {
                 if (server.lightPlay === "-3") {
                   let children = [];
-                  await getChildren(["room", "zone"], server.roomNew, settings.bridge.ip, settings.bridge.user)
+                  await getChildren(["room", "zone"], server.roomNew, null, settings.bridge.ip, settings.bridge.user)
                     .then((c) => {
-                      c.forEach((child) => {
+                      c.lights.forEach((child) => {
                         children.push(child);
                       });
                     })
@@ -817,9 +1014,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                 if (!flag) {
                   flag = true;
                   let children = [];
-                  await getChildren(["room", "zone"], server.roomNew, settings.bridge.ip, settings.bridge.user)
+                  await getChildren(["room", "zone"], server.roomNew, null, settings.bridge.ip, settings.bridge.user)
                     .then((c) => {
-                      c.forEach((child) => {
+                      c.lights.forEach((child) => {
                         children.push(child);
                       });
                     })
@@ -1092,7 +1289,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
 
         clients.forEach(async (client) => {
           try {
-            if (client.active && payload.Player.uuid) {
+            if (client.active && payload?.Player?.uuid) {
               if (payload.Player.uuid === client.client.id) {
                 var sFlag = true;
 
@@ -1128,361 +1325,260 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       client.media === "All" ||
                       (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer")
                     ) {
-                      if (payload.event === "media.play" && client.play !== "None") {
-                        await getChildren(["room", "zone"], client.room, settings.bridge.ip, settings.bridge.user)
-                          .then((c) => {
-                            c.forEach((child) => {
-                              playStorage.push(child);
-                            });
-                          })
-                          .catch((error) => {
-                            console.error("Error retrieving children:", error);
-                          });
-                        if (client.transitionType == "1") {
-                          if (client.play === "Off") {
-                            turnoffGroup(
+                      if (
+                        !client.lightsOff ||
+                        (client.lightsOff && !(await checkIfOff(client.room, settings.bridge.ip, settings.bridge.user)))
+                      ) {
+                        if (payload.event === "media.play" && client.play !== "None") {
+                          if (client.pause === "-2" || client.stop === "-2") {
+                            await createScene(
+                              ["room", "zone"],
                               client.room,
                               settings.bridge.ip,
                               settings.bridge.user,
-                              parseFloat(client.transition) * 1000
+                              client.transition
                             );
-                            console.info("Play trigger has turned off lights");
-                          } else {
-                            setScene(
-                              client.play,
-                              parseFloat(client.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
                           }
-                        } else {
-                          if (client.play === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(global.transition) * 1000
-                            );
-                            console.info("Play trigger has turned off lights");
-                          } else {
-                            setScene(
-                              client.play,
-                              parseFloat(global.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
-                          }
-                        }
-                      }
-                      if (payload.event === "media.stop" && client.stop !== "None") {
-                        if (client.transitionType == "1") {
-                          if (client.stop === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(client.transition) * 1000
-                            );
-                            console.info("Stop trigger has turned off lights");
-                          } else {
-                            if (client.stop === "-2") {
-                              for (const child of playStorage) {
-                                if (child.on.on) {
-                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
-                                  await axios
-                                    .put(
-                                      url,
-                                      {
-                                        on: { on: true },
-                                        dynamics: { duration: 0 },
-                                        dimming: { brightness: child.dimming.brightness },
-                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
-                                        dynamics: { duration: parseFloat(client.transition) * 1000 },
-                                      },
-                                      {
-                                        timeout: 5000,
-                                        headers: {
-                                          "Content-Type": "application/json;charset=UTF-8",
-                                          "hue-application-key": `${settings.bridge.user}`,
-                                        },
-                                        httpsAgent,
-                                      }
-                                    )
-                                    .catch(function (error) {
-                                      if (error.response && error.response.data && error.response.data.errors) {
-                                        error.response.data.errors.forEach(function (desc) {
-                                          console.error("Error description restore:", desc.description);
-                                        });
-                                      } else {
-                                        console.error("Error data restore:", error);
-                                      }
-                                    });
-                                }
-                              }
-                            } else {
-                              setScene(
-                                client.stop,
-                                parseFloat(client.transition) * 1000,
-                                settings.bridge.ip,
-                                settings.bridge.user
-                              );
-                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
-                            }
-                          }
-                        } else {
-                          if (client.stop === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(global.transition) * 1000
-                            );
-                            console.info("Stop trigger has turned off lights");
-                          } else {
-                            if (client.stop === "-2") {
-                              for (const child of playStorage) {
-                                if (child.on.on) {
-                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
-                                  await axios
-                                    .put(
-                                      url,
-                                      {
-                                        on: { on: true },
-                                        dynamics: { duration: 0 },
-                                        dimming: { brightness: child.dimming.brightness },
-                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
-                                        dynamics: { duration: parseFloat(global.transition) * 1000 },
-                                      },
-                                      {
-                                        timeout: 5000,
-                                        headers: {
-                                          "Content-Type": "application/json;charset=UTF-8",
-                                          "hue-application-key": `${settings.bridge.user}`,
-                                        },
-                                        httpsAgent,
-                                      }
-                                    )
-                                    .catch(function (error) {
-                                      if (error.response && error.response.data && error.response.data.errors) {
-                                        error.response.data.errors.forEach(function (desc) {
-                                          console.error("Error description restore:", desc.description);
-                                        });
-                                      } else {
-                                        console.error("Error data restore:", error);
-                                      }
-                                    });
-                                }
-                              }
-                            } else {
-                              setScene(
-                                client.stop,
-                                parseFloat(global.transition) * 1000,
-                                settings.bridge.ip,
-                                settings.bridge.user
-                              );
-                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
-                            }
-                          }
-                        }
-                      }
-                      if (payload.event === "media.pause" && client.pause !== "None") {
-                        if (client.transitionType == "1") {
-                          if (client.pause === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(client.transition) * 1000
-                            );
-                            console.info("Pause trigger has turned off lights");
-                          } else {
-                            if (client.stop === "-2") {
-                              for (const child of playStorage) {
-                                if (child.on.on) {
-                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
-                                  await axios
-                                    .put(
-                                      url,
-                                      {
-                                        on: { on: true },
-                                        dynamics: { duration: 0 },
-                                        dimming: { brightness: child.dimming.brightness },
-                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
-                                        dynamics: { duration: parseFloat(client.transition) * 1000 },
-                                      },
-                                      {
-                                        timeout: 5000,
-                                        headers: {
-                                          "Content-Type": "application/json;charset=UTF-8",
-                                          "hue-application-key": `${settings.bridge.user}`,
-                                        },
-                                        httpsAgent,
-                                      }
-                                    )
-                                    .catch(function (error) {
-                                      if (error.response && error.response.data && error.response.data.errors) {
-                                        error.response.data.errors.forEach(function (desc) {
-                                          console.error("Error description restore:", desc.description);
-                                        });
-                                      } else {
-                                        console.error("Error data restore:", error);
-                                      }
-                                    });
-                                }
-                              }
-                            } else {
-                              setScene(
-                                client.pause,
-                                parseFloat(client.transition) * 1000,
-                                settings.bridge.ip,
-                                settings.bridge.user
-                              );
-                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                            }
-                          }
-                        } else {
-                          if (client.pause === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(global.transition) * 1000
-                            );
-                            console.info("Pause trigger has turned off lights");
-                          } else {
-                            if (client.stop === "-2") {
-                              for (const child of playStorage) {
-                                if (child.on.on) {
-                                  var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${child.id}`;
-                                  await axios
-                                    .put(
-                                      url,
-                                      {
-                                        on: { on: true },
-                                        dynamics: { duration: 0 },
-                                        dimming: { brightness: child.dimming.brightness },
-                                        color: { xy: { x: child.color.xy.x, y: child.color.xy.y } },
-                                        dynamics: { duration: parseFloat(global.transition) * 1000 },
-                                      },
-                                      {
-                                        timeout: 5000,
-                                        headers: {
-                                          "Content-Type": "application/json;charset=UTF-8",
-                                          "hue-application-key": `${settings.bridge.user}`,
-                                        },
-                                        httpsAgent,
-                                      }
-                                    )
-                                    .catch(function (error) {
-                                      if (error.response && error.response.data && error.response.data.errors) {
-                                        error.response.data.errors.forEach(function (desc) {
-                                          console.error("Error description restore:", desc.description);
-                                        });
-                                      } else {
-                                        console.error("Error data restore:", error);
-                                      }
-                                    });
-                                }
-                              }
-                            } else {
-                              setScene(
-                                client.pause,
-                                parseFloat(global.transition) * 1000,
-                                settings.bridge.ip,
-                                settings.bridge.user
-                              );
-                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
-                            }
-                          }
-                        }
-                      }
-                      if (payload.event === "media.resume" && client.resume !== "None") {
-                        if (client.transitionType == "1") {
-                          if (client.resume === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(client.transition) * 1000
-                            );
-                            console.info("Resume trigger has turned off lights");
-                          } else {
-                            setScene(
-                              client.resume,
-                              parseFloat(client.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                          }
-                        } else {
-                          if (client.resume === "Off") {
-                            turnoffGroup(
-                              client.room,
-                              settings.bridge.ip,
-                              settings.bridge.user,
-                              parseFloat(global.transition) * 1000
-                            );
-                            console.info("Resume trigger has turned off lights");
-                          } else {
-                            setScene(
-                              client.resume,
-                              parseFloat(global.transition) * 1000,
-                              settings.bridge.ip,
-                              settings.bridge.user
-                            );
-                            console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
-                          }
-                        }
-                      }
-                      if (payload.event === "media.scrobble" && client.scrobble !== "None") {
-                        const recallScrobbleScene = async () => {
                           if (client.transitionType == "1") {
-                            if (client.scrobble === "Off") {
+                            if (client.play === "Off") {
                               turnoffGroup(
                                 client.room,
                                 settings.bridge.ip,
                                 settings.bridge.user,
                                 parseFloat(client.transition) * 1000
                               );
-                              console.info("Scrobble trigger has turned off lights");
+                              console.info("Play trigger has turned off lights");
                             } else {
                               setScene(
-                                client.scrobble,
+                                client.play,
                                 parseFloat(client.transition) * 1000,
                                 settings.bridge.ip,
                                 settings.bridge.user
                               );
-                              console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                              console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
                             }
                           } else {
-                            if (client.scrobble === "Off") {
+                            if (client.play === "Off") {
                               turnoffGroup(
                                 client.room,
                                 settings.bridge.ip,
                                 settings.bridge.user,
                                 parseFloat(global.transition) * 1000
                               );
-                              console.info("Scrobble trigger has turned off lights");
+                              console.info("Play trigger has turned off lights");
                             } else {
                               setScene(
-                                client.scrobble,
+                                client.play,
                                 parseFloat(global.transition) * 1000,
                                 settings.bridge.ip,
                                 settings.bridge.user
                               );
-                              console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                              console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
                             }
                           }
-                        };
+                        }
+                        if (payload.event === "media.stop" && client.stop !== "None") {
+                          if (client.transitionType == "1") {
+                            if (client.stop === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(client.transition) * 1000
+                              );
+                              console.info("Stop trigger has turned off lights");
+                            } else {
+                              if (client.stop === "-2") {
+                                await deleteScene(
+                                  client.room,
+                                  parseFloat(client.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              } else {
+                                setScene(
+                                  client.stop,
+                                  parseFloat(client.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              }
+                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          } else {
+                            if (client.stop === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(global.transition) * 1000
+                              );
+                              console.info("Stop trigger has turned off lights");
+                            } else {
+                              if (client.stop === "-2") {
+                                await deleteScene(
+                                  client.room,
+                                  parseFloat(global.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              } else {
+                                setScene(
+                                  client.stop,
+                                  parseFloat(global.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              }
+                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          }
+                        }
+                        if (payload.event === "media.pause" && client.pause !== "None") {
+                          if (client.transitionType == "1") {
+                            if (client.pause === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(client.transition) * 1000
+                              );
+                              console.info("Pause trigger has turned off lights");
+                            } else {
+                              if (client.pause === "-2") {
+                                const roomId = playStorage.find((room) => room.room === client.room);
+                                setScene(
+                                  roomId.rid,
+                                  parseFloat(client.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              } else {
+                                setScene(
+                                  client.pause,
+                                  parseFloat(client.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              }
+                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          } else {
+                            if (client.pause === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(global.transition) * 1000
+                              );
+                              console.info("Pause trigger has turned off lights");
+                            } else {
+                              if (client.pause === "-2") {
+                                const roomId = playStorage.find((room) => room.room === client.room);
+                                setScene(
+                                  roomId.rid,
+                                  parseFloat(global.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              } else {
+                                setScene(
+                                  client.pause,
+                                  parseFloat(global.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                              }
+                              console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          }
+                        }
+                        if (payload.event === "media.resume" && client.resume !== "None") {
+                          if (client.transitionType == "1") {
+                            if (client.resume === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(client.transition) * 1000
+                              );
+                              console.info("Resume trigger has turned off lights");
+                            } else {
+                              setScene(
+                                client.resume,
+                                parseFloat(client.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          } else {
+                            if (client.resume === "Off") {
+                              turnoffGroup(
+                                client.room,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                parseFloat(global.transition) * 1000
+                              );
+                              console.info("Resume trigger has turned off lights");
+                            } else {
+                              setScene(
+                                client.resume,
+                                parseFloat(global.transition) * 1000,
+                                settings.bridge.ip,
+                                settings.bridge.user
+                              );
+                              console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                            }
+                          }
+                        }
+                        if (payload.event === "media.scrobble" && client.scrobble !== "None") {
+                          const recallScrobbleScene = async () => {
+                            if (client.transitionType == "1") {
+                              if (client.scrobble === "Off") {
+                                turnoffGroup(
+                                  client.room,
+                                  settings.bridge.ip,
+                                  settings.bridge.user,
+                                  parseFloat(client.transition) * 1000
+                                );
+                                console.info("Scrobble trigger has turned off lights");
+                              } else {
+                                setScene(
+                                  client.scrobble,
+                                  parseFloat(client.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                                console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                              }
+                            } else {
+                              if (client.scrobble === "Off") {
+                                turnoffGroup(
+                                  client.room,
+                                  settings.bridge.ip,
+                                  settings.bridge.user,
+                                  parseFloat(global.transition) * 1000
+                                );
+                                console.info("Scrobble trigger has turned off lights");
+                              } else {
+                                setScene(
+                                  client.scrobble,
+                                  parseFloat(global.transition) * 1000,
+                                  settings.bridge.ip,
+                                  settings.bridge.user
+                                );
+                                console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                              }
+                            }
+                          };
 
-                        if (client.scrobbleDelayMs) {
-                          console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);
-                          setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
-                        } else {
-                          recallScrobbleScene();
+                          if (client.scrobbleDelayMs) {
+                            console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);
+                            setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
+                          } else {
+                            recallScrobbleScene();
+                          }
                         }
                       }
                     }
@@ -1493,7 +1589,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
               }
             }
           } catch (err) {
-            console.info("This is a server webhook not associated with a Plex client");
+            console.info("There was an issue processing the webhook", err);
           }
         });
       } else {

@@ -24,6 +24,7 @@ export default class Create extends Component {
         userName: info.user.name,
         userId: info.user.id,
         media: info.media,
+        lightsOff: info.lightsOff ?? false,
         room: info.room,
         playScene: info.play,
         pauseScene: info.pause,
@@ -60,6 +61,7 @@ export default class Create extends Component {
         userName: "",
         userId: "-1",
         media: "-1",
+        lightsOff: false,
         room: "-1",
         playScene: "-1",
         playRoom: "-1",
@@ -187,6 +189,7 @@ export default class Create extends Component {
     temp.transitionType = this.state.transitionType;
     temp.transition = this.state.transition;
     temp.active = this.state.active;
+    temp.lightsOff = this.state.lightsOff;
 
     if (this.props.isEdit) {
       const index = settings.clients.findIndex(({ uid }) => uid === this.state.uid);
@@ -356,6 +359,10 @@ export default class Create extends Component {
 
   handleClose = () => this.setState({ show: false, show2: false });
 
+  handleLightsOff = (e) => {
+    this.setState({ lightsOff: e.target.checked });
+  };
+
   render() {
     if (this.state.isError) {
       var text = "";
@@ -482,6 +489,32 @@ export default class Create extends Component {
                 </option>
               ))}
             </Form.Select>
+            <div className="div-seperator" />
+            <Stack gap={1} direction="horizontal">
+              <Form.Check
+                type="checkbox"
+                id="lightsOff"
+                name="lightsOff"
+                onChange={this.handleLightsOff}
+                checked={this.state.lightsOff}
+              />
+              &nbsp;&nbsp;Ignore triggers if lights in room are off&nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    If this is checked, the Play, Stop, Pause, and Resume triggers will not work if all of the lights in
+                    the selected room are off. Be aware, if any of your triggers turn the lights off, Lumunarr will not
+                    turn them back on unless this is unchecked or you manually turn them on.
+                    <br />
+                    <br />
+                    Schedules are still in effect regardless of this setting.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} className="image-info" alt="Info" />
+              </OverlayTrigger>
+            </Stack>
             <div className="div-seperator" />
             {/* Play Action */}
             <Form.Label for="play">
@@ -650,7 +683,9 @@ export default class Create extends Component {
                 step={100}
                 onChange={this.handleScrobbleDelay}
               />
-              <div className="slider-style">{this.state.scrobbleDelayMs} ms</div>
+              <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                {this.state.scrobbleDelayMs} ms
+              </div>
             </Stack>
             <div className="div-seperator" />
             {/* Scene Transition */}
@@ -924,7 +959,13 @@ export default class Create extends Component {
           </Form>
           <br />
           <br />
-          <Modal show={this.state.show} onHide={this.handleClose} size="sm" backdrop="static">
+          <Modal
+            show={this.state.show}
+            onHide={this.handleClose}
+            size="sm"
+            backdrop="static"
+            className={this.props.isDarkMode ? "dark-mode" : ""}
+          >
             <Modal.Header>
               <h3>Warning</h3>
             </Modal.Header>
