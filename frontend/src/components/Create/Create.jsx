@@ -19,6 +19,7 @@ export default class Create extends Component {
 
       this.state = {
         uid: info.uid,
+        title: info.client.title ?? info.client.name,
         clientName: info.client.name,
         clientId: info.client.id,
         userName: info.user.name,
@@ -56,6 +57,7 @@ export default class Create extends Component {
       };
     } else {
       this.state = {
+        title: "",
         clientName: "",
         clientId: "-1",
         userName: "",
@@ -144,6 +146,7 @@ export default class Create extends Component {
     this.setState({ isIncomplete: false });
 
     if (
+      this.state.title === "" ||
       this.state.clientId === "-1" ||
       this.state.userId === "-1" ||
       this.state.media === "-1" ||
@@ -164,8 +167,9 @@ export default class Create extends Component {
 
     var temp = {};
 
-    temp.uid = uuid().toString();
+    temp.uid = this.props.isEdit ? this.state.uid : uuid().toString();
     temp.client = {};
+    temp.client.title = this.state.title;
     temp.client.id = this.state.clientId;
     temp.client.name = this.state.clientName;
     temp.user = {};
@@ -230,6 +234,10 @@ export default class Create extends Component {
     else response = Math.round(time / 31536000).toString() + " years ago";
     return response;
   }
+
+  handleTitle = (e) => {
+    this.setState({ title: e.target.value.toString() });
+  };
 
   handleClient = (e) => {
     if (e.target.value === "-1") {
@@ -388,6 +396,22 @@ export default class Create extends Component {
       return (
         <div>
           <Form onSubmit={this.handleFormSubmit} className={`form-content ${this.props.isDarkMode ? "dark-mode" : ""}`}>
+            {/* Enter Title */}
+            <Form.Label for="Title">
+              Title &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    Enter the title of the Client profile. Will default to the Client's name if left blank.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} className="image-info" alt="Info" />
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Control value={this.state.title} id="title" name="title" onChange={this.handleTitle} size="sm" />
+            <div className="div-seperator" />
             {/* Select Client */}
             <Form.Label for="client">
               Client &nbsp;&nbsp;

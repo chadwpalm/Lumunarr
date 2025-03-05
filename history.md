@@ -1,5 +1,12 @@
 # Lumunarr Version History
 
+## 1.5.3
+
+### Added
+
+- Client profile titles are editable now. This will help with distinguishing between profiles with identical titles, users, and media. {[#34](https://github.com/chadwpalm/Lumunarr/issues/34)}
+- Client profiles can now be duplicated for easier creation of similar profiles. {[#34](https://github.com/chadwpalm/Lumunarr/issues/34)}
+
 ## 1.5.2
 
 ### Added
@@ -8,7 +15,7 @@
 
 ### Fixes
 
-- Updated code for "Restore Pre-Play" to fix issues with it not working properly. Lights weren't turning back off if they were off when playback started. Fixed errors for non-lightbulb devices like Hue wall plugs. It will also now work with multiple clients in multiple rooms which it previously could not do. {[#34](https://github.com/chadwpalm/Lumunarr/issues/33)}
+- Updated code for "Restore Pre-Play" to fix issues with it not working properly. Lights weren't turning back off if they were off when playback started. Fixed errors for non-lightbulb devices like Hue wall plugs. It will also now work with multiple clients in multiple rooms which it previously could not do. {[#34](https://github.com/chadwpalm/Lumunarr/issues/34)}
 
 - Fix issue where Off trigger was sometimes crashing the app.
 
