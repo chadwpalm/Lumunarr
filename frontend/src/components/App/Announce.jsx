@@ -19,18 +19,19 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         <Modal.Title>Announcement</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <b>Lumunarr v1.5.2 Update</b>
+        <b>Lumunarr v1.5.3 Update</b>
         <br />
         <br />
         <ul>
           <li>
-            Fixed issues with "Restore Pre-Play" option that was introduced in v1.5.0.
+            Client profile titles are editable now. This will help with distinguishing between profiles with identical
+            titles, users, and media. Existing profiles will keep using the Client name until changed.
             <br />
             <br />
           </li>
           <li>
-            Added in a feature in the client add/edit form to ignore Play, Pause, Resume, Stop triggers if all lights
-            are off.
+            Client profiles can now be duplicated for easier creation of similar profiles. A new copy icon has been
+            added to the bottom of the profile cards.
           </li>
         </ul>
         <Form.Check

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Card from "react-bootstrap/Card";
 import Xclose from "bootstrap-icons/icons/x-square.svg";
 import Edit from "bootstrap-icons/icons/pencil-square.svg";
+import Copy from "bootstrap-icons/icons/copy.svg";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -32,7 +33,11 @@ export default class Client extends Component {
     this.props.click(e.currentTarget.value);
   };
 
-  handleDelete = (e) => {
+  handleCopy = () => {
+    this.props.copy(this.state.id);
+  };
+
+  handleDelete = () => {
     this.props.delete(this.state.id);
   };
 
@@ -63,7 +68,7 @@ export default class Client extends Component {
           )}
         </Card.Header>
         <Card.Subtitle className="d-flex align-items-center justify-content-center sub-custom">
-          {this.props.client}
+          {this.props.title === "" ? this.props.client : this.props.title}
         </Card.Subtitle>
         <Card.Body className="body-custom">
           <div style={{ fontSize: "0.8em" }}>
@@ -92,7 +97,18 @@ export default class Client extends Component {
                 </div>
               )}
             </Col>
-            <Col>
+            <Col className="pe-0">
+              <div className="div-custom-r">
+                {this.props.isEdit || this.props.isCreating ? (
+                  <Image src={Copy} alt="Copy" className="icon-noclick" />
+                ) : (
+                  <button value={this.state.id} onClick={this.handleCopy} className="edit-button">
+                    <Image src={Copy} alt="Copy" className="icon-clickable" />
+                  </button>
+                )}
+              </div>
+            </Col>
+            <Col className="ps-0">
               <div className="div-custom-r">
                 {this.props.isEdit || this.props.isCreating ? (
                   <Image src={Edit} alt="Edit" className="icon-noclick" />

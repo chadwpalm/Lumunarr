@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { v4 as uuid } from "uuid";
 import Client from "../Client/Client";
 import AddIcon from "../../images/add-icon.png";
 import Create from "../Create/Create";
@@ -38,6 +39,54 @@ export default class Device extends Component {
       isEdit: true,
       uid: e,
     });
+  };
+
+  handleCopyClient = (id) => {
+    var settings = { ...this.props.settings };
+
+    // Find the index of the profile to copy
+    const index = settings.clients.findIndex(({ uid }) => uid === id);
+
+    if (index === -1) {
+      // Handle the case where the profile isn't found
+      return;
+    }
+
+    // Get the profile to copy
+    const profileToCopy = { ...settings.clients[index] };
+
+    // Deep copy the client object (to avoid modifying the original)
+    profileToCopy.client = { ...profileToCopy.client };
+
+    // Create a new UID for the copied profile
+    profileToCopy.uid = uuid().toString(); // Generate a new unique ID for the copy
+    profileToCopy.client.title =
+      profileToCopy.client.title && profileToCopy.client.title.trim() !== ""
+        ? profileToCopy.client.title + " (copy)"
+        : profileToCopy.client.name + " (copy)";
+
+    // Push the copied profile into the settings
+    settings.clients.push(profileToCopy);
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.addEventListener("readystatechange", () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          this.setState({ show: false });
+        } else {
+          // error
+          this.setState({
+            show: false,
+            error: xhr.responseText,
+          });
+        }
+      }
+    });
+
+    xhr.open("POST", "/backend/save", true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify(settings));
   };
 
   handleCancelCreate = () => {
@@ -133,6 +182,7 @@ export default class Device extends Component {
                 id={client.uid}
                 stateId={this.state.uid}
                 click={this.handleEditClient}
+                copy={this.handleCopyClient}
                 saved={this.handleSaveCreate}
                 isEdit={this.state.isEdit}
                 isCreating={this.state.isCreating}
@@ -140,6 +190,7 @@ export default class Device extends Component {
                 checked={client.active}
                 isChecked={this.handleChecked}
                 isDarkMode={this.props.isDarkMode}
+                title={client.client.title ?? ""}
               />
               <br />
             </Col>

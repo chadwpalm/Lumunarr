@@ -170,7 +170,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/api/users";
 
   await axios
-    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Accounts");
@@ -186,9 +186,6 @@ router.post("/", async function (req, res, next) {
       }
     })
     .catch(function (error) {
-      if (error.response.status === 401) {
-        unauth = true;
-      }
       console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
       message.push("Issue with connection to online Plex account while requesting friends. Check logs for reason.");
     });
@@ -196,7 +193,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Server Admin Information");
@@ -224,7 +221,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { timeout: 3000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
       console.info("Retrieving Plex Clients");
