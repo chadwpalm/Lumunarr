@@ -1325,7 +1325,8 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                     if (
                       client.media === "All" ||
                       (payload.Metadata.cinemaTrailer && client.media === "cinemaTrailer") ||
-                      (payload.Metadata.librarySectionType === client.media && client.library === "All") ||
+                      (payload.Metadata.librarySectionType === client.media &&
+                        (client.library === "All" || client.library === undefined)) ||
                       (payload.Metadata.librarySectionType === client.media &&
                         payload.Metadata.librarySectionTitle === client.library &&
                         payload.Server.title === client.server)

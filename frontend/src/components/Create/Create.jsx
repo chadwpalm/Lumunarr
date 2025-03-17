@@ -165,7 +165,7 @@ export default class Create extends Component {
       this.state.stopScene === "-1" ||
       this.state.resumeScene === "-1" ||
       this.state.scrobble === "-1" ||
-      this.state.library === "-1"
+      (this.state.library === "-1" && this.state.media !== "All")
     ) {
       this.setState({ isIncomplete: true });
       return;
