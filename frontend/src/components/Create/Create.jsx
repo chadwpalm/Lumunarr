@@ -25,6 +25,8 @@ export default class Create extends Component {
         userName: info.user.name,
         userId: info.user.id,
         media: info.media,
+        library: info.library ?? "All",
+        server: info.server ?? "-1",
         lightsOff: info.lightsOff ?? false,
         room: info.room,
         playScene: info.play,
@@ -49,6 +51,7 @@ export default class Create extends Component {
         clientList: [],
         sceneList: [],
         roomSceneList: [],
+        libraryList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -64,6 +67,8 @@ export default class Create extends Component {
         userName: "",
         userId: "-1",
         media: "-1",
+        library: "-1",
+        server: "-1",
         lightsOff: false,
         room: "-1",
         playScene: "-1",
@@ -89,6 +94,7 @@ export default class Create extends Component {
         clientList: [],
         sceneList: [],
         roomSceneList: [],
+        libraryList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -116,6 +122,7 @@ export default class Create extends Component {
           this.setState({ clientList: json[1] });
           this.setState({ sceneList: json[2] });
           this.setState({ groupsList: json[3] });
+          this.setState({ libraryList: json[4] });
           this.setState({ isLoading: false });
 
           var temp = [];
@@ -157,7 +164,8 @@ export default class Create extends Component {
       this.state.pauseScene === "-1" ||
       this.state.stopScene === "-1" ||
       this.state.resumeScene === "-1" ||
-      this.state.scrobble === "-1"
+      this.state.scrobble === "-1" ||
+      this.state.library === "-1"
     ) {
       this.setState({ isIncomplete: true });
       return;
@@ -178,6 +186,8 @@ export default class Create extends Component {
     temp.user.id = this.state.userId;
     temp.user.name = this.state.userName;
     temp.media = this.state.media;
+    temp.library = this.state.library;
+    temp.server = this.state.server;
     temp.room = this.state.room;
     temp.play = this.state.playScene;
     temp.stop = this.state.stopScene;
@@ -284,6 +294,16 @@ export default class Create extends Component {
   handleMedia = (e) => {
     if (e.target.value === "All") this.setState({ show: true });
     this.setState({ media: e.target.value.toString() });
+  };
+
+  handleLibrary = (e) => {
+    const selectedValue = e.target.value;
+    const [title, server] = selectedValue.split("|");
+
+    this.setState({
+      library: title,
+      server: server,
+    });
   };
 
   handlePlay = (e) => {
@@ -483,7 +503,7 @@ export default class Create extends Component {
             <div className="div-seperator" />
             {/* Select Media Type */}
             <Form.Label for="media">
-              Media &nbsp;&nbsp;
+              Media Type &nbsp;&nbsp;
               <OverlayTrigger
                 placement="right"
                 overlay={
@@ -504,6 +524,43 @@ export default class Create extends Component {
               <option value="cinemaTrailer">Trailer/Preroll</option>
             </Form.Select>
             <div className="div-seperator" />
+            {/* Select Library */}
+            {this.state.media === "movie" || this.state.media === "show" ? (
+              <>
+                <Form.Label for="library">
+                  Library &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This is the library that you want to control Hue scenes from. Select "All" if you want scenes to
+                        activate for any library of the selected media type.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.library && this.state.server ? `${this.state.library}|${this.state.server}` : ""}
+                  id="library"
+                  name="library"
+                  onChange={this.handleLibrary}
+                  size="sm"
+                >
+                  <option value="-1|-1">Select Library</option>
+                  <option value="All|-1">All</option>
+                  {this.state.libraryList
+                    .filter((library) => ["movie", "show"].includes(library.type) && library.type === this.state.media)
+                    .map((library) => (
+                      <option key={`${library.title}|${library.server}`} value={`${library.title}|${library.server}`}>
+                        {library.title} ({library.server})
+                      </option>
+                    ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : null}
             {/* Select Room */}
             <Form.Label for="room">
               Room &nbsp;&nbsp;
