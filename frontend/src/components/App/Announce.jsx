@@ -34,6 +34,20 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
             The ability to filter out movies and TV shows by library and server has also been added. You are not tied
             down to a certain media type anymore and if you have multiple Plex servers claimed you can chose libraries
             from specific servers.
+            <br />
+            <br />
+          </li>
+          <li>
+            Lumunarr is now on <b>Discord</b>! Come join the community and chat about Lumunarr as well as receive
+            real-time support!
+            <br />
+            <br />
+            Discord Invite Link:{" "}
+            <a href="https://discord.gg/d76vc6bBJ6" target="_blank">
+              https://discord.gg/d76vc6bBJ6
+            </a>
+            <br />
+            <br />
           </li>
         </ul>
         <Form.Check
