@@ -1,5 +1,14 @@
 # Lumunarr Version History
 
+## 1.5.4
+
+### Added
+
+- Option to add a delay on pause where if resume or stop is recalled before the delay is up it will not perform the pause action. This was added to fix an issue where
+  some Plex clients pause when seeking forward/backward.
+
+- Ability to filter out movies and TV shows by library and server.
+
 ## 1.5.3
 
 ### Added

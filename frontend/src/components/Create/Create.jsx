@@ -25,10 +25,13 @@ export default class Create extends Component {
         userName: info.user.name,
         userId: info.user.id,
         media: info.media,
+        library: info.library ?? "All",
+        server: info.server ?? "-1",
         lightsOff: info.lightsOff ?? false,
         room: info.room,
         playScene: info.play,
         pauseScene: info.pause,
+        pauseDelayMs: info.pauseDelayMs ?? 0,
         stopScene: info.stop,
         resumeScene: info.resume,
         scrobble: info.scrobble,
@@ -48,6 +51,7 @@ export default class Create extends Component {
         clientList: [],
         sceneList: [],
         roomSceneList: [],
+        libraryList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -63,11 +67,14 @@ export default class Create extends Component {
         userName: "",
         userId: "-1",
         media: "-1",
+        library: "-1",
+        server: "-1",
         lightsOff: false,
         room: "-1",
         playScene: "-1",
         playRoom: "-1",
         pauseScene: "-1",
+        pauseDelayMs: 0,
         stopScene: "-1",
         resumeScene: "-1",
         scrobble: "-1",
@@ -87,6 +94,7 @@ export default class Create extends Component {
         clientList: [],
         sceneList: [],
         roomSceneList: [],
+        libraryList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -114,6 +122,7 @@ export default class Create extends Component {
           this.setState({ clientList: json[1] });
           this.setState({ sceneList: json[2] });
           this.setState({ groupsList: json[3] });
+          this.setState({ libraryList: json[4] });
           this.setState({ isLoading: false });
 
           var temp = [];
@@ -155,7 +164,8 @@ export default class Create extends Component {
       this.state.pauseScene === "-1" ||
       this.state.stopScene === "-1" ||
       this.state.resumeScene === "-1" ||
-      this.state.scrobble === "-1"
+      this.state.scrobble === "-1" ||
+      (this.state.library === "-1" && this.state.media !== "All")
     ) {
       this.setState({ isIncomplete: true });
       return;
@@ -176,10 +186,13 @@ export default class Create extends Component {
     temp.user.id = this.state.userId;
     temp.user.name = this.state.userName;
     temp.media = this.state.media;
+    temp.library = this.state.library;
+    temp.server = this.state.server;
     temp.room = this.state.room;
     temp.play = this.state.playScene;
     temp.stop = this.state.stopScene;
     temp.pause = this.state.pauseScene;
+    temp.pauseDelayMs = this.state.pauseDelayMs;
     temp.resume = this.state.resumeScene;
     temp.scrobble = this.state.scrobble;
     temp.scrobbleDelayMs = this.state.scrobbleDelayMs;
@@ -283,6 +296,16 @@ export default class Create extends Component {
     this.setState({ media: e.target.value.toString() });
   };
 
+  handleLibrary = (e) => {
+    const selectedValue = e.target.value;
+    const [title, server] = selectedValue.split("|");
+
+    this.setState({
+      library: title,
+      server: server,
+    });
+  };
+
   handlePlay = (e) => {
     this.setState({ playScene: e.target.value.toString() });
   };
@@ -305,6 +328,12 @@ export default class Create extends Component {
   handlePause = (e) => {
     this.setState({
       pauseScene: e.target.value.toString(),
+    });
+  };
+
+  handlePauseDelay = (e) => {
+    this.setState({
+      pauseDelayMs: e.target.value.toString(),
     });
   };
 
@@ -474,7 +503,7 @@ export default class Create extends Component {
             <div className="div-seperator" />
             {/* Select Media Type */}
             <Form.Label for="media">
-              Media &nbsp;&nbsp;
+              Media Type &nbsp;&nbsp;
               <OverlayTrigger
                 placement="right"
                 overlay={
@@ -495,6 +524,43 @@ export default class Create extends Component {
               <option value="cinemaTrailer">Trailer/Preroll</option>
             </Form.Select>
             <div className="div-seperator" />
+            {/* Select Library */}
+            {this.state.media === "movie" || this.state.media === "show" ? (
+              <>
+                <Form.Label for="library">
+                  Library &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This is the library that you want to control Hue scenes from. Select "All" if you want scenes to
+                        activate for any library of the selected media type.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.library && this.state.server ? `${this.state.library}|${this.state.server}` : ""}
+                  id="library"
+                  name="library"
+                  onChange={this.handleLibrary}
+                  size="sm"
+                >
+                  <option value="-1|-1">Select Library</option>
+                  <option value="All|-1">All</option>
+                  {this.state.libraryList
+                    .filter((library) => ["movie", "show"].includes(library.type) && library.type === this.state.media)
+                    .map((library) => (
+                      <option key={`${library.title}|${library.server}`} value={`${library.title}|${library.server}`}>
+                        {library.title} ({library.server})
+                      </option>
+                    ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : null}
             {/* Select Room */}
             <Form.Label for="room">
               Room &nbsp;&nbsp;
@@ -614,6 +680,41 @@ export default class Create extends Component {
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Pause Delay */}
+            <Form.Label for="pauseDelay">
+              Pause Delay (ms) &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    This will delay the pause action after receiving the webhook for the selected amount of time unless
+                    a resume action happens before the delay time has expired. This delay is intended for users using
+                    Plex clients that send out a pause webhook when using the seek feature.
+                    <br />
+                    <br />
+                    Be aware that this will also delay normal pause actions. It is advised to try and find a delay time
+                    that will satisfy the seek issue but not take too long on normal pauses.
+                  </Tooltip>
+                }
+              >
+                <img src={Info} className="image-info" alt="Info" />
+              </OverlayTrigger>
+            </Form.Label>
+            <Stack gap={1} direction="horizontal">
+              <Form.Range
+                id="pauseDelay"
+                className="me-auto"
+                value={this.state.pauseDelayMs}
+                min={0}
+                max={5000}
+                step={100}
+                onChange={this.handlePauseDelay}
+              />
+              <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                {this.state.pauseDelayMs == 0 ? "Off" : this.state.pauseDelayMs + " ms"}
+              </div>
+            </Stack>
+            <div className="div-seperator" />
             {/* Resume Action */}
             <Form.Label for="resume">
               Resume &nbsp;&nbsp;
@@ -708,7 +809,7 @@ export default class Create extends Component {
                 onChange={this.handleScrobbleDelay}
               />
               <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
-                {this.state.scrobbleDelayMs} ms
+                {this.state.scrobbleDelayMs == 0 ? "Off" : this.state.scrobbleDelayMs + " ms"}
               </div>
             </Stack>
             <div className="div-seperator" />

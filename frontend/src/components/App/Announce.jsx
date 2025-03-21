@@ -19,19 +19,35 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         <Modal.Title>Announcement</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <b>Lumunarr v1.5.3 Update</b>
+        <b>Lumunarr v1.5.4 Update</b>
         <br />
         <br />
         <ul>
           <li>
-            Client profile titles are editable now. This will help with distinguishing between profiles with identical
-            titles, users, and media. Existing profiles will keep using the Client name until changed.
+            There is now an option to add a delay on pause where if resume or stop is recalled before the delay is up it
+            will not perform the pause action. This was added to fix an issue where some Plex clients pause when seeking
+            forward/backward. If set to "Off", pause will act as it always has.
             <br />
             <br />
           </li>
           <li>
-            Client profiles can now be duplicated for easier creation of similar profiles. A new copy icon has been
-            added to the bottom of the profile cards.
+            The ability to filter out movies and TV shows by library and server has also been added. You are not tied
+            down to a certain media type anymore and if you have multiple Plex servers claimed you can chose libraries
+            from specific servers.
+            <br />
+            <br />
+          </li>
+          <li>
+            Lumunarr is now on <b>Discord</b>! Come join the community and chat about Lumunarr as well as receive
+            real-time support!
+            <br />
+            <br />
+            Discord Invite Link:{" "}
+            <a href="https://discord.gg/d76vc6bBJ6" target="_blank">
+              https://discord.gg/d76vc6bBJ6
+            </a>
+            <br />
+            <br />
           </li>
         </ul>
         <Form.Check
