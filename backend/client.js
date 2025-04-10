@@ -232,27 +232,29 @@ router.post("/", async function (req, res, next) {
       servers = Array.isArray(servers) ? servers : servers ? [servers] : [];
 
       servers.forEach(async (server) => {
-        var url = `https://plex.tv/api/servers/${server._attributes.machineIdentifier}`;
-        await axios
-          .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
-          .then(function (response) {
-            var libraries_temp = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Server;
-            var sections = libraries_temp.Section;
-            sections = Array.isArray(sections) ? sections : sections ? [sections] : [];
-            sections.forEach((section) => {
-              libraries.push({
-                title: `${section._attributes.title}`,
-                type: `${section._attributes.type}`,
-                server: `${libraries_temp._attributes.name}`,
+        if (server._attributes.owned === "1") {
+          var url = `https://plex.tv/api/servers/${server._attributes.machineIdentifier}`;
+          await axios
+            .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+            .then(function (response) {
+              var libraries_temp = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Server;
+              var sections = libraries_temp.Section;
+              sections = Array.isArray(sections) ? sections : sections ? [sections] : [];
+              sections.forEach((section) => {
+                libraries.push({
+                  title: `${section._attributes.title}`,
+                  type: `${section._attributes.type}`,
+                  server: `${libraries_temp._attributes.name}`,
+                });
               });
+            })
+            .catch(function (error) {
+              console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
+              message.push(
+                "Issue with connection to online Plex account while requesting servers. Check logs for reason."
+              );
             });
-          })
-          .catch(function (error) {
-            console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
-            message.push(
-              "Issue with connection to online Plex account while requesting servers. Check logs for reason."
-            );
-          });
+        }
       });
     })
     .catch(function (error) {
