@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.5.5
+
+### Fixes
+
+- Fixed issue where users connected to remote Plex servers they did not own was causing a failure to retrieve libraries due to not having access to those servers.
+
 ## 1.5.4
 
 ### Added
