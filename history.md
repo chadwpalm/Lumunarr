@@ -1,5 +1,15 @@
 # Lumunarr Version History
 
+## 1.5.6
+
+### Fixes
+
+- Fixed issue where server actions where not happening for "Library New" when the schedule was set to "None". {[#39](https://github.com/chadwpalm/Lumunarr/issues/39)}
+
+### Changes
+
+- Increased scrobble delay maximum to 15 seconds. {[#25](https://github.com/chadwpalm/Lumunarr/issues/25)}
+
 ## 1.5.5
 
 ### Fixes
