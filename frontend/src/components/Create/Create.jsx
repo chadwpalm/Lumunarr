@@ -804,7 +804,7 @@ export default class Create extends Component {
                 className="me-auto"
                 value={this.state.scrobbleDelayMs}
                 min={0}
-                max={5000}
+                max={15000}
                 step={100}
                 onChange={this.handleScrobbleDelay}
               />
