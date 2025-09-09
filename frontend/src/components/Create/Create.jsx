@@ -1099,7 +1099,11 @@ export default class Create extends Component {
               if you know what you are doing.
               <br />
               <br />
-              See Lumunarr documentation for more information.
+              See{" "}
+              <a href="https://github.com/chadwpalm/Lumunarr/wiki/User-Guide#profile-design-tips" target="_blank">
+                Lumunarr documentation
+              </a>{" "}
+              for more information.
               <br />
               <br />
               <Button onClick={this.handleClose}>Acknowledge</Button>

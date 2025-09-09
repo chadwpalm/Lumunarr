@@ -187,6 +187,9 @@ router.post("/", async function (req, res, next) {
       }
     })
     .catch(function (error) {
+      if (error.response.status === 401) {
+        unauth = true;
+      }
       console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
       message.push("Issue with connection to online Plex account while requesting friends. Check logs for reason.");
     });
@@ -297,6 +300,7 @@ router.post("/", async function (req, res, next) {
 
   if (message.length !== 0) {
     if (unauth) {
+      console.info("Invalid Plex token. Signing out of account. Please sign back in to fetch new token.");
       res.status(401).send(JSON.stringify([]));
     } else {
       console.log(JSON.stringify(message));

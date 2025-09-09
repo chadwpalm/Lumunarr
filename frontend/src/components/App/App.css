@@ -17,6 +17,9 @@
 .dark-mode .navbar-toggler {
     border-color: #585858;
 }
+.dark-mode .icon-size {
+    filter: invert(1);
+}
 .img-thumbnail {
     height: 40px;
     width: 40px;
