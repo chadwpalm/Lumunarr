@@ -1,5 +1,13 @@
 # Lumunarr Version History
 
+## 1.5.7
+
+### Fixes
+
+- Fixed issue where Plex automatically logs out while creating/editing a profile when Plex token is invalid. This issue was supposed to be fixed in version 1.4.2, but somehow did not make it in.
+
+- Miscellaneous minor background changes
+
 ## 1.5.6
 
 ### Fixes

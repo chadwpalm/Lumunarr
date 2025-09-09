@@ -14,7 +14,7 @@ Lumunarr is a connector application for controlling Philips Hue lighting using P
 - Easy to use web-based graphical interface that is also mobile friendly.
 - Multiple client profiles for deeper customization and multi-room use.
 - Can be run natively or in a Docker container.
-- Server alerts supported
+- Server alerts supported.
 
 ### Support
 
@@ -25,6 +25,6 @@ Lumunarr is a connector application for controlling Philips Hue lighting using P
 ### Licenses
 
 - [GNU GPL v3](http://www.gnu.org/licenses/gpl.html)
-- Copyright 2024
+- Copyright 2025
 
-_Lumunarr is not affiliated or endorsed by Plex Inc._
+_Lumunarr is not affiliated with or endorsed by Plex Inc._
