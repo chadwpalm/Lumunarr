@@ -5,7 +5,7 @@ var mdns = require("mdns-js");
 
 mdns.excludeInterface("0.0.0.0");
 
-var TIMEOUT = 2000;
+var TIMEOUT = 5000;
 
 router.post("/", function (req, res, next) {
   var ips = [];
@@ -18,7 +18,8 @@ router.post("/", function (req, res, next) {
   });
 
   browser.on("update", function (data) {
-    if (data.type[0].name === "hue" && data.interfaceIndex === 0) {
+    if (data.type[0].name === "hue") {
+      console.log(JSON.stringify(data));
       ips.push(data.addresses[0]);
       console.info("Found: ", data.addresses[0]);
     }
