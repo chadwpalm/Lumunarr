@@ -75,10 +75,31 @@ router.post("/", function (req, res, next) {
           list.push(JSON.parse(element));
         })
         .catch(function (error) {
-          if (error.request) {
-            console.error("Bridge not online at", ip);
+          console.error("=== Bridge Request Error ===");
+          
+          if (error.response) {
+            // Server responded but with an error status
+            console.error("Bridge responded with status:", error.response.status);
+            console.error("Response headers:", error.response.headers);
+            console.error("Response data:", error.response.data);
+          } else if (error.request) {
+            // No response received
+            console.error("No response received from bridge at", ip);
+            console.error("Request made:", {
+              method: error.config?.method,
+              url: error.config?.url,
+              timeout: error.config?.timeout
+            });
+            console.error("Error code:", error.code || "N/A");
+            console.error("Error message:", error.message);
+          } else {
+            // Something went wrong setting up the request
+            console.error("Request setup error:", error.message);
           }
+        
+          console.error("============================");
         });
+
     }
     res.send(list);
   }, TIMEOUT);
