@@ -1,11 +1,14 @@
 var express = require("express");
 var router = express.Router();
+var https = require("https");
 var axios = require("axios").default;
 var mdns = require("mdns-js");
 
-mdns.excludeInterface("0.0.0.0");
+var TIMEOUT = 3000;
 
-var TIMEOUT = 2000;
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 router.post("/", function (req, res, next) {
   var ips = [];
@@ -18,9 +21,12 @@ router.post("/", function (req, res, next) {
   });
 
   browser.on("update", function (data) {
-    if (data.type[0].name === "hue" && data.interfaceIndex === 0) {
-      ips.push(data.addresses[0]);
-      console.info("Found: ", data.addresses[0]);
+    if (data.type[0].name === "hue") {
+      const ip = data.addresses[0];
+      if (!ips.includes(ip)) {
+        ips.push(ip);
+        console.info("Found: ", ip);
+      }
     }
   });
 
@@ -62,10 +68,16 @@ router.post("/", function (req, res, next) {
     }
 
     for (const ip of ips) {
-      var url = `http://${ip}/api/0/config`;
+      var url = `https://${ip}/api/0/config`;
 
       await axios
-        .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+        .get(url, {
+          timeout: 2000,
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+          },
+          httpsAgent,
+        })
         .then(function (response) {
           var data = response.data;
 
@@ -74,9 +86,32 @@ router.post("/", function (req, res, next) {
           list.push(JSON.parse(element));
         })
         .catch(function (error) {
-          if (error.request) {
-            console.error("Bridge not online at", ip);
+          console.error("=== Bridge Request Error ===");
+
+          if (error.response) {
+            // Server responded but with an error status
+            console.error("Bridge responded with status:", error.response.status);
+            console.error("Response headers:", error.response.headers);
+            console.error("Response data:", error.response.data);
+          } else if (error.request) {
+            // No response received
+            console.error("No response received from bridge at", ip);
+            console.error(
+              "Request made:",
+              JSON.stringify({
+                method: error.config?.method,
+                url: error.config?.url,
+                timeout: error.config?.timeout,
+              })
+            );
+            console.error("Error code:", error.code || "N/A");
+            console.error("Error message:", error.message);
+          } else {
+            // Something went wrong setting up the request
+            console.error("Request setup error:", error.message);
           }
+
+          console.error("============================");
         });
     }
     res.send(list);

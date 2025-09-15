@@ -1,13 +1,10 @@
 var express = require("express");
 var router = express.Router();
 var axios = require("axios").default;
-var fs = require("fs");
-var path = require("path");
 var https = require("https");
 
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // (NOTE: this will disable client verification)
-  cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
+  rejectUnauthorized: false,
 });
 
 router.post("/", async function (req, res, next) {
