@@ -4,7 +4,6 @@ var multer = require("multer");
 var fs = require("fs");
 var axios = require("axios").default;
 var https = require("https");
-var path = require("path");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
 
 var flag = false;
@@ -28,8 +27,7 @@ let colors = [
 var playStorage = [];
 
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // (NOTE: this will disable client verification)
-  cert: fs.readFileSync(path.resolve(__dirname, "../backend/bridgecert.pem")),
+  rejectUnauthorized: false,
 });
 
 function isInSchedule(sh, sm, sd, eh, em, ed) {

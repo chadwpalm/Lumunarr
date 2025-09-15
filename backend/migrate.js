@@ -1,11 +1,8 @@
-var fs = require("fs");
 var https = require("https");
 var axios = require("axios").default;
-var path = require("path");
 
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false, // (NOTE: this will disable client verification)
-  cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
+  rejectUnauthorized: false,
 });
 
 async function updateScenes(temp) {

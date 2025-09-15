@@ -3,8 +3,6 @@ var router = express.Router();
 var axios = require("axios").default;
 var https = require("https");
 var parser = require("xml-js");
-var fs = require("fs");
-var path = require("path");
 
 router.post("/", async function (req, res, next) {
   var rooms = {};
@@ -19,8 +17,7 @@ router.post("/", async function (req, res, next) {
 
   console.info("Retrieving information for Plex Clients...");
   const httpsAgent = new https.Agent({
-    rejectUnauthorized: false, // (NOTE: this will disable client verification)
-    cert: fs.readFileSync(path.resolve(__dirname, "bridgecert.pem")),
+    rejectUnauthorized: false,
   });
 
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
