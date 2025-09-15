@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.5.8
+
+### Hotfix
+
+- Various Hue bridge connection fixes to support the new Hue Pro bridge.
+
 ## 1.5.7
 
 ### Fixes

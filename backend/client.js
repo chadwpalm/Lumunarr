@@ -4,6 +4,10 @@ var axios = require("axios").default;
 var https = require("https");
 var parser = require("xml-js");
 
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
+
 router.post("/", async function (req, res, next) {
   var rooms = {};
   var zones = {};
@@ -16,9 +20,6 @@ router.post("/", async function (req, res, next) {
   var unauth = false;
 
   console.info("Retrieving information for Plex Clients...");
-  const httpsAgent = new https.Agent({
-    rejectUnauthorized: false,
-  });
 
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
 

@@ -4,22 +4,26 @@ var axios = require("axios").default;
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
 var os = require("os");
 var fs = require("fs");
+var https = require("https");
+
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 router.post("/", async function (req, res, next) {
   var settings = req.body;
-  var user;
 
   console.info("IP: ", settings.bridge.ip);
   console.info("Hue Application Name:", `${settings.appId}`);
 
   var flag = false;
   var startTime = new Date().getTime();
-  var url = `http://${settings.bridge.ip}/api`;
+  var url = `https://${settings.bridge.ip}/api`;
   var username;
 
   while (!flag && new Date().getTime() - startTime < 30000) {
     await axios
-      .post(url, { devicetype: `${settings.appId}` })
+      .post(url, { devicetype: `${settings.appId}` }, { httpsAgent })
       .then(function (response) {
         if (!response.data[0].error) {
           console.info(`New bridge user created - Username: ${response.data[0].success.username}`);

@@ -8,7 +8,6 @@ const { setTimeout: setTimeoutPromise } = require("timers/promises");
 
 var flag = false;
 var isPaused = false;
-var pauseTime;
 
 var upload = multer({ dest: "/tmp/" });
 

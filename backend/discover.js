@@ -3,9 +3,8 @@ var router = express.Router();
 var https = require("https");
 var axios = require("axios").default;
 var mdns = require("mdns-js");
-const dns = require("dns");
 
-var TIMEOUT = 5000;
+var TIMEOUT = 3000;
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
