@@ -1,8 +1,13 @@
 var express = require("express");
 const fs = require("fs");
+var https = require("https");
 var axios = require("axios").default;
 
 var interval = 15; //bridge checking interval in minutes
+
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 console.info("Bridge checking monitor is active");
 
@@ -29,12 +34,13 @@ function writeToSettings(ip) {
 // Function to check the results
 async function checkResults(data) {
   if (data.bridge) {
-    var url = `http://${data.bridge.ip}/api/0/config`;
+    var url = `https://${data.bridge.ip}/api/0/config`;
 
     await axios
       .get(url, {
         headers: { "Content-Type": "application/json;charset=UTF-8" },
         timeout: 2000, // Set timeout to 2000 milliseconds (2 seconds)
+        httpsAgent,
       })
       .then(function (response) {
         var bridgeData = response.data;
@@ -58,11 +64,12 @@ async function checkResults(data) {
               var discData = response.data;
 
               discData.forEach((element) => {
-                url = `http://${element.IP}/api/0/config`;
+                url = `https://${element.IP}/api/0/config`;
                 axios
                   .get(url, {
                     headers: { "Content-Type": "application/json;charset=UTF-8" },
                     timeout: 2000, // Set timeout to 2000 milliseconds (2 seconds)
+                    httpsAgent,
                   })
                   .then(function (response) {
                     var newData = response.data;
