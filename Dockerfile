@@ -1,17 +1,14 @@
-FROM node:18.15.0-slim
+FROM node:20-slim AS frontend-builder
+WORKDIR /app
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm ci
+COPY frontend ./frontend
+RUN cd frontend && npm run build
 
-ARG BUILD
-
-ENV BUILD=${BUILD}
-
-COPY . /Lumunarr
-
-WORKDIR /Lumunarr/frontend
-
-RUN npm ci && npm run build
-
+FROM node:20-slim
 WORKDIR /Lumunarr
-
-RUN npm ci
-
+COPY --from=frontend-builder /app/frontend/production ./frontend/production
+COPY package*.json ./
+RUN npm ci --production   # --production skips dev deps
+COPY . .
 ENTRYPOINT ["npm", "start"]

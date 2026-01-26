@@ -56,8 +56,10 @@ export default class App extends Component {
           var response = xhr.responseText,
             json = JSON.parse(response);
 
+          let url;
+
           if (json.branch === "dev") {
-            var url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/develop/version.json?cb=${Date.now()}`;
+            url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/develop/version.json?cb=${Date.now()}`;
 
             await axios
               .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
@@ -71,7 +73,7 @@ export default class App extends Component {
                 online = false;
               });
           } else {
-            var url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/main/version.json`;
+            url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/main/version.json`;
 
             await axios
               .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
@@ -254,7 +256,7 @@ export default class App extends Component {
         // is loading
         return (
           <div>
-            <img src={Loading} width="50" />
+            <img src={Loading} width="50" alt="" />
           </div>
         );
       } else if (this.state.error) {
@@ -361,7 +363,7 @@ export default class App extends Component {
                             <></>
                           )}
                           <NavDropdown.Item onClick={this.handleLogout} className="d-flex align-items-center">
-                            <img src={Logout} className="logout-icon" />
+                            <img src={Logout} className="logout-icon" alt="" />
                             &nbsp; Sign Out
                           </NavDropdown.Item>
                         </NavDropdown>
@@ -396,18 +398,22 @@ export default class App extends Component {
                     <b>App ID:</b>&nbsp; {this.state.config.appId}
                     <br />
                     <b>Docker:</b>&nbsp;
-                    <a href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general" target="_blank">
+                    <a
+                      href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       chadwpalm/lumunarr
                     </a>
                     &nbsp;&nbsp;
-                    <img src={Extern} className="icon-size" />
+                    <img src={Extern} className="icon-size" alt="" />
                     <br />
                     <b>Source:</b>&nbsp;
-                    <a href="https://github.com/chadwpalm/Lumunarr" target="_blank">
+                    <a href="https://github.com/chadwpalm/Lumunarr" target="_blank" rel="noreferrer">
                       github.com/chadwpalm/Lumunarr
                     </a>
                     &nbsp;&nbsp;
-                    <img src={Extern} className="icon-size" />
+                    <img src={Extern} className="icon-size" alt="" />
                   </Modal.Body>
                 </Modal>
                 {this.state.announcement ? (

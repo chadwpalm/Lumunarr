@@ -8,7 +8,6 @@ import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import Image from "react-bootstrap/Image";
 import "./Device.css";
 
 export default class Device extends Component {
@@ -204,7 +203,7 @@ export default class Device extends Component {
                 }`}
               >
                 <Card.Body className="d-flex align-items-center justify-content-center">
-                  <img src={AddIcon} width="100" height="100" className="plus-image" />
+                  <img src={AddIcon} width="100" height="100" className="plus-image" alt="" />
                 </Card.Body>
               </Card>
             ) : (
@@ -213,7 +212,7 @@ export default class Device extends Component {
                 onClick={this.handleAddClient}
               >
                 <Card.Body className="d-flex align-items-center justify-content-center">
-                  <img src={AddIcon} width="100" height="100" className="plus-image" />
+                  <img src={AddIcon} width="100" height="100" className="plus-image" alt="" />
                 </Card.Body>
               </Card>
             )}

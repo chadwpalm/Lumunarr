@@ -1,8 +1,7 @@
-import React, { Component } from "react";
+import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
 
 const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismiss, dismiss, isDarkMode }) => {
@@ -43,7 +42,7 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
             <br />
             <br />
             Discord Invite Link:{" "}
-            <a href="https://discord.gg/d76vc6bBJ6" target="_blank">
+            <a href="https://discord.gg/d76vc6bBJ6" target="_blank" rel="noreferrer">
               https://discord.gg/d76vc6bBJ6
             </a>
             <br />

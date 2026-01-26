@@ -1,5 +1,18 @@
 # Lumunarr Version History
 
+## 1.6.0
+
+### Changes
+
+- Security updates. Updated necessary node packages to current versions and removed all package vulnerabilites.
+- Updated Node version to 20 LTS.
+- Updated Docker build process to generate smaller Docker images by removing unnessesary frontend build tools and development dependencies.
+- General code cleanup and housekeeping.
+
+### Fixes
+
+- Fixed issue where app would crash if using "Restore Pre-Play" if the app or container was restarted between when play is pressed and pause/stop is pressed resulting in the saved scene data being lost. {[#41](https://github.com/chadwpalm/Lumunarr/issues/41)}
+
 ## 1.5.8
 
 ### Hotfix
