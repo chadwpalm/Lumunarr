@@ -6,9 +6,26 @@ COPY frontend ./frontend
 RUN cd frontend && npm run build
 
 FROM node:20-slim
-WORKDIR /Lumunarr
-COPY --from=frontend-builder /app/frontend/production ./frontend/production
+ARG BUILD
+ENV BUILD=${BUILD}
+ENV NODE_ENV=production
+EXPOSE 3939
+WORKDIR /app
+COPY app.js ./
+COPY version.json ./
 COPY package*.json ./
-RUN npm ci --production   # --production skips dev deps
-COPY . .
+COPY --from=frontend-builder /app/frontend/production ./frontend/production
+RUN npm ci --production --no-audit --no-fund
+COPY backend ./backend
+COPY bin ./bin
+COPY webhook ./webhook
+RUN chown -R node:node /app
+USER node
+HEALTHCHECK \
+    --interval=30s \
+    --timeout=5s \
+    --start-period=10s \
+    --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3939', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+
 ENTRYPOINT ["npm", "start"]
