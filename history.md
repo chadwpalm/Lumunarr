@@ -4,9 +4,10 @@
 
 ### Changes
 
-- Security updates. Updated necessary node packages to current versions and removed all package vulnerabilites.
+- Security updates. Updated all node packages to current versions which removed all package vulnerabilities.
 - Updated Node version to 20 LTS.
-- Updated Docker build process to generate smaller Docker images by removing unnessesary frontend build tools and development dependencies.
+- Updated Plex login code to remove outdated and unmaintained 3rd party package which depended on old and vulnerable packages.
+- Updated Docker build process to generate smaller Docker images by removing unnecessary frontend build tools and development dependencies.
 - General code cleanup and housekeeping.
 
 ### Fixes

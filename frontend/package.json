@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
-    "axios": "^0.28.1",
+    "axios": "^1.13.3",
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.3",
     "cross-env": "^7.0.3",
-    "plex-oauth": "^2.0.2",
+    "qs": "^6.14.1",
     "react": "^18.1.0",
     "react-bootstrap": "^2.7.0",
     "react-dom": "^18.1.0",
