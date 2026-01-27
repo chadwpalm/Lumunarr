@@ -19,8 +19,6 @@ RUN npm ci --production --no-audit --no-fund
 COPY backend ./backend
 COPY bin ./bin
 COPY webhook ./webhook
-RUN chown -R node:node /app
-USER node
 HEALTHCHECK \
     --interval=30s \
     --timeout=5s \
