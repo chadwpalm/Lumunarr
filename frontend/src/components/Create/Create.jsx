@@ -260,7 +260,7 @@ export default class Create extends Component {
       });
     } else {
       var result = this.state.clientList.find(
-        ({ _attributes }) => _attributes.clientIdentifier === e.target.value.toString()
+        ({ _attributes }) => _attributes.clientIdentifier === e.target.value.toString(),
       );
       this.setState({
         selectUser: true,
@@ -391,6 +391,8 @@ export default class Create extends Component {
       case "endMed":
         this.setState({ endMed: e.target.value.toString() });
         break;
+      default:
+        break;
     }
   };
 
@@ -403,23 +405,23 @@ export default class Create extends Component {
   render() {
     if (this.state.isError) {
       var text = "";
-      for (var i = 0; i < this.state.errorRes.length; i++) {
+      for (let i = 0; i < this.state.errorRes.length; i++) {
         text = text + `- ` + this.state.errorRes[i] + "</br>";
       }
       return <div dangerouslySetInnerHTML={{ __html: `${text}` }} />;
     } else if (this.state.isLoading) {
       return (
         <div className="d-flex align-items-center justify-content-center">
-          <img src={Loading} width="50" />
+          <img src={Loading} width="50" alt="" />
         </div>
       );
     } else {
       const options = [];
-      for (var i = 0; i < 60; i++) {
+      for (let i = 0; i < 60; i++) {
         options.push(
           <option value={i.toString()}>
             {i.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false })}
-          </option>
+          </option>,
         );
       }
       return (
@@ -468,7 +470,7 @@ export default class Create extends Component {
                   </option>
                 ) : (
                   <></>
-                )
+                ),
               )}
             </Form.Select>
             <div className="div-seperator" />
@@ -711,7 +713,7 @@ export default class Create extends Component {
                 onChange={this.handlePauseDelay}
               />
               <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
-                {this.state.pauseDelayMs == 0 ? "Off" : this.state.pauseDelayMs + " ms"}
+                {this.state.pauseDelayMs === 0 ? "Off" : this.state.pauseDelayMs + " ms"}
               </div>
             </Stack>
             <div className="div-seperator" />
@@ -809,7 +811,7 @@ export default class Create extends Component {
                 onChange={this.handleScrobbleDelay}
               />
               <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
-                {this.state.scrobbleDelayMs == 0 ? "Off" : this.state.scrobbleDelayMs + " ms"}
+                {this.state.scrobbleDelayMs === 0 ? "Off" : this.state.scrobbleDelayMs + " ms"}
               </div>
             </Stack>
             <div className="div-seperator" />
@@ -1100,7 +1102,11 @@ export default class Create extends Component {
               <br />
               <br />
               See{" "}
-              <a href="https://github.com/chadwpalm/Lumunarr/wiki/User-Guide#profile-design-tips" target="_blank">
+              <a
+                href="https://github.com/chadwpalm/Lumunarr/wiki/User-Guide#profile-design-tips"
+                target="_blank"
+                rel="noreferrer"
+              >
                 Lumunarr documentation
               </a>{" "}
               for more information.

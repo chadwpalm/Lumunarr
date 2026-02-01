@@ -1,8 +1,7 @@
-import React, { Component } from "react";
+import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
 
 const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismiss, dismiss, isDarkMode }) => {
@@ -19,37 +18,39 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         <Modal.Title>Announcement</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <b>Lumunarr v1.5.4 Update</b>
+        <b>Lumunarr v1.6.0 Update</b>
         <br />
         <br />
-        <ul>
-          <li>
-            There is now an option to add a delay on pause where if resume or stop is recalled before the delay is up it
-            will not perform the pause action. This was added to fix an issue where some Plex clients pause when seeking
-            forward/backward. If set to "Off", pause will act as it always has.
-            <br />
-            <br />
-          </li>
-          <li>
-            The ability to filter out movies and TV shows by library and server has also been added. You are not tied
-            down to a certain media type anymore and if you have multiple Plex servers claimed you can chose libraries
-            from specific servers.
-            <br />
-            <br />
-          </li>
-          <li>
-            Lumunarr is now on <b>Discord</b>! Come join the community and chat about Lumunarr as well as receive
-            real-time support!
-            <br />
-            <br />
-            Discord Invite Link:{" "}
-            <a href="https://discord.gg/d76vc6bBJ6" target="_blank">
-              https://discord.gg/d76vc6bBJ6
-            </a>
-            <br />
-            <br />
-          </li>
-        </ul>
+        While this release was originally intended to fix a backend crash due to a very niche edge-case, it ended up
+        being an update worthy of a major version number change.
+        <br />
+        <br />
+        Most of the changes are on the backend, but proved to be very important. The first change was updating Node to
+        version 20 LTS in the Docker image since v18 is EOL. Speaking of Docker, I also changed the way the image
+        builds, greatly reducing the image size.
+        <br />
+        <br />
+        I also took the time to update all of the Node packages that are used in the app to remove all security
+        vulnerablilties. An important part of this process involved ripping the band-aid off and re-writing the Plex
+        login/authorization code to stop using an outdated 3rd-party Plex authorization package. Holding on to this
+        package was forcing me to also hold on to outdated versions of packages it was depending on. So now officially I
+        am rid of all 3rd-party Hue and Plex API helper packages and using custom code to interact with these platforms.
+        Very long overdue.
+        <br />
+        <br />
+        As always, I thank you for your support on this project and I hope you are enjoying using it.
+        <br />
+        <br />
+        As a reminder, there is a Lumunarr Discord server located here:&nbsp;
+        <a href="https://discord.gg/d76vc6bBJ6" target="_blank" rel="noreferrer">
+          https://discord.gg/d76vc6bBJ6
+        </a>
+        <br />
+        <br />
+        And if you need support, you can either go to our GitHub page and submit an issue there, or go to the support
+        channel on the Discord server.
+        <br />
+        <br />
         <Form.Check
           inline
           label="Do not show this message again"

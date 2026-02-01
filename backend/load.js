@@ -7,6 +7,7 @@ var updates = require("./migrate.js");
 
 var appVersion, branch, UID, GID, build;
 var hostname = os.hostname;
+var platform = `${os.platform().charAt(0).toUpperCase()}${os.platform().slice(1).toLowerCase()} ${os.release}`;
 
 try {
   var info = fs.readFileSync("version.json");
@@ -35,7 +36,7 @@ if (process.env.BUILD) {
 }
 
 var fileData = `{"connected": "false","platform":"${
-  os.platform
+  platform
 }","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[],"settings":{"transition":"0","startHour":"12","startMin":"0","startMed":"1","endHour":"11","endMin":"59","endMed":"2"},"api": "v2"}`;
 
 try {
@@ -61,13 +62,14 @@ try {
             "build",
             build,
             "branch",
-            branch
+            branch,
           );
           newTemp.version = appVersion;
           newTemp.build = build;
           newTemp.branch = branch;
           newTemp.appId = `Lumunarr#${hostname}`;
           newTemp.message = true;
+          newTemp.platform = platform;
 
           delete newTemp["token"];
         }
@@ -100,13 +102,14 @@ try {
         "build",
         build,
         "branch",
-        branch
+        branch,
       );
       temp.version = appVersion;
       temp.build = build;
       temp.branch = branch;
       temp.appId = `Lumunarr#${hostname}`;
       temp.message = true;
+      temp.platform = platform;
 
       delete temp["token"];
     }

@@ -4,22 +4,20 @@
   "scripts": {
     "start": "nodemon ./bin/www"
   },
+  "overrides": {
+    "semver": "^7.5.4",
+    "multer": {
+      "busboy": "^1.6.0"
+    }
+  },
   "dependencies": {
     "axios": "^1.5.1",
-    "body-parser": "^1.19.0",
-    "console-stamp": "^3.0.6",
     "cookie-parser": "~1.4.4",
-    "crc-32": "^1.2.2",
-    "debug": "~2.6.9",
     "express": "^4.16.1",
     "http-errors": "~1.6.3",
-    "mdns-discovery": "^0.2.6",
     "mdns-js": "^1.0.3",
-    "multer": "^1.4.4",
-    "multicast-dns": "^7.2.5",
+    "multer": "^2.0.2",
     "nodemon": "^2.0.13",
-    "plex-api": "^5.3.2",
-    "request": "^2.88.2",
     "uuid": "^8.3.2",
     "winston": "^3.15.0",
     "winston-daily-rotate-file": "^5.0.0",

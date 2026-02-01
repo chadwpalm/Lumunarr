@@ -45,7 +45,7 @@
 /* Dark Mode Styles */
 body.dark-mode {
     background-color: #121212; /* Dark background */
-    color: white; /* Light text */
+    color: white !important; /* Light text */
 }
 body.dark-mode a {
     color: rgb(185, 185, 185);
@@ -78,4 +78,5 @@ body.dark-mode a {
 }
 .modal.dark-mode .modal-content {
     background-color: #363636;
+    color: white !important;
 }

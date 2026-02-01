@@ -342,6 +342,8 @@ export default class Server extends Component {
       case "endMed":
         this.setState({ endMed: e.target.value.toString() });
         break;
+      default:
+        break;
     }
   };
 
@@ -351,7 +353,7 @@ export default class Server extends Component {
     } else if (this.state.isLoading) {
       return (
         <div className="d-flex align-items-center justify-content-center">
-          <img src={Loading} width="50" />
+          <img src={Loading} width="50" alt="" />
         </div>
       );
     } else {
@@ -360,7 +362,7 @@ export default class Server extends Component {
         options.push(
           <option value={i.toString()}>
             {i.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false })}
-          </option>
+          </option>,
         );
       }
       return (
@@ -384,13 +386,13 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </h5>
               <Form.Label for="roomPlay">
                 Room &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -411,7 +413,7 @@ export default class Server extends Component {
               <Form.Label for="lightPlay">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -446,7 +448,7 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -470,7 +472,7 @@ export default class Server extends Component {
                       placement="right"
                       overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
-                      <img src={Info} className="image-info" />
+                      <img src={Info} className="image-info" alt="" />
                     </OverlayTrigger>
                   </Form.Label>
                   <Stack gap={1} direction="horizontal">
@@ -494,7 +496,7 @@ export default class Server extends Component {
               <Form.Label for="colorPlay">
                 Color &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -521,7 +523,7 @@ export default class Server extends Component {
                   placement="right"
                   overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Stack gap={1} direction="horizontal">
@@ -548,13 +550,13 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </h5>
               <Form.Label for="roomNew">
                 Room &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the room to be used.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -575,7 +577,7 @@ export default class Server extends Component {
               <Form.Label for="lightNew">
                 Light &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select the light to be used.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -610,7 +612,7 @@ export default class Server extends Component {
                     </Tooltip>
                   }
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -634,7 +636,7 @@ export default class Server extends Component {
                       placement="right"
                       overlay={<Tooltip>Select number of times the light will blink.</Tooltip>}
                     >
-                      <img src={Info} className="image-info" />
+                      <img src={Info} className="image-info" alt="" />
                     </OverlayTrigger>
                   </Form.Label>
                   <Stack gap={1} direction="horizontal">
@@ -657,7 +659,7 @@ export default class Server extends Component {
               <Form.Label for="colorNew">
                 Color &nbsp;&nbsp;
                 <OverlayTrigger placement="right" overlay={<Tooltip>Select color for the light.</Tooltip>}>
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Select
@@ -684,7 +686,7 @@ export default class Server extends Component {
                   placement="right"
                   overlay={<Tooltip>Select brightness for the light. Use number from 5% to 100%.</Tooltip>}
                 >
-                  <img src={Info} className="image-info" />
+                  <img src={Info} className="image-info" alt="" />
                 </OverlayTrigger>
               </Form.Label>
               <Stack gap={1} direction="horizontal">

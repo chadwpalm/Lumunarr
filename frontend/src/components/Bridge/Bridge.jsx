@@ -163,7 +163,6 @@ export default class Bridge extends Component {
             isActive: false,
           });
           this.props.connection(0);
-          this.componentDidMount();
         } else {
           // error
           this.setState({
@@ -361,7 +360,7 @@ export default class Bridge extends Component {
                           />
                           <br />
                           <Button disabled type="submit" variant="secondary" size="sm" className="button-style">
-                            <img src={wait} width="20px" />
+                            <img src={wait} width="20px" alt="" />
                           </Button>
                         </>
                       )}
@@ -470,7 +469,7 @@ export default class Bridge extends Component {
                 </div>
                 <div className="div-seperator" />
                 <h3>Press the bridge button...</h3>
-                <img src={BridgeImage} style={{ width: "200px" }} />
+                <img src={BridgeImage} style={{ width: "200px" }} alt="Bridge" />
               </>
             );
           }
