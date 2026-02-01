@@ -4,6 +4,13 @@ var multer = require("multer");
 var fs = require("fs");
 var axios = require("axios").default;
 var https = require("https");
+var parser = require("xml-js");
+var path = require("path");
+var { promisify } = require("util");
+var stream = require("stream");
+var pipeline = promisify(stream.pipeline);
+var fetch = require("node-fetch").default;
+var ColorThief = require("colorthief");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
 
 var flag = false;
@@ -571,6 +578,159 @@ async function deleteScene(roomName, transition, ip, key) {
     })
     .then((response) => {
       console.info(`Scene ${parsedId} was removed`);
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Scene creation failed:");
+        console.error(`Status Code: ${error.response.status}`);
+        console.error(`Status Text: ${error.response.statusText}`);
+        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+      } else {
+        console.error("Unknown error:", error.message);
+      }
+    });
+}
+
+async function setLightsToPoster(room, brightness, transition, ip, user, token, machineId, thumbURL, num, domLight) {
+  let serverIP, palette, finalID;
+  let url = `https://plex.tv/api/servers/${machineId}`;
+
+  await axios
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
+    .then(function (response) {
+      const serverPayload = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Server;
+      serverIP = serverPayload._attributes.localAddresses;
+    })
+    .catch(function (error) {
+      console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
+      message.push("Issue with connection to online Plex account while requesting servers. Check logs for reason.");
+    });
+
+  const posterURL = `http://${serverIP}:32400${thumbURL}`;
+
+  try {
+    console.info(`Pulling poster from ${posterURL}`);
+
+    const response = await fetch(posterURL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const tempPath = path.join(__dirname, `temp-${Date.now()}.jpg`);
+    console.log(tempPath);
+    await pipeline(response.body, fs.createWriteStream(tempPath));
+
+    palette = await ColorThief.getPalette(tempPath, num);
+
+    fs.unlink(tempPath, () => {});
+  } catch (err) {
+    console.error(err);
+  }
+
+  const lightGroup = await getChildren(["room", "zone"], room, null, ip, user);
+
+  const actions = lightGroup.lights.map((light, i) => {
+    const redPalette = palette[i % num][0] / 255;
+    const greenPalette = palette[i % num][1] / 255;
+    const bluePalette = palette[i % num][2] / 255;
+
+    const red = redPalette > 0.04045 ? Math.pow((redPalette + 0.055) / (1.0 + 0.055), 2.4) : redPalette / 12.92;
+    const green = greenPalette > 0.04045 ? Math.pow((greenPalette + 0.055) / (1.0 + 0.055), 2.4) : greenPalette / 12.92;
+    const blue = bluePalette > 0.04045 ? Math.pow((bluePalette + 0.055) / (1.0 + 0.055), 2.4) : bluePalette / 12.92;
+
+    const X = red * 0.4124 + green * 0.3576 + blue * 0.1805;
+    const Y = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    const Z = red * 0.0193 + green * 0.1192 + blue * 0.9505;
+
+    const x = X / (X + Y + Z);
+    const y = Y / (X + Y + Z);
+    // const brightness = Y;
+
+    const action = {
+      target: {
+        rid: light.id,
+        rtype: "light",
+      },
+      action: {
+        on: { on: true },
+      },
+    };
+
+    if (light.dimming) {
+      action.action.dimming = { brightness: brightness };
+    }
+
+    if (light.color) {
+      action.action.color = {
+        xy: {
+          x: x,
+          y: y,
+        },
+      };
+    }
+    return action;
+  });
+
+  if (domLight !== "-1") {
+    const index = actions.findIndex((o) => o.target.rid === domLight);
+
+    if (index !== -1) {
+      const [match] = actions.splice(index, 1);
+      actions.unshift(match);
+    }
+  }
+
+  url = `https://${ip}/clip/v2/resource/scene`;
+
+  await axios
+    .post(
+      url,
+      {
+        actions,
+        metadata: {
+          name: `Poster ${room}`,
+        },
+        group: {
+          rid: lightGroup.roomId,
+          rtype: lightGroup.type,
+        },
+      },
+      {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${user}`,
+        },
+        httpsAgent,
+      },
+    )
+    .then((response) => {
+      const res = response.data.data[0];
+      finalID = res.rid;
+      setScene(res.rid, parseFloat(transition) * 1000, ip, user);
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Scene creation failed:");
+        console.error(`Status Code: ${error.response.status}`);
+        console.error(`Status Text: ${error.response.statusText}`);
+        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+      } else {
+        console.error("Unknown error:", error.message);
+      }
+    });
+
+  url = `https://${ip}/clip/v2/resource/scene/${finalID}`;
+
+  await axios
+    .delete(url, {
+      timeout: 5000,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "hue-application-key": `${user}`,
+      },
+      httpsAgent,
+    })
+    .then((response) => {
+      console.info(`Scene ${finalID} was removed`);
     })
     .catch((error) => {
       if (error.response) {
@@ -1414,7 +1574,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               client.transition,
                             );
                           }
-                          if (client.transitionType == "1") {
+                          if (client.transitionType === "1") {
                             if (client.play === "Off") {
                               turnoffGroup(
                                 client.room,
@@ -1423,6 +1583,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(client.transition) * 1000,
                               );
                               console.info("Play trigger has turned off lights");
+                            } else if (client.play === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                client.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               setScene(
                                 client.play,
@@ -1441,6 +1616,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(global.transition) * 1000,
                               );
                               console.info("Play trigger has turned off lights");
+                            } else if (client.play === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                global.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               setScene(
                                 client.play,
@@ -1463,6 +1653,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(client.transition) * 1000,
                               );
                               console.info("Stop trigger has turned off lights");
+                            } else if (client.stop === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                client.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               if (client.stop === "-2") {
                                 await deleteScene(
@@ -1498,6 +1703,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(global.transition) * 1000,
                               );
                               console.info("Stop trigger has turned off lights");
+                            } else if (client.stop === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                client.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               if (client.stop === "-2") {
                                 await deleteScene(
@@ -1538,6 +1758,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                     parseFloat(client.transition) * 1000,
                                   );
                                   console.info("Pause trigger has turned off lights");
+                                } else if (client.pause === "-3") {
+                                  setLightsToPoster(
+                                    client.room,
+                                    Number(client.playBright),
+                                    client.transition,
+                                    settings.bridge.ip,
+                                    settings.bridge.user,
+                                    settings.token,
+                                    payload.Server.uuid,
+                                    payload.Metadata.librarySectionType === "show"
+                                      ? payload.Metadata.grandparentThumb
+                                      : payload.Metadata.thumb,
+                                    client.playNum,
+                                    client.playLight,
+                                  );
                                 } else {
                                   if (client.pause === "-2") {
                                     const roomId = playStorage.find((room) => room.room === client.room);
@@ -1585,6 +1820,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                     parseFloat(global.transition) * 1000,
                                   );
                                   console.info("Pause trigger has turned off lights");
+                                } else if (client.pause === "-3") {
+                                  setLightsToPoster(
+                                    client.room,
+                                    Number(client.playBright),
+                                    client.transition,
+                                    settings.bridge.ip,
+                                    settings.bridge.user,
+                                    settings.token,
+                                    payload.Server.uuid,
+                                    payload.Metadata.librarySectionType === "show"
+                                      ? payload.Metadata.grandparentThumb
+                                      : payload.Metadata.thumb,
+                                    client.playNum,
+                                    client.playLight,
+                                  );
                                 } else {
                                   if (client.pause === "-2") {
                                     const roomId = playStorage.find((room) => room.room === client.room);
@@ -1647,6 +1897,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(client.transition) * 1000,
                               );
                               console.info("Resume trigger has turned off lights");
+                            } else if (client.resume === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                client.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               setScene(
                                 client.resume,
@@ -1665,6 +1930,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 parseFloat(global.transition) * 1000,
                               );
                               console.info("Resume trigger has turned off lights");
+                            } else if (client.resume === "-3") {
+                              setLightsToPoster(
+                                client.room,
+                                Number(client.playBright),
+                                global.transition,
+                                settings.bridge.ip,
+                                settings.bridge.user,
+                                settings.token,
+                                payload.Server.uuid,
+                                payload.Metadata.librarySectionType === "show"
+                                  ? payload.Metadata.grandparentThumb
+                                  : payload.Metadata.thumb,
+                                client.playNum,
+                                client.playLight,
+                              );
                             } else {
                               setScene(
                                 client.resume,
@@ -1687,6 +1967,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   parseFloat(client.transition) * 1000,
                                 );
                                 console.info("Scrobble trigger has turned off lights");
+                              } else if (client.scrobble === "-3") {
+                                setLightsToPoster(
+                                  client.room,
+                                  Number(client.playBright),
+                                  client.transition,
+                                  settings.bridge.ip,
+                                  settings.bridge.user,
+                                  settings.token,
+                                  payload.Server.uuid,
+                                  payload.Metadata.librarySectionType === "show"
+                                    ? payload.Metadata.grandparentThumb
+                                    : payload.Metadata.thumb,
+                                  client.playNum,
+                                  client.playLight,
+                                );
                               } else {
                                 setScene(
                                   client.scrobble,
@@ -1705,6 +2000,21 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   parseFloat(global.transition) * 1000,
                                 );
                                 console.info("Scrobble trigger has turned off lights");
+                              } else if (client.scrobble === "-3") {
+                                setLightsToPoster(
+                                  client.room,
+                                  Number(client.playBright),
+                                  client.transition,
+                                  settings.bridge.ip,
+                                  settings.bridge.user,
+                                  settings.token,
+                                  payload.Server.uuid,
+                                  payload.Metadata.librarySectionType === "show"
+                                    ? payload.Metadata.grandparentThumb
+                                    : payload.Metadata.thumb,
+                                  client.playNum,
+                                  client.playLight,
+                                );
                               } else {
                                 setScene(
                                   client.scrobble,

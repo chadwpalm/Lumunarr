@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Stack from "react-bootstrap/Stack";
 import "./Create.css";
+import { Axios } from "axios";
 
 export default class Create extends Component {
   constructor(props) {
@@ -30,11 +31,26 @@ export default class Create extends Component {
         lightsOff: info.lightsOff ?? false,
         room: info.room,
         playScene: info.play,
+        playBright: info.playBright ?? 25,
+        playNum: info.playNum ?? 1,
+        playLight: info.playLight ?? "-1",
         pauseScene: info.pause,
+        pauseBright: info.pauseBright ?? 25,
+        pauseNum: info.pauseNum ?? 1,
+        pauseLight: info.pauseLight ?? "-1",
         pauseDelayMs: info.pauseDelayMs ?? 0,
         stopScene: info.stop,
+        stopBright: info.pauseBright ?? 25,
+        stopNum: info.stopNum ?? 1,
+        stopLight: info.stopLight ?? "-1",
         resumeScene: info.resume,
+        resumeBright: info.resumeBright ?? 25,
+        resumeNum: info.resumeNum ?? 1,
+        resumeLight: info.resumeLight ?? "-1",
         scrobble: info.scrobble,
+        scrobbleBright: info.scrobbleBright ?? 25,
+        scrobbleNum: info.scrobbleNum ?? 1,
+        scrobbleLight: info.scrobbleLight ?? "-1",
         scrobbleDelayMs: info.scrobbleDelayMs ?? 0,
         scheduleType: info.scheduleType ?? "0",
         startHour: info.startHour ?? "1",
@@ -52,6 +68,7 @@ export default class Create extends Component {
         sceneList: [],
         roomSceneList: [],
         libraryList: [],
+        lightList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -72,12 +89,23 @@ export default class Create extends Component {
         lightsOff: false,
         room: "-1",
         playScene: "-1",
+        playBright: 25,
         playRoom: "-1",
+        playNum: 1,
+        playLight: "-1",
         pauseScene: "-1",
+        pauseBright: 25,
+        pauseNum: 1,
         pauseDelayMs: 0,
         stopScene: "-1",
+        stopBright: 25,
+        stopNum: 1,
         resumeScene: "-1",
+        resumeBright: 25,
+        resumeNum: 1,
         scrobble: "-1",
+        scrobbleBright: 25,
+        scrobbleNum: 1,
         scrobbleDelayMs: 0,
         scheduleType: "0",
         startHour: "1",
@@ -95,6 +123,7 @@ export default class Create extends Component {
         sceneList: [],
         roomSceneList: [],
         libraryList: [],
+        lightList: [],
         isLoading: true,
         isIncomplete: false,
         isError: false,
@@ -132,6 +161,7 @@ export default class Create extends Component {
           });
 
           this.setState({ roomSceneList: temp });
+          this.getLights(this.state.room);
         } else if (xhr.status === 401) {
           this.props.logout();
         } else {
@@ -190,11 +220,26 @@ export default class Create extends Component {
     temp.server = this.state.server;
     temp.room = this.state.room;
     temp.play = this.state.playScene;
+    temp.playBright = this.state.playBright;
+    temp.playNum = this.state.playNum;
+    temp.playLight = this.state.playLight;
     temp.stop = this.state.stopScene;
+    temp.stopBright = this.state.stopBright;
+    temp.stopNum = this.state.stopNum;
+    temp.stopLight = this.state.stopLight;
     temp.pause = this.state.pauseScene;
+    temp.pauseBright = this.state.pauseBright;
+    temp.pauseNum = this.state.pauseNum;
+    temp.pauseLight = this.state.pauseLight;
     temp.pauseDelayMs = this.state.pauseDelayMs;
     temp.resume = this.state.resumeScene;
+    temp.resumeBright = this.state.resumeBright;
+    temp.resumeNum = this.state.resumeNum;
+    temp.resumeLight = this.state.resumeLight;
     temp.scrobble = this.state.scrobble;
+    temp.scrobbleBright = this.state.scrobbleBright;
+    temp.scrobbleNum = this.state.scrobbleNum;
+    temp.scrobbleLight = this.state.scrobbleLight;
     temp.scrobbleDelayMs = this.state.scrobbleDelayMs;
     temp.scheduleType = this.state.scheduleType;
     temp.startHour = this.state.startHour;
@@ -246,6 +291,40 @@ export default class Create extends Component {
     else if (time < 31536000) response = Math.round(time / 2592000).toString() + " months ago";
     else response = Math.round(time / 31536000).toString() + " years ago";
     return response;
+  }
+
+  getLights(room) {
+    var settings = { ...this.props.settings };
+    var lights = [];
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+    xhr.addEventListener("readystatechange", () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          // request successful
+          var response = xhr.responseText,
+            json = JSON.parse(response);
+
+          json[0].forEach((light) => {
+            if (this.state.roomPlay === undefined) {
+              if (light.Room === room) lights.push(light);
+            }
+          });
+          this.setState({ lightList: lights });
+        } else {
+          // error
+          this.setState({
+            isLoaded: true,
+            isError: true,
+            errorRes: xhr.responseText,
+          });
+        }
+      }
+    });
+    xhr.open("POST", "/backend/server", true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify(settings));
   }
 
   handleTitle = (e) => {
@@ -306,10 +385,6 @@ export default class Create extends Component {
     });
   };
 
-  handlePlay = (e) => {
-    this.setState({ playScene: e.target.value.toString() });
-  };
-
   handleRoom = (e) => {
     this.setState({ room: e.target.value.toString() });
     var temp = [];
@@ -318,17 +393,65 @@ export default class Create extends Component {
       if (scene.Room === e.target.value.toString()) temp.push(scene);
     });
 
+    this.getLights(e.target.value.toString());
+
     this.setState({ roomSceneList: temp });
+  };
+
+  handlePlay = (e) => {
+    this.setState({ playScene: e.target.value.toString() });
+  };
+
+  handlePlayColors = (e) => {
+    this.setState({ playNum: Number(e.target.value) });
+  };
+
+  handlePlayBright = (e) => {
+    this.setState({
+      playBright: e.target.value.toString(),
+    });
+  };
+
+  handlePlayLight = (e) => {
+    this.setState({ playLight: e.target.value.toString() });
   };
 
   handleStop = (e) => {
     this.setState({ stopScene: e.target.value.toString() });
   };
 
+  handleStopBright = (e) => {
+    this.setState({
+      stopBright: e.target.value.toString(),
+    });
+  };
+
+  handleStopLight = (e) => {
+    this.setState({ stopLight: e.target.value.toString() });
+  };
+
+  handleStopColors = (e) => {
+    this.setState({ stopNum: Number(e.target.value) });
+  };
+
   handlePause = (e) => {
     this.setState({
       pauseScene: e.target.value.toString(),
     });
+  };
+
+  handlePauseBright = (e) => {
+    this.setState({
+      pauseBright: e.target.value.toString(),
+    });
+  };
+
+  handlePauseLight = (e) => {
+    this.setState({ pauseLight: e.target.value.toString() });
+  };
+
+  handlePauseColors = (e) => {
+    this.setState({ pauseNum: Number(e.target.value) });
   };
 
   handlePauseDelay = (e) => {
@@ -343,10 +466,38 @@ export default class Create extends Component {
     });
   };
 
+  handleResumeBright = (e) => {
+    this.setState({
+      resumeBright: e.target.value.toString(),
+    });
+  };
+
+  handleResumeLight = (e) => {
+    this.setState({ resumeLight: e.target.value.toString() });
+  };
+
+  handleResumeColors = (e) => {
+    this.setState({ resumeNum: Number(e.target.value) });
+  };
+
   handleScrobble = (e) => {
     this.setState({
       scrobble: e.target.value.toString(),
     });
+  };
+
+  handleScrobbleBright = (e) => {
+    this.setState({
+      scrobbleBright: e.target.value.toString(),
+    });
+  };
+
+  handleScrobbleLight = (e) => {
+    this.setState({ scrobbleLight: e.target.value.toString() });
+  };
+
+  handleScrobbleColors = (e) => {
+    this.setState({ scrobbleNum: Number(e.target.value) });
   };
 
   handleScrobbleDelay = (e) => {
@@ -627,11 +778,144 @@ export default class Create extends Component {
               <option value="-1">Select Play Action Scene</option>
               <option value="None">None</option>
               <option value="Off">Off</option>
+              {this.state.media !== "cinemaTrailer" && this.state.media !== "All" ? (
+                <option value="-3">Poster</option>
+              ) : (
+                <></>
+              )}
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Play Poster Brightness */}
+            {this.state.playScene === "-3" ? (
+              <>
+                <Form.Label for="playBright">
+                  Brightness&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This will set the brightness of the lights in the room when choosing to use poster art.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="playBright"
+                    className="me-auto"
+                    value={this.state.playBright}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={this.handlePlayBright}
+                  />
+                  <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                    {this.state.playBright + "%"}
+                  </div>
+                </Stack>
+                <div className="div-seperator" />
+                <Form.Label for="playColors">
+                  Number of Colors&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Select the number of colors to use from the poster.</Tooltip>}
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="1"
+                    value="1"
+                    id="playColors"
+                    name="PlayColors"
+                    onChange={this.handlePlayColors}
+                    size="sm"
+                    checked={this.state.playNum === 1}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="2"
+                    value="2"
+                    id="playColors"
+                    name="playColors"
+                    onChange={this.handlePlayColors}
+                    size="sm"
+                    checked={this.state.playNum === 2}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="3"
+                    value="3"
+                    id="playColors"
+                    name="playColors"
+                    onChange={this.handlePlayColors}
+                    size="sm"
+                    checked={this.state.playNum === 3}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="4"
+                    value="4"
+                    id="playColors"
+                    name="playColors"
+                    onChange={this.handlePlayColors}
+                    size="sm"
+                    checked={this.state.playNum === 4}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="5"
+                    value="5"
+                    id="playColors"
+                    name="playColors"
+                    onChange={this.handlePlayColors}
+                    size="sm"
+                    checked={this.state.playNum === 5}
+                  />
+                </div>
+                <div className="div-seperator" />
+                <Form.Label for="playLight">
+                  Dominant Light &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select the light to be used as the poster's dominant color. Select none if that doesn't matter.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.playLight}
+                  id="playLight"
+                  name="playLight"
+                  onChange={this.handlePlayLight}
+                  size="sm"
+                >
+                  <option value="-1">None</option>
+                  {this.state.lightList.map((light) => (
+                    <option value={light.Id}>{light.Name}</option>
+                  ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Stop Action */}
             <Form.Label for="stop">
               Stop &nbsp;&nbsp;
@@ -652,11 +936,144 @@ export default class Create extends Component {
               <option value="None">None</option>
               <option value="Off">Off</option>
               <option value="-2">Restore Pre-Play</option>
+              {this.state.media !== "cinemaTrailer" && this.state.media !== "All" ? (
+                <option value="-3">Poster</option>
+              ) : (
+                <></>
+              )}
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Stop Poster Brightness */}
+            {this.state.stopScene === "-3" ? (
+              <>
+                <Form.Label for="stopBright">
+                  Stop Brightness&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This will set the brightness of the lights in the room when choosing to use poster art.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="stopBright"
+                    className="me-auto"
+                    value={this.state.stopBright}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={this.handleStopBright}
+                  />
+                  <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                    {this.state.stopBright + "%"}
+                  </div>
+                </Stack>
+                <div className="div-seperator" />
+                <Form.Label for="stopColors">
+                  Number of Colors&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Select the number of colors to use from the poster.</Tooltip>}
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="1"
+                    value="1"
+                    id="stopColors"
+                    name="stopColors"
+                    onChange={this.handleStopColors}
+                    size="sm"
+                    checked={this.state.stopNum === 1}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="2"
+                    value="2"
+                    id="stopColors"
+                    name="stopColors"
+                    onChange={this.handleStopColors}
+                    size="sm"
+                    checked={this.state.stopNum === 2}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="3"
+                    value="3"
+                    id="stopColors"
+                    name="stopColors"
+                    onChange={this.handleStopColors}
+                    size="sm"
+                    checked={this.state.stopNum === 3}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="4"
+                    value="4"
+                    id="stopColors"
+                    name="stopColors"
+                    onChange={this.handleStopColors}
+                    size="sm"
+                    checked={this.state.stopNum === 4}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="5"
+                    value="5"
+                    id="stopColors"
+                    name="stopColors"
+                    onChange={this.handleStopColors}
+                    size="sm"
+                    checked={this.state.stopNum === 5}
+                  />
+                </div>
+                <div className="div-seperator" />
+                <Form.Label for="stopLight">
+                  Dominant Light &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select the light to be used as the poster's dominant color. Select none if that doesn't matter.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.stopLight}
+                  id="stopLight"
+                  name="stopLight"
+                  onChange={this.handleStopLight}
+                  size="sm"
+                >
+                  <option value="-1">None</option>
+                  {this.state.lightList.map((light) => (
+                    <option value={light.Id}>{light.Name}</option>
+                  ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Pause Action */}
             <Form.Label for="pause">
               Pause &nbsp;&nbsp;
@@ -677,11 +1094,144 @@ export default class Create extends Component {
               <option value="None">None</option>
               <option value="Off">Off</option>
               <option value="-2">Restore Pre-Play</option>
+              {this.state.media !== "cinemaTrailer" && this.state.media !== "All" ? (
+                <option value="-3">Poster</option>
+              ) : (
+                <></>
+              )}
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Pause Poster Brightness */}
+            {this.state.pauseScene === "-3" ? (
+              <>
+                <Form.Label for="pauseBright">
+                  Pause Brightness&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This will set the brightness of the lights in the room when choosing to use poster art.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="pauseBright"
+                    className="me-auto"
+                    value={this.state.pauseBright}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={this.handlePauseBright}
+                  />
+                  <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                    {this.state.pauseBright + "%"}
+                  </div>
+                </Stack>
+                <div className="div-seperator" />
+                <Form.Label for="pauseColors">
+                  Number of Colors&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Select the number of colors to use from the poster.</Tooltip>}
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="1"
+                    value="1"
+                    id="pauseColors"
+                    name="pauseColors"
+                    onChange={this.handlePauseColors}
+                    size="sm"
+                    checked={this.state.pauseNum === 1}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="2"
+                    value="2"
+                    id="pauseColors"
+                    name="pauseColors"
+                    onChange={this.handlePauseColors}
+                    size="sm"
+                    checked={this.state.pauseNum === 2}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="3"
+                    value="3"
+                    id="pauseColors"
+                    name="pauseColors"
+                    onChange={this.handlePauseColors}
+                    size="sm"
+                    checked={this.state.pauseNum === 3}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="4"
+                    value="4"
+                    id="pauseColors"
+                    name="pauseColors"
+                    onChange={this.handlePauseColors}
+                    size="sm"
+                    checked={this.state.pauseNum === 4}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="5"
+                    value="5"
+                    id="pauseColors"
+                    name="pauseColors"
+                    onChange={this.handlePauseColors}
+                    size="sm"
+                    checked={this.state.pauseNum === 5}
+                  />
+                </div>
+                <div className="div-seperator" />
+                <Form.Label for="pauseLight">
+                  Dominant Light &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select the light to be used as the poster's dominant color. Select none if that doesn't matter.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.pauseLight}
+                  id="pauseLight"
+                  name="pauseLight"
+                  onChange={this.handlePauseLight}
+                  size="sm"
+                >
+                  <option value="-1">None</option>
+                  {this.state.lightList.map((light) => (
+                    <option value={light.Id}>{light.Name}</option>
+                  ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Pause Delay */}
             <Form.Label for="pauseDelay">
               Pause Delay (ms) &nbsp;&nbsp;
@@ -742,11 +1292,144 @@ export default class Create extends Component {
               <option value="-1">Select Resume Action Scene</option>
               <option value="None">None</option>
               <option value="Off">Off</option>
+              {this.state.media !== "cinemaTrailer" && this.state.media !== "All" ? (
+                <option value="-3">Poster</option>
+              ) : (
+                <></>
+              )}
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Resume Poster Brightness */}
+            {this.state.resumeScene === "-3" ? (
+              <>
+                <Form.Label for="resumeBright">
+                  Resume Brightness&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This will set the brightness of the lights in the room when choosing to use poster art.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="resumeBright"
+                    className="me-auto"
+                    value={this.state.resumeBright}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={this.handleResumeBright}
+                  />
+                  <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                    {this.state.resumeBright + "%"}
+                  </div>
+                </Stack>
+                <div className="div-seperator" />
+                <Form.Label for="resumeColors">
+                  Number of Colors&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Select the number of colors to use from the poster.</Tooltip>}
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="1"
+                    value="1"
+                    id="resumeColors"
+                    name="resumeColors"
+                    onChange={this.handleResumeColors}
+                    size="sm"
+                    checked={this.state.resumeNum === 1}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="2"
+                    value="2"
+                    id="resumeColors"
+                    name="resumeColors"
+                    onChange={this.handleResumeColors}
+                    size="sm"
+                    checked={this.state.resumeNum === 2}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="3"
+                    value="3"
+                    id="resumeColors"
+                    name="resumeColors"
+                    onChange={this.handleResumeColors}
+                    size="sm"
+                    checked={this.state.resumeNum === 3}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="4"
+                    value="4"
+                    id="resumeColors"
+                    name="resumeColors"
+                    onChange={this.handleResumeColors}
+                    size="sm"
+                    checked={this.state.resumeNum === 4}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="5"
+                    value="5"
+                    id="resumeColors"
+                    name="resumeColors"
+                    onChange={this.handleResumeColors}
+                    size="sm"
+                    checked={this.state.resumeNum === 5}
+                  />
+                </div>
+                <div className="div-seperator" />
+                <Form.Label for="resumeLight">
+                  Dominant Light &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select the light to be used as the poster's dominant color. Select none if that doesn't matter.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.resumeLight}
+                  id="resumeLight"
+                  name="resumeLight"
+                  onChange={this.handleResumeLight}
+                  size="sm"
+                >
+                  <option value="-1">None</option>
+                  {this.state.lightList.map((light) => (
+                    <option value={light.Id}>{light.Name}</option>
+                  ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Scrobble Action */}
             <Form.Label for="scrobble">
               Scrobble &nbsp;&nbsp;
@@ -780,11 +1463,144 @@ export default class Create extends Component {
               <option value="-1">Select Scrobble Action Scene</option>
               <option value="None">None</option>
               <option value="Off">Off</option>
+              {this.state.media !== "cinemaTrailer" && this.state.media !== "All" ? (
+                <option value="-3">Poster</option>
+              ) : (
+                <></>
+              )}
               {this.state.roomSceneList.map((scene) => (
                 <option value={scene.Id}>{scene.Name}</option>
               ))}
             </Form.Select>
             <div className="div-seperator" />
+            {/* Scrobble Poster Brightness */}
+            {this.state.scrobble === "-3" ? (
+              <>
+                <Form.Label for="scrobbleBright">
+                  Scrobble Brightness&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        This will set the brightness of the lights in the room when choosing to use poster art.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="Info" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Stack gap={1} direction="horizontal">
+                  <Form.Range
+                    id="scrobbleBright"
+                    className="me-auto"
+                    value={this.state.scrobbleBright}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={this.handleScrobbleBright}
+                  />
+                  <div className="slider-style" style={{ whiteSpace: "nowrap" }}>
+                    {this.state.scrobbleBright + "%"}
+                  </div>
+                </Stack>
+                <div className="div-seperator" />
+                <Form.Label for="scrobbleColors">
+                  Number of Colors&nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Select the number of colors to use from the poster.</Tooltip>}
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <div>
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="1"
+                    value="1"
+                    id="scrobbleColors"
+                    name="scrobbleColors"
+                    onChange={this.handleScrobbleColors}
+                    size="sm"
+                    checked={this.state.scrobbleNum === 1}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="2"
+                    value="2"
+                    id="scrobbleColors"
+                    name="scrobbleColors"
+                    onChange={this.handleScrobbleColors}
+                    size="sm"
+                    checked={this.state.scrobbleNum === 2}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="3"
+                    value="3"
+                    id="scrobbleColors"
+                    name="scrobbleColors"
+                    onChange={this.handleScrobbleColors}
+                    size="sm"
+                    checked={this.state.scrobbleNum === 3}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="4"
+                    value="4"
+                    id="scrobbleColors"
+                    name="scrobbleColors"
+                    onChange={this.handleScrobbleColors}
+                    size="sm"
+                    checked={this.state.scrobbleNum === 4}
+                  />
+                  <Form.Check
+                    inline
+                    type="radio"
+                    label="5"
+                    value="5"
+                    id="scrobbleColors"
+                    name="scrobbleColors"
+                    onChange={this.handleScrobbleColors}
+                    size="sm"
+                    checked={this.state.scrobbleNum === 5}
+                  />
+                </div>
+                <div className="div-seperator" />
+                <Form.Label for="scrobbleLight">
+                  Dominant Light &nbsp;&nbsp;
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select the light to be used as the poster's dominant color. Select none if that doesn't matter.
+                      </Tooltip>
+                    }
+                  >
+                    <img src={Info} className="image-info" alt="" />
+                  </OverlayTrigger>
+                </Form.Label>
+                <Form.Select
+                  value={this.state.scrobbleLight}
+                  id="scrobbleLight"
+                  name="scrobbleLight"
+                  onChange={this.handleScrobbleLight}
+                  size="sm"
+                >
+                  <option value="-1">None</option>
+                  {this.state.lightList.map((light) => (
+                    <option value={light.Id}>{light.Name}</option>
+                  ))}
+                </Form.Select>
+                <div className="div-seperator" />
+              </>
+            ) : (
+              <></>
+            )}
             {/* Scrobble Delay */}
             <Form.Label for="scrobbleDelay">
               Scrobble Delay (ms) &nbsp;&nbsp;

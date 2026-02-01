@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "axios": "^1.5.1",
+    "colorthief": "^2.6.0",
     "cookie-parser": "~1.4.4",
     "express": "^4.16.1",
     "http-errors": "~1.6.3",
     "mdns-js": "^1.0.3",
     "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
     "nodemon": "^2.0.13",
     "uuid": "^8.3.2",
     "winston": "^3.15.0",
