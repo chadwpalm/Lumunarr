@@ -25,6 +25,8 @@ let colors = [
 
 var playStorage = [];
 
+const NO_EFFECT = "no_effect";
+
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
@@ -383,6 +385,49 @@ async function getChildren(types, roomName, uid, ip, key) {
   return children;
 }
 
+/**
+ * Captures a specific light attribute and adds it to the action object if present.
+ * Handles the different API v2 paths: effects_v2 uses status object, others use direct access.
+ *
+ * @param {Object} light - The source light object from Hue API.
+ * @param {Object} action - The target action object to be sent to the Bridge.
+ * @param {string} parentKey - The parent property key (e.g., "effects_v2", "color_temperature").
+ * @param {string} childKey - The child property key (e.g., "effect", "mirek").
+ * @returns {boolean} True if the attribute was captured, false otherwise.
+ */
+function captureLightAttribute(light, action, parentKey, childKey) {
+  const isEffectsV2 = parentKey === "effects_v2";
+  const value = isEffectsV2
+    ? light[parentKey]?.status?.[childKey]
+    : light[parentKey]?.[childKey];
+
+  if (!value || value === NO_EFFECT) {
+    return false;
+  }
+
+  if (!action.action[parentKey]) {
+    action.action[parentKey] = {};
+  }
+
+  if (isEffectsV2) {
+    // effects_v2 requires nested action object: { action: { effect: "...", parameters: {...} } }
+    if (!action.action[parentKey].action) {
+      action.action[parentKey].action = {};
+    }
+    action.action[parentKey].action[childKey] = value;
+
+    // Capture optional parameters (speed, color) if present
+    const parameters = light[parentKey]?.status?.parameters;
+    if (parameters) {
+      action.action[parentKey].action.parameters = parameters;
+    }
+  } else {
+    action.action[parentKey][childKey] = value;
+  }
+
+  return true;
+}
+
 async function recallDanglingScene(roomName, ip, key) {
   const url = `https://${ip}/clip/v2/resource/scene`;
   var danglingScene = {};
@@ -489,14 +534,23 @@ async function createScene(types, roomName, ip, key, transition) {
       action.action.dimming = { brightness: light.dimming?.brightness || 0 };
     }
 
-    if (light.color) {
-      action.action.color = {
-        xy: {
-          x: light.color?.xy?.x || 0,
-          y: light.color?.xy?.y || 0,
-        },
-      };
+    const effectCaptured = captureLightAttribute(light, action, "effects_v2", "effect");
+
+    // Only add static color/temperature if NO effect is active.
+    // Color and color_temperature are mutually exclusive - prefer color if present.
+    if (!effectCaptured) {
+      if (light.color && light.color.xy) {
+        action.action.color = {
+          xy: {
+            x: light.color.xy.x,
+            y: light.color.xy.y,
+          },
+        };
+      } else {
+        captureLightAttribute(light, action, "color_temperature", "mirek");
+      }
     }
+
     return action;
   });
 

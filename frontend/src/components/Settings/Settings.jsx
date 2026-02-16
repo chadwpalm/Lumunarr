@@ -22,6 +22,7 @@ export default class Settings extends Component {
         endMed: this.props.settings.settings.endMed ?? "1",
         latitude: this.props.settings.settings.latitude ?? "",
         longitude: this.props.settings.settings.longitude ?? "",
+        plexDomain: this.props.settings.settings.plexDomain ?? "",
         isLoading: true,
         isSaved: false,
         isError: false,
@@ -39,6 +40,7 @@ export default class Settings extends Component {
         endMed: "1",
         latitude: "",
         longitude: "",
+        plexDomain: "",
         isLoading: true,
         isSaved: false,
         errorRes: "",
@@ -61,6 +63,7 @@ export default class Settings extends Component {
     this.props.settings.settings.endMed = this.state.endMed;
     this.props.settings.settings.latitude = this.state.latitude;
     this.props.settings.settings.longitude = this.state.longitude;
+    this.props.settings.settings.plexDomain = this.state.plexDomain;
 
     var xhr = new XMLHttpRequest();
 
@@ -123,6 +126,10 @@ export default class Settings extends Component {
 
   handleLongitude = (e) => {
     this.setState({ longitude: e.target.value.toString(), isSaved: false });
+  };
+
+  handlePlexDomain = (e) => {
+    this.setState({ plexDomain: e.target.value.toString(), isSaved: false });
   };
 
   render() {
@@ -343,6 +350,37 @@ export default class Settings extends Component {
               onChange={this.handleLongitude}
               size="sm"
             />
+            <div className="div-seperator" />
+            <div className="div-seperator" />
+            {/* Plex Domain Override */}
+            <h5>
+              Plex Domain Override &nbsp;&nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={
+                  <Tooltip>
+                    Override the default Plex domain (plex.tv). Leave empty to use the default.
+                    <br />
+                    Example: clients.plex.tv
+                  </Tooltip>
+                }
+              >
+                <img src={Info} className="image-info" alt="Info" />
+              </OverlayTrigger>
+            </h5>
+            <div className="div-seperator" />
+            <Form.Label for="plexDomain">Domain</Form.Label>
+            <Form.Control
+              value={this.state.plexDomain}
+              id="plexDomain"
+              name="plexDomain"
+              onChange={this.handlePlexDomain}
+              size="sm"
+              placeholder="plex.tv"
+            />
+            <div style={{ marginTop: "5px", fontSize: "0.9rem", opacity: 0.8 }}>
+              Currently using: {this.state.plexDomain ? this.state.plexDomain : "plex.tv"}
+            </div>
             <div className="div-seperator" />
             {/* Cancel/Save */}
             {this.state.isEdit ? (
