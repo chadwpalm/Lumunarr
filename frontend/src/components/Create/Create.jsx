@@ -792,12 +792,13 @@ export default class Create extends Component {
             {this.state.playScene === "-3" ? (
               <>
                 <Form.Label for="playBright">
-                  Brightness&nbsp;&nbsp;
+                  Max Brightness&nbsp;&nbsp;
                   <OverlayTrigger
                     placement="right"
                     overlay={
                       <Tooltip>
-                        This will set the brightness of the lights in the room when choosing to use poster art.
+                        This will set the maximum brightness of the lights in the room when choosing to use poster art.
+                        The colors from the poster will be scaled to fit between 5% and the max brightness you set here.
                       </Tooltip>
                     }
                   >
@@ -950,12 +951,13 @@ export default class Create extends Component {
             {this.state.stopScene === "-3" ? (
               <>
                 <Form.Label for="stopBright">
-                  Stop Brightness&nbsp;&nbsp;
+                  Max Brightness&nbsp;&nbsp;
                   <OverlayTrigger
                     placement="right"
                     overlay={
                       <Tooltip>
-                        This will set the brightness of the lights in the room when choosing to use poster art.
+                        This will set the maximum brightness of the lights in the room when choosing to use poster art.
+                        The colors from the poster will be scaled to fit between 5% and the max brightness you set here.
                       </Tooltip>
                     }
                   >
@@ -1108,12 +1110,13 @@ export default class Create extends Component {
             {this.state.pauseScene === "-3" ? (
               <>
                 <Form.Label for="pauseBright">
-                  Pause Brightness&nbsp;&nbsp;
+                  Max Brightness&nbsp;&nbsp;
                   <OverlayTrigger
                     placement="right"
                     overlay={
                       <Tooltip>
-                        This will set the brightness of the lights in the room when choosing to use poster art.
+                        This will set the maximum brightness of the lights in the room when choosing to use poster art.
+                        The colors from the poster will be scaled to fit between 5% and the max brightness you set here.
                       </Tooltip>
                     }
                   >
@@ -1306,12 +1309,13 @@ export default class Create extends Component {
             {this.state.resumeScene === "-3" ? (
               <>
                 <Form.Label for="resumeBright">
-                  Resume Brightness&nbsp;&nbsp;
+                  Max Brightness&nbsp;&nbsp;
                   <OverlayTrigger
                     placement="right"
                     overlay={
                       <Tooltip>
-                        This will set the brightness of the lights in the room when choosing to use poster art.
+                        This will set the maximum brightness of the lights in the room when choosing to use poster art.
+                        The colors from the poster will be scaled to fit between 5% and the max brightness you set here.
                       </Tooltip>
                     }
                   >
@@ -1477,12 +1481,13 @@ export default class Create extends Component {
             {this.state.scrobble === "-3" ? (
               <>
                 <Form.Label for="scrobbleBright">
-                  Scrobble Brightness&nbsp;&nbsp;
+                  Max Brightness&nbsp;&nbsp;
                   <OverlayTrigger
                     placement="right"
                     overlay={
                       <Tooltip>
-                        This will set the brightness of the lights in the room when choosing to use poster art.
+                        This will set the maximum brightness of the lights in the room when choosing to use poster art.
+                        The colors from the poster will be scaled to fit between 5% and the max brightness you set here.
                       </Tooltip>
                     }
                   >

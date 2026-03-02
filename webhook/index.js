@@ -11,6 +11,8 @@ var stream = require("stream");
 var pipeline = promisify(stream.pipeline);
 var fetch = require("node-fetch").default;
 var ColorThief = require("colorthief");
+// helper for converting rgb colors to CIE xy
+var { rgbToXy } = require("./colorUtils");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
 
 var flag = false;
@@ -603,8 +605,12 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
     })
     .catch(function (error) {
       console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
-      message.push("Issue with connection to online Plex account while requesting servers. Check logs for reason.");
     });
+
+  if (!serverIP) {
+    console.error("Plex server IP unknown");
+    return;
+  }
 
   const posterURL = `http://${serverIP}:32400${thumbURL}`;
 
@@ -620,63 +626,82 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
 
     palette = await ColorThief.getPalette(tempPath, num);
 
-    fs.unlink(tempPath, () => {});
+    await fs.promises.unlink(tempPath).catch((err) => {
+      console.error("Error deleting temp file:", err);
+    });
   } catch (err) {
     console.error(err);
   }
 
   const lightGroup = await getChildren(["room", "zone"], room, null, ip, user);
 
-  const actions = lightGroup.lights.map((light, i) => {
-    const redPalette = palette[i % num][0] / 255;
-    const greenPalette = palette[i % num][1] / 255;
-    const bluePalette = palette[i % num][2] / 255;
+  if (!Array.isArray(palette) || palette.length === 0) {
+    console.error("No valid palette available, aborting");
+    return;
+  }
+  if (!lightGroup.lights || lightGroup.lights.length === 0) {
+    console.warn("No lights found for room", room);
+    return;
+  }
 
-    const red = redPalette > 0.04045 ? Math.pow((redPalette + 0.055) / (1.0 + 0.055), 2.4) : redPalette / 12.92;
-    const green = greenPalette > 0.04045 ? Math.pow((greenPalette + 0.055) / (1.0 + 0.055), 2.4) : greenPalette / 12.92;
-    const blue = bluePalette > 0.04045 ? Math.pow((bluePalette + 0.055) / (1.0 + 0.055), 2.4) : bluePalette / 12.92;
-
-    const X = red * 0.4124 + green * 0.3576 + blue * 0.1805;
-    const Y = red * 0.2126 + green * 0.7152 + blue * 0.0722;
-    const Z = red * 0.0193 + green * 0.1192 + blue * 0.9505;
-
-    const x = X / (X + Y + Z);
-    const y = Y / (X + Y + Z);
-    // const brightness = Y;
-
-    const action = {
-      target: {
-        rid: light.id,
-        rtype: "light",
-      },
-      action: {
-        on: { on: true },
-      },
-    };
-
-    if (light.dimming) {
-      action.action.dimming = { brightness: brightness };
-    }
-
-    if (light.color) {
-      action.action.color = {
-        xy: {
-          x: x,
-          y: y,
-        },
-      };
-    }
-    return action;
-  });
-
+  let lightsArray = Array.isArray(lightGroup.lights) ? [...lightGroup.lights] : [];
   if (domLight !== "-1") {
-    const index = actions.findIndex((o) => o.target.rid === domLight);
-
-    if (index !== -1) {
-      const [match] = actions.splice(index, 1);
-      actions.unshift(match);
+    const idx = lightsArray.findIndex((l) => l.id === domLight);
+    if (idx !== -1) {
+      const [l] = lightsArray.splice(idx, 1);
+      lightsArray.unshift(l);
     }
   }
+
+  function normalizeUserFraction(b) {
+    if (b === undefined || b === null || Number.isNaN(Number(b))) return 1.0;
+    const n = Number(b);
+    if (n <= 1) return Math.max(0, n);
+    if (n <= 100) return Math.max(0, Math.min(1, n / 100));
+    return Math.max(0, Math.min(1, n / 254));
+  }
+
+  const userFraction = normalizeUserFraction(brightness);
+  const minFraction = 0.05;
+
+  const actions = lightsArray
+    .map((light, i) => {
+      const idx = i % num;
+      const entry = palette[idx];
+      if (!entry || entry.length < 3) {
+        console.warn("Palette entry malformed", entry);
+        return null;
+      }
+
+      const { x, y, brightness: posterY } = rgbToXy(entry[0], entry[1], entry[2]);
+
+      const action = {
+        target: {
+          rid: light.id,
+          rtype: "light",
+        },
+        action: {
+          on: { on: true },
+        },
+      };
+
+      const finalFraction = userFraction * (Number.isFinite(posterY) ? posterY : 1);
+      const useFraction = Math.max(finalFraction, minFraction);
+      const finalBrightness = Math.round(Math.max(0, Math.min(254, useFraction * 254)));
+
+      if (light.dimming) {
+        action.action.dimming = { brightness: Math.max(1, finalBrightness) };
+      }
+
+      if (light.color && Number.isFinite(x) && Number.isFinite(y)) {
+        action.action.color = {
+          xy: { x, y },
+        };
+      }
+
+      return action;
+    })
+    .filter(Boolean);
 
   url = `https://${ip}/clip/v2/resource/scene`;
 
@@ -718,30 +743,34 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
       }
     });
 
-  url = `https://${ip}/clip/v2/resource/scene/${finalID}`;
+  if (finalID) {
+    url = `https://${ip}/clip/v2/resource/scene/${finalID}`;
 
-  await axios
-    .delete(url, {
-      timeout: 5000,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "hue-application-key": `${user}`,
-      },
-      httpsAgent,
-    })
-    .then((response) => {
-      console.info(`Scene ${finalID} was removed`);
-    })
-    .catch((error) => {
-      if (error.response) {
-        console.error("Scene creation failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
-    });
+    await axios
+      .delete(url, {
+        timeout: 5000,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "hue-application-key": `${user}`,
+        },
+        httpsAgent,
+      })
+      .then((response) => {
+        console.info(`Scene ${finalID} was removed`);
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Scene deletion failed:");
+          console.error(`Status Code: ${error.response.status}`);
+          console.error(`Status Text: ${error.response.statusText}`);
+          console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
+        } else {
+          console.error("Unknown error:", error.message);
+        }
+      });
+  } else {
+    console.warn("No final scene ID to delete");
+  }
 }
 
 async function checkIfOff(roomName, ip, key) {
@@ -1707,7 +1736,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                               setLightsToPoster(
                                 client.room,
                                 Number(client.playBright),
-                                client.transition,
+                                global.transition,
                                 settings.bridge.ip,
                                 settings.bridge.user,
                                 settings.token,
