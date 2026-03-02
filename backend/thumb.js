@@ -22,7 +22,7 @@ router.post("/", async function (req, res, next) {
     })
     .catch(function (error) {
       if (error.request) {
-        console.error("Could not connect to the Plex sewrver");
+        console.error("Could not connect to the Plex server");
         res.status(403).send("Could not connect to the Plex server");
       }
     });

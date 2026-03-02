@@ -1,5 +1,20 @@
 # Lumunarr Version History
 
+## 1.6.1
+
+### Added
+
+- User can now set any trigger (play, stop, pause, etc.) to use the colors of the poster. For movies it is the movie poster, and for TV Shows it is the poster at the show level.
+  1. User can select the number of colors used from the poster (1-5).
+  2. User can set the light in the room to display the dominant poster color.
+  3. User can set the maximum brightness of the lights. Actual brightness is determined by the luminance of the pixels and interpolated as a value between 5% (for near black colors) and the maximum brightness set.
+
+  This is considered an expermintal feature for now as it will need to be tested on a larger scale. Please feel free to make suggestions in the Discussion section of GitHub or submit an issue if something is not working correctly. {[#15](https://github.com/chadwpalm/Lumunarr/issues/15)}
+
+### Fixes
+
+- Improved snapshotting of lights when using the Restore Pre-Play option. Lights will now restore the proper color temperature (mirek) for lights not using xy color, and will also restore the effects that were being used by the lights. {[PR #43](https://github.com/chadwpalm/Lumunarr/pull/43)}
+
 ## 1.6.0
 
 ### Changes
