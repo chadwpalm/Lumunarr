@@ -4,7 +4,9 @@
   "overrides": {
     "nth-check": "^2.1.1",
     "postcss": "^8.4.47",
-    "webpack-dev-server": "^5.2.1"
+    "webpack-dev-server": "^5.2.1",
+    "jsonpath": "npm:jsonpath-plus@^10.4.0",
+    "serialize-javascript": "7.0.3"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
