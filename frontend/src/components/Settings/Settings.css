@@ -11,6 +11,28 @@
 .conf-text {
     color: #00a700;
 }
+.error-text {
+    color: #e00000;
+}
+.schedule-label {
+    min-width: 48px;
+    white-space: nowrap;
+}
+.footnote {
+    font-size: small;
+    color: rgb(255, 94, 0);
+}
+.form-content.dark-mode .footnote {
+    color: orange;
+}
+.form-content.dark-mode .form-control::placeholder {
+    color: rgb(141, 141, 141) !important;
+    opacity: 1;
+}
+.form-content.dark-mode .form-control:disabled {
+    background-color: rgb(30, 30, 30);
+    color: rgb(141, 141, 141);
+}
 .form-content.dark-mode .repeat-icon {
     filter: invert(100%);
 }

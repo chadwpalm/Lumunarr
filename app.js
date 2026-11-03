@@ -13,6 +13,7 @@ var discover = require("./backend/discover");
 var thumb = require("./backend/thumb");
 var client = require("./backend/client");
 var server = require("./backend/server");
+var host = require("./backend/host");
 require("./backend/monitor.js");
 
 var app = express();
@@ -44,6 +45,7 @@ routes.use("/backend/discover", discover);
 routes.use("/backend/thumb", thumb);
 routes.use("/backend/client", client);
 routes.use("/backend/server", server);
+routes.use("/backend/host", host);
 routes.use("/webhook", webhookRouter);
 
 // Single-page app: any other GET returns index.html so client-side routes work.

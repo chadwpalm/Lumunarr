@@ -6,6 +6,8 @@ const DEFAULT_PORT = 3939;
 
 let activePort = null;
 let baseURL = null;
+let portSource = null; // "APP_PORT" | "PORT" | "settings" | "default"
+let baseURLSource = null; // "APP_BASE_URL" | "settings" | "default"
 
 function readSettings() {
   try {
@@ -48,6 +50,7 @@ function getActivePort() {
       const p = parsePort(process.env[name]);
       if (p) {
         console.info(`${LOG_TAG} Using port ${p} from ${name} environment variable`);
+        portSource = name;
         return (activePort = p);
       }
       console.error(`${LOG_TAG} Ignoring invalid ${name} "${process.env[name]}"`);
@@ -57,10 +60,12 @@ function getActivePort() {
   const cfgPort = parsePort(readSettings().appPort);
   if (cfgPort) {
     console.info(`${LOG_TAG} Using port ${cfgPort} from settings`);
+    portSource = "settings";
     return (activePort = cfgPort);
   }
 
   console.info(`${LOG_TAG} Using default port ${DEFAULT_PORT}`);
+  portSource = "default";
   return (activePort = DEFAULT_PORT);
 }
 
@@ -75,10 +80,12 @@ function getBaseURL() {
   if (process.env.APP_BASE_URL) {
     baseURL = normalizeBaseURL(process.env.APP_BASE_URL);
     if (baseURL) console.info(`${LOG_TAG} Using base URL "${baseURL}" from APP_BASE_URL environment variable`);
+    baseURLSource = "APP_BASE_URL";
     return baseURL;
   }
 
   baseURL = normalizeBaseURL(readSettings().baseURL);
+  baseURLSource = baseURL ? "settings" : "default";
   console.info(baseURL ? `${LOG_TAG} Using base URL "${baseURL}" from settings` : `${LOG_TAG} No base URL, running at root`);
   return baseURL;
 }
@@ -88,4 +95,15 @@ function getInternalURL(path) {
   return `http://localhost:${getActivePort()}${getBaseURL()}${path}`;
 }
 
-module.exports = { getActivePort, getBaseURL, getInternalURL, normalizeBaseURL };
+/** What the server is running with right now, and where each value came from (for the Settings page). */
+function getHostInfo() {
+  return {
+    port: getActivePort(),
+    portSource,
+    defaultPort: DEFAULT_PORT,
+    baseURL: getBaseURL(),
+    baseURLSource,
+  };
+}
+
+module.exports = { getActivePort, getBaseURL, getInternalURL, normalizeBaseURL, getHostInfo };

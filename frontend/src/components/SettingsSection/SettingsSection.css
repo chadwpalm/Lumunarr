@@ -1,0 +1,28 @@
+.settings-section {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.settings-section:hover {
+  transform: translateY(-2px);
+}
+
+.settings-section .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+/* Bootstrap cards set their own (dark) text color, so set light text explicitly */
+.settings-section.dark-mode {
+  background-color: #222222;
+  border: 1px solid #444;
+  color: white;
+}
+
+.settings-section.dark-mode .card-header {
+  background-color: #2e2e2e;
+  border-bottom: 1px solid #555;
+  color: white;
+}
