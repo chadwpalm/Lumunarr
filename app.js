@@ -1,7 +1,6 @@
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
-var cookieParser = require("cookie-parser");
 require("./backend/logger");
 
 var webhookRouter = require("./webhook/index");
@@ -18,7 +17,6 @@ var app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "frontend/production")));
 
 app.use("/backend/load", load);
@@ -30,7 +28,8 @@ app.use("/backend/client", client);
 app.use("/backend/server", server);
 app.use("/webhook", webhookRouter);
 
-app.get("*", (req, res) => {
+// Single-page app: any other GET returns index.html so client-side routes work
+app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/production/index.html"));
 });
 
@@ -39,16 +38,11 @@ app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// error handler (no view engine is configured, so reply with plain text)
 app.use(function (err, req, res, next) {
-  console.error(err);
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) console.error(err.stack || err);
+  res.status(status).send(err.expose ? err.message : status >= 500 ? "Internal Server Error" : err.message);
 });
 
 module.exports = app;

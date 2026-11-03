@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
 import { v4 as uuid } from "uuid";
 import Form from "react-bootstrap/Form";
@@ -9,7 +9,6 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Stack from "react-bootstrap/Stack";
 import "./Create.css";
-import { Axios } from "axios";
 
 export default class Create extends Component {
   constructor(props) {
@@ -264,8 +263,7 @@ export default class Create extends Component {
 
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-        } else {
+        if (xhr.status !== 200) {
           // error
           this.setState({
             error: xhr.responseText,
@@ -283,7 +281,7 @@ export default class Create extends Component {
 
   relativeTime(stamp) {
     var time = Math.floor(new Date().getTime() / 1000.0) - stamp;
-    var response = "";
+    var response;
     if (time < 60) response = "Less than a minute ago";
     else if (time < 3600) response = Math.round(time / 60).toString() + " minutes ago";
     else if (time < 86400) response = Math.round(time / 3600).toString() + " hours ago";

@@ -11,6 +11,8 @@ const httpsAgent = new https.Agent({
 });
 
 router.post("/", function (req, res, next) {
+  // Express 5 leaves req.body undefined when the request has no body
+  req.body = req.body || {};
   var ips = [];
   var list = [];
   var browser = mdns.createBrowser();
@@ -22,8 +24,8 @@ router.post("/", function (req, res, next) {
 
   browser.on("update", function (data) {
     if (data.type[0].name === "hue") {
-      const ip = data.addresses[0];
-      if (!ips.includes(ip)) {
+      const ip = (data.addresses || []).find((a) => /^\d{1,3}(\.\d{1,3}){3}$/.test(a));
+      if (ip && !ips.includes(ip)) {
         ips.push(ip);
         console.info("Found: ", ip);
       }

@@ -1,7 +1,6 @@
-import React from "react";
 import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from "react-router-dom";
 import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
 import Device from "../Device/Device";
@@ -13,7 +12,6 @@ import Row from "react-bootstrap/Row";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { LinkContainer } from "react-router-bootstrap";
 import Logout from "bootstrap-icons/icons/box-arrow-right.svg";
 import Modal from "react-bootstrap/Modal";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -156,8 +154,7 @@ export default class App extends Component {
 
       xhr.addEventListener("readystatechange", () => {
         if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-          } else {
+          if (xhr.status !== 200) {
             // error
             this.setState({
               error: xhr.responseText,
@@ -227,8 +224,7 @@ export default class App extends Component {
       var xhr = new XMLHttpRequest();
       xhr.addEventListener("readystatechange", () => {
         if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-          } else {
+          if (xhr.status !== 200) {
             // error
             this.setState({
               error: xhr.responseText,
@@ -278,41 +274,18 @@ export default class App extends Component {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                       <Nav className="me-auto">
-                        {!this.state.isConnected ? (
-                          <>
-                            <LinkContainer to="/">
-                              <Nav.Link disabled>Clients</Nav.Link>
-                            </LinkContainer>
-                            <LinkContainer to="/server">
-                              <Nav.Link disabled>Server</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        ) : (
-                          <>
-                            <LinkContainer to="/">
-                              <Nav.Link>Clients</Nav.Link>
-                            </LinkContainer>
-                            <LinkContainer to="/server">
-                              <Nav.Link>Server</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        )}
-                        <LinkContainer to="/bridge">
-                          <Nav.Link>Bridge</Nav.Link>
-                        </LinkContainer>
-                        {!this.state.isConnected ? (
-                          <>
-                            <LinkContainer to="/settings">
-                              <Nav.Link disabled>Settings</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        ) : (
-                          <>
-                            <LinkContainer to="/settings">
-                              <Nav.Link>Settings</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        )}
+                        <Nav.Link as={NavLink} to="/" end disabled={!this.state.isConnected}>
+                          Clients
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/server" disabled={!this.state.isConnected}>
+                          Server
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/bridge">
+                          Bridge
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/settings" disabled={!this.state.isConnected}>
+                          Settings
+                        </Nav.Link>
                       </Nav>
                       <Nav className="ms-auto d-flex align-items-center">
                         <Image

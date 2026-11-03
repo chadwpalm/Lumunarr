@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import Row from "react-bootstrap/Row";
 import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";

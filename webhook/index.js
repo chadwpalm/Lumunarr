@@ -5,10 +5,6 @@ var fs = require("fs");
 var axios = require("axios").default;
 var https = require("https");
 var parser = require("xml-js");
-var path = require("path");
-var { promisify } = require("util");
-var stream = require("stream");
-var pipeline = promisify(stream.pipeline);
 var ColorThief = require("colorthief");
 var { rgbToXy } = require("./colorUtils");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
@@ -659,15 +655,16 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
     const response = await fetch(posterURL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const tempPath = path.join(__dirname, `temp-${Date.now()}.jpg`);
-    console.log(tempPath);
-    await pipeline(stream.Readable.fromWeb(response.body), fs.createWriteStream(tempPath));
+    const poster = Buffer.from(await response.arrayBuffer());
 
-    palette = await ColorThief.getPalette(tempPath, num);
-
-    await fs.promises.unlink(tempPath).catch((err) => {
-      console.error("Error deleting temp file:", err);
-    });
+    // colorthief needs at least 2 colors; take the most dominant `num` of them.
+    // "rgb" quantization matches the colors colorthief v2 produced.
+    const count = Math.max(1, Number(num) || 1);
+    const colors = await ColorThief.getPalette(poster, { colorCount: Math.max(2, count), colorSpace: "rgb" });
+    palette = (colors || [])
+      .sort((a, b) => b.population - a.population)
+      .slice(0, count)
+      .map((c) => c.array());
   } catch (err) {
     console.error(err);
   }
@@ -705,7 +702,7 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
 
   const actions = lightsArray
     .map((light, i) => {
-      const idx = i % num;
+      const idx = i % palette.length;
       const entry = palette[idx];
       if (!entry || entry.length < 3) {
         console.warn("Palette entry malformed", entry);
