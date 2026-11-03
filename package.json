@@ -6,22 +6,19 @@
   },
   "overrides": {
     "semver": "^7.5.4",
-    "multer": {
-      "busboy": "^1.6.0"
-    }
+    "sharp": "^0.35.5",
+    "minimatch": "^11.0.1"
   },
   "dependencies": {
-    "axios": "^1.5.1",
-    "colorthief": "^2.6.0",
+    "axios": "^1.21.0",
+    "colorthief": "^2.7.0",
     "cookie-parser": "~1.4.4",
-    "express": "^4.16.1",
+    "express": "^4.22.3",
     "http-errors": "~1.6.3",
     "mdns-js": "^1.0.3",
-    "multer": "^2.0.2",
-    "node-fetch": "^3.3.2",
-    "nodemon": "^2.0.13",
-    "uuid": "^8.3.2",
-    "winston": "^3.15.0",
+    "multer": "^2.5.0",
+    "nodemon": "^3.1.14",
+    "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "xml-js": "^1.6.11"
   }

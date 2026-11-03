@@ -9,7 +9,6 @@ var path = require("path");
 var { promisify } = require("util");
 var stream = require("stream");
 var pipeline = promisify(stream.pipeline);
-var fetch = require("node-fetch").default;
 var ColorThief = require("colorthief");
 var { rgbToXy } = require("./colorUtils");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
@@ -662,7 +661,7 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
 
     const tempPath = path.join(__dirname, `temp-${Date.now()}.jpg`);
     console.log(tempPath);
-    await pipeline(response.body, fs.createWriteStream(tempPath));
+    await pipeline(stream.Readable.fromWeb(response.body), fs.createWriteStream(tempPath));
 
     palette = await ColorThief.getPalette(tempPath, num);
 

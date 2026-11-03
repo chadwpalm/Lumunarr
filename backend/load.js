@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var fs = require("fs");
 var os = require("os");
-var uuid = require("uuid").v4;
+var uuid = require("crypto").randomUUID;
 var updates = require("./migrate.js");
 
 var appVersion, branch, UID, GID, build;
