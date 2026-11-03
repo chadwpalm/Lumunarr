@@ -23,6 +23,9 @@ import Sun from "bootstrap-icons/icons/sun.svg";
 import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
 
+// URL base injected by the backend into index.html (see app.js); "/" in the dev server
+const basePath = window.__BASE_PATH__ || "/";
+
 export default class App extends Component {
   state = {
     isLoaded: false,
@@ -118,7 +121,7 @@ export default class App extends Component {
       }
     });
 
-    xhr.open("GET", "/backend/load", true);
+    xhr.open("GET", "backend/load", true);
     xhr.send();
   }
 
@@ -163,7 +166,7 @@ export default class App extends Component {
         }
       });
 
-      xhr.open("POST", "/backend/save", true);
+      xhr.open("POST", "backend/save", true);
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhr.send(JSON.stringify(settings));
     }
@@ -211,7 +214,7 @@ export default class App extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -232,7 +235,7 @@ export default class App extends Component {
           }
         }
       });
-      xhr.open("POST", "/backend/save", true);
+      xhr.open("POST", "backend/save", true);
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhr.send(JSON.stringify(settings));
       return { isDarkMode: newMode };
@@ -262,7 +265,7 @@ export default class App extends Component {
         if (this.state.isLoggedIn) {
           // success
           return (
-            <Router>
+            <Router basename={basePath}>
               <Container fluid>
                 <Row className={`navbar-row ${this.state.isDarkMode ? "dark-mode" : ""}`}>
                   <Navbar className={`navbar-content ${this.state.isDarkMode ? "dark-mode" : ""}`} expand="md">
@@ -447,7 +450,7 @@ export default class App extends Component {
           );
         } else {
           return (
-            <Router>
+            <Router basename={basePath}>
               <Routes>
                 <Route path="*" element={<Navigate replace to="/login" />} />
                 <Route

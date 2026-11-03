@@ -173,7 +173,7 @@ export default class Create extends Component {
         }
       }
     });
-    xhr.open("POST", "/backend/client", true);
+    xhr.open("POST", "backend/client", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   }
@@ -272,7 +272,7 @@ export default class Create extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
 
@@ -320,7 +320,7 @@ export default class Create extends Component {
         }
       }
     });
-    xhr.open("POST", "/backend/server", true);
+    xhr.open("POST", "backend/server", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   }

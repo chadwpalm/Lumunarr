@@ -2,6 +2,7 @@ var express = require("express");
 const fs = require("fs");
 var https = require("https");
 var axios = require("axios").default;
+const { getInternalURL } = require("./config");
 
 var interval = 15; //bridge checking interval in minutes
 
@@ -53,7 +54,7 @@ async function checkResults(data) {
 
           axios
             .post(
-              "http://localhost:3939/backend/discover",
+              getInternalURL("/backend/discover"),
               {},
               {
                 headers: { "Content-Type": "application/json;charset=UTF-8" },

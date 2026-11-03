@@ -24,6 +24,6 @@ HEALTHCHECK \
     --timeout=5s \
     --start-period=10s \
     --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3939', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+    CMD node bin/healthcheck.js
 
 ENTRYPOINT ["npm", "start"]
