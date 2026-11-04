@@ -257,7 +257,13 @@ export default class Server extends Component {
             <InfoLabel htmlFor={id("room")} tip="Select the room to be used.">
               Room
             </InfoLabel>
-            <Form.Select value={v("room")} id={id("room")} name={id("room")} onChange={this.handleRoom(suffix)} size="sm">
+            <Form.Select
+              value={v("room")}
+              id={id("room")}
+              name={id("room")}
+              onChange={this.handleRoom(suffix)}
+              size="sm"
+            >
               <option value="-1">Select Room</option>
               {this.state.groupsList.map((group) => (
                 <option key={group.Id} value={group.Room}>

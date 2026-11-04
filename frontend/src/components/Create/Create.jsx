@@ -67,8 +67,8 @@ const EVENTS = [
         happen.
         <br />
         <br />
-        In Plex, "scrobble" is the time when the media you are watching is considered "played". By default, this time
-        is set at the 90% mark of a video, but can be changed in the Plex Media Server's settings.
+        In Plex, "scrobble" is the time when the media you are watching is considered "played". By default, this time is
+        set at the 90% mark of a video, but can be changed in the Plex Media Server's settings.
         <br />
         <br />
         As of version 1.31 of the Plex Media Server, scrobble can be set at end credits marker points. This is good if
@@ -623,7 +623,6 @@ export default class Create extends Component {
           {this.renderProfile()}
           {this.renderActions()}
           {this.renderTiming()}
-
           <Button onClick={this.props.cancel} variant="light">
             Cancel
           </Button>

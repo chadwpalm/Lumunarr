@@ -61,7 +61,7 @@ async function checkResults(data) {
               {
                 headers: { "Content-Type": "application/json;charset=UTF-8" },
                 timeout: 10000, // Set timeout to 2000 milliseconds (2 seconds)
-              }
+              },
             )
             .then(function (response) {
               var discData = response.data;

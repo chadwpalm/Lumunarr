@@ -29,7 +29,13 @@ export default function EventAction({ event, values, onChange, sceneList, lightL
           </InfoLabel>
         </Col>
         <Col xs={12} md={delay ? 5 : 10}>
-          <Form.Select value={scene} id={id()} name={id()} onChange={(e) => onChange(sceneKey, e.target.value)} size="sm">
+          <Form.Select
+            value={scene}
+            id={id()}
+            name={id()}
+            onChange={(e) => onChange(sceneKey, e.target.value)}
+            size="sm"
+          >
             <option value="-1">Select {label} Action Scene</option>
             <option value="None">None</option>
             <option value="Off">Off</option>

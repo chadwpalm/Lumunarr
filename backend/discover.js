@@ -57,7 +57,7 @@ router.post("/", function (req, res, next) {
                 log.error("Could not connect to Hue Discovery. Check internet connection.");
               } else if (error.message === "Request failed with status code 429") {
                 log.error(
-                  "Could not get bridges from Hue Discovery due to reaching rate limit. Try again in 15 minutes."
+                  "Could not get bridges from Hue Discovery due to reaching rate limit. Try again in 15 minutes.",
                 );
               } else {
                 log.error("Could not connect to Hue Discovery website:", error);

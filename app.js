@@ -68,7 +68,10 @@ routes.get("/{*splat}", (req, res, next) => {
   fs.readFile(path.join(frontendDir, "index.html"), "utf8", (err, html) => {
     if (err) return next(err);
     const inject = `<base href="${basePath}" /><script>window.__BASE_PATH__=${JSON.stringify(basePath)};</script>`;
-    res.set("Cache-Control", "no-cache").type("html").send(html.replace("<head>", `<head>${inject}`));
+    res
+      .set("Cache-Control", "no-cache")
+      .type("html")
+      .send(html.replace("<head>", `<head>${inject}`));
   });
 });
 

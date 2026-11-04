@@ -87,7 +87,9 @@ function getBaseURL() {
 
   baseURL = normalizeBaseURL(readSettings().baseURL);
   baseURLSource = baseURL ? "settings" : "default";
-  console.info(baseURL ? `${LOG_TAG} Using base URL "${baseURL}" from settings` : `${LOG_TAG} No base URL, running at root`);
+  console.info(
+    baseURL ? `${LOG_TAG} Using base URL "${baseURL}" from settings` : `${LOG_TAG} No base URL, running at root`,
+  );
   return baseURL;
 }
 

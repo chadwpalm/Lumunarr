@@ -209,7 +209,7 @@ router.post("/", async function (req, res, next) {
 
       users.push(temp);
       users.sort((a, b) =>
-        a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0
+        a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0,
       );
 
       log.debug(`${users.length} total user(s) retrieved`);
@@ -217,7 +217,7 @@ router.post("/", async function (req, res, next) {
     .catch(function (error) {
       log.error("Issue with connection to online Plex account while requesting account info:", error);
       message.push(
-        "Issue with connection to online Plex account while requesting account info. Check logs for reason."
+        "Issue with connection to online Plex account while requesting account info. Check logs for reason.",
       );
     });
 
@@ -253,7 +253,7 @@ router.post("/", async function (req, res, next) {
             .catch(function (error) {
               log.error("Issue with connection to online Plex account while requesting servers:", error);
               message.push(
-                "Issue with connection to online Plex account while requesting servers. Check logs for reason."
+                "Issue with connection to online Plex account while requesting servers. Check logs for reason.",
               );
             });
         }

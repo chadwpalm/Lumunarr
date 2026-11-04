@@ -23,6 +23,7 @@ Questions are welcome in [Discussions](https://github.com/chadwpalm/Lumunarr/dis
 - **A Philips Hue bridge** on your network to test against.
 - **Plex Media Server with Plex Pass** if you want real webhooks. Webhooks are a Plex Pass feature. You can also send fake webhooks with `curl` (see [Sending test webhooks](#sending-test-webhooks)).
 - **Docker** (optional), to test the image the same way users run it.
+- **An editor with Prettier and ESLint.** In VS Code, install the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) extensions (VS Code suggests both when you open the repo) and turn on **Format On Save**.
 
 Lumunarr is developed on Linux and also runs on macOS. On **Windows**, use [WSL2](https://learn.microsoft.com/windows/wsl/).
 
@@ -100,14 +101,14 @@ Then open **http://localhost:3939**.
 
 ### Useful environment variables
 
-| Variable | Purpose |
-| --- | --- |
-| `CONFIG_DIR` | Folder for settings and logs (default `/config`). `npm run dev` sets it to `./dev-config`. Relative paths are resolved from the folder you start Lumunarr in. |
-| `APP_PORT` | Port to listen on (default 3939). Overrides the Port setting. `PORT` also works. |
-| `APP_BASE_URL` | URL base for reverse proxies, e.g. `/lumunarr`. Overrides the URL Base setting. |
-| `PUID` / `PGID` | Owner applied to the settings file (mainly for Docker). |
-| `BUILD` | Build number shown in the UI and logs (set by CI; defaults to `Native`). |
-| `BACKEND_URL` | Frontend dev server only: where to forward API calls (default `http://localhost:3939`). |
+| Variable        | Purpose                                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CONFIG_DIR`    | Folder for settings and logs (default `/config`). `npm run dev` sets it to `./dev-config`. Relative paths are resolved from the folder you start Lumunarr in. |
+| `APP_PORT`      | Port to listen on (default 3939). Overrides the Port setting. `PORT` also works.                                                                              |
+| `APP_BASE_URL`  | URL base for reverse proxies, e.g. `/lumunarr`. Overrides the URL Base setting.                                                                               |
+| `PUID` / `PGID` | Owner applied to the settings file (mainly for Docker).                                                                                                       |
+| `BUILD`         | Build number shown in the UI and logs (set by CI; defaults to `Native`).                                                                                      |
+| `BACKEND_URL`   | Frontend dev server only: where to forward API calls (default `http://localhost:3939`).                                                                       |
 
 ## Project layout
 
@@ -175,7 +176,8 @@ To get real webhooks from Plex, add `http://<your-machine-ip>:3939/webhook` unde
 
 ### Checks
 
-- [ ] **Frontend lint passes:** `cd frontend && npm run lint`
+- [ ] **Lint passes** (no errors; warnings in older code are OK): `npm run lint` for the backend, and `cd frontend && npm run lint`
+- [ ] **Code is formatted with Prettier** (format on save, or `npx prettier --write <files>`)
 - [ ] **Frontend builds:** `cd frontend && npm run build`
 - [ ] **No new vulnerabilities:** `npm audit` in the repo root and in `frontend/`
 - [ ] **You tested the change in the app**, including dark mode and a narrow (phone-width) window if you touched the UI
@@ -200,7 +202,8 @@ docker run --rm --network host -e PUID="$(id -u)" -e PGID="$(id -g)" \
 
 ### Code style
 
-- Match the surrounding code: 2-space indentation, double quotes, semicolons, lines up to about 120 characters.
+- Formatting is handled by [Prettier](https://prettier.io) using the repo's [`.prettierrc.json`](.prettierrc.json) (Prettier defaults with a 120 character line width). Let your editor format on save rather than formatting by hand.
+- Linting uses ESLint: [`eslint.config.mjs`](eslint.config.mjs) for the backend and [`frontend/eslint.config.js`](frontend/eslint.config.js) for the frontend.
 - Keep changes focused. Separate refactoring from behavior changes where you can.
 - Prefer the shared components in `frontend/src/components/Common` and `SettingsSection` for new form fields.
 

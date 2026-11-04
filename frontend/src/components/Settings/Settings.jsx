@@ -139,7 +139,8 @@ export default class Settings extends Component {
   render() {
     const { host } = this.state;
     const errors = this.formErrors();
-    const portOverride = host && (host.portSource === "APP_PORT" || host.portSource === "PORT") ? host.portSource : null;
+    const portOverride =
+      host && (host.portSource === "APP_PORT" || host.portSource === "PORT") ? host.portSource : null;
     const baseOverride = host && host.baseURLSource === "APP_BASE_URL";
 
     return (
@@ -188,7 +189,9 @@ export default class Settings extends Component {
                   step={0.2}
                   onChange={this.handleTransition}
                 />
-                <div className="range-text">{this.state.transition === "0" ? "Default" : `${this.state.transition} s`}</div>
+                <div className="range-text">
+                  {this.state.transition === "0" ? "Default" : `${this.state.transition} s`}
+                </div>
               </Stack>
               <Form.Label>
                 Schedule &nbsp;&nbsp;
@@ -336,13 +339,22 @@ export default class Settings extends Component {
                   >
                     Log Level
                   </InfoLabel>
-                  <Form.Select value={this.state.logLevel} id="logLevel" name="logLevel" onChange={this.handleField} size="sm">
+                  <Form.Select
+                    value={this.state.logLevel}
+                    id="logLevel"
+                    name="logLevel"
+                    onChange={this.handleField}
+                    size="sm"
+                  >
                     <option value="0">Info</option>
                     <option value="1">Debug</option>
                   </Form.Select>
                 </Col>
                 <Col xs={6} md={4}>
-                  <InfoLabel htmlFor="logSize" tip="Maximum size of a log file before a new one is started. Default is 10 MB.">
+                  <InfoLabel
+                    htmlFor="logSize"
+                    tip="Maximum size of a log file before a new one is started. Default is 10 MB."
+                  >
                     Max File Size (MB)
                   </InfoLabel>
                   <Form.Control

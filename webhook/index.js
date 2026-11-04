@@ -765,7 +765,9 @@ function describeWebhook(payload) {
   const m = payload.Metadata || {};
   const pad = (n) => String(n ?? "?").padStart(2, "0");
   const title =
-    m.type === "episode" ? `${m.grandparentTitle} - S${pad(m.parentIndex)}E${pad(m.index)} - ${m.title}` : m.title || "?";
+    m.type === "episode"
+      ? `${m.grandparentTitle} - S${pad(m.parentIndex)}E${pad(m.index)} - ${m.title}`
+      : m.title || "?";
   const where = m.librarySectionTitle ? ` (${m.librarySectionTitle} on "${payload.Server?.title ?? "?"}")` : "";
   const who = payload.Player ? ` from "${payload.Player.title}"` : "";
   const by = payload.Account ? ` by ${payload.Account.title}` : "";
@@ -929,7 +931,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       )
                       .catch(function (error) {
                         log.error("Hue request failed:", error);
-
                       });
 
                     await setTimeoutPromise(500);
@@ -1134,7 +1135,9 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
           }
         }
         if (payload.event === "library.new") {
-          log.info(`Server alert: new media added${payload.Metadata?.librarySectionTitle ? ` to ${payload.Metadata.librarySectionTitle}` : ""}`);
+          log.info(
+            `Server alert: new media added${payload.Metadata?.librarySectionTitle ? ` to ${payload.Metadata.librarySectionTitle}` : ""}`,
+          );
           var sFlag = true;
 
           switch (server.scheduleType) {
@@ -1263,7 +1266,6 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         )
                         .catch(function (error) {
                           log.error("Hue request failed:", error);
-
                         });
 
                       await setTimeoutPromise(500);

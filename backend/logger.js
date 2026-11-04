@@ -56,14 +56,17 @@ function formatHttpError(err) {
   } catch {
     /* relative or missing URL */
   }
-  const status = err.response ? `HTTP ${err.response.status}${err.response.statusText ? " " + err.response.statusText : ""}` : err.code || "No response";
+  const status = err.response
+    ? `HTTP ${err.response.status}${err.response.statusText ? " " + err.response.statusText : ""}`
+    : err.code || "No response";
   const data = err.response?.data;
   const details = [];
   // Hue v2: { errors: [{ description }] }   Hue v1: [{ error: { description } }]   Plex/other: string or { error }
   if (Array.isArray(data?.errors)) data.errors.forEach((e) => e?.description && details.push(e.description));
   if (Array.isArray(data)) data.forEach((e) => e?.error?.description && details.push(e.error.description));
   if (typeof data === "string" && data.length < 300) details.push(data.trim());
-  if (!details.length && data?.error) details.push(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
+  if (!details.length && data?.error)
+    details.push(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
   if (!details.length && !err.response && err.message) details.push(err.message);
   return [status, method && url ? `${method} ${url}` : url, details.join("; ")].filter(Boolean).join(" - ");
 }
@@ -145,7 +148,9 @@ function reload() {
   const first = current.applied === undefined;
   current = { ...next, applied: true };
   if (first || levelChanged || fileChanged) {
-    write("info", "LOGGER", [`Log level "${level}", max file size ${next.logSize} MB, keeping ${next.logFiles} file(s)`]);
+    write("info", "LOGGER", [
+      `Log level "${level}", max file size ${next.logSize} MB, keeping ${next.logFiles} file(s)`,
+    ]);
   }
 }
 
