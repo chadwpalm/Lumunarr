@@ -7,6 +7,7 @@ import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Stack from "react-bootstrap/Stack";
 import SettingsSection from "../SettingsSection/SettingsSection";
+import { TimeRange } from "../Common/FormFields";
 import "./Settings.css";
 
 // Must match normalizeBaseURL() in backend/config.js
@@ -24,9 +25,6 @@ function validPort(value) {
   const n = Number(value);
   return Number.isInteger(n) && n > 0 && n < 65536;
 }
-
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i));
 
 export default class Settings extends Component {
   constructor(props) {
@@ -124,52 +122,6 @@ export default class Settings extends Component {
     return this.state.isSaved && (portChanged || baseChanged);
   }
 
-  renderTimeSelects(prefix) {
-    return (
-      <>
-        <Form.Select
-          value={this.state[`${prefix}Hour`]}
-          id={`${prefix}Hour`}
-          name={`${prefix}Hour`}
-          onChange={this.handleField}
-          size="sm"
-          className="schedule-pulldown"
-        >
-          {HOURS.map((h) => (
-            <option key={h} value={h}>
-              {h}
-            </option>
-          ))}
-        </Form.Select>
-        <Form.Select
-          value={this.state[`${prefix}Min`]}
-          id={`${prefix}Min`}
-          name={`${prefix}Min`}
-          onChange={this.handleField}
-          size="sm"
-          className="schedule-pulldown"
-        >
-          {MINUTES.map((m) => (
-            <option key={m} value={m}>
-              {m.padStart(2, "0")}
-            </option>
-          ))}
-        </Form.Select>
-        <Form.Select
-          value={this.state[`${prefix}Med`]}
-          id={`${prefix}Med`}
-          name={`${prefix}Med`}
-          onChange={this.handleField}
-          size="sm"
-          className="schedule-pulldown"
-        >
-          <option value="1">AM</option>
-          <option value="2">PM</option>
-        </Form.Select>
-      </>
-    );
-  }
-
   render() {
     const { host } = this.state;
     const errors = this.hostErrors();
@@ -233,14 +185,7 @@ export default class Settings extends Component {
                   <img src={Info} className="image-info" alt="Schedule" />
                 </OverlayTrigger>
               </Form.Label>
-              <Stack gap={1} direction="horizontal" className="mb-2">
-                <span className="schedule-label">Start:</span>
-                {this.renderTimeSelects("start")}
-              </Stack>
-              <Stack gap={1} direction="horizontal">
-                <span className="schedule-label">End:</span>
-                {this.renderTimeSelects("end")}
-              </Stack>
+              <TimeRange values={this.state} onChange={this.handleField} />
             </SettingsSection>
 
             {/* Location */}

@@ -33,6 +33,22 @@
     padding-top: 30px;
     padding-right: 30px;
 }
+/* Page-level <Row>s sit directly in .main-row (also a row). Bootstrap gives a nested row
+   width:100% plus negative margins, which shifted pages 12px left and lost 24px on the right. */
+.main-row > .row {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+/* Phones: use more of the screen width */
+@media (max-width: 576px) {
+    .main-row {
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-top: 20px;
+    }
+}
 .moon-icon {
     height: 20px;
     width: 20px;

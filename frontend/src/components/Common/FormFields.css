@@ -1,0 +1,15 @@
+.time-label {
+  min-width: 48px;
+  white-space: nowrap;
+}
+
+.time-pulldown {
+  width: 72px !important;
+}
+
+/* Fixed width so sliders don't shift as the value changes, and nothing spills past the card */
+.slider-value {
+  min-width: 64px;
+  text-align: right;
+  white-space: nowrap;
+}

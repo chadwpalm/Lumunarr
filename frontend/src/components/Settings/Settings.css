@@ -5,18 +5,11 @@
     width: 80px !important;
     text-align: right !important;
 }
-.schedule-pulldown {
-    width: 68px !important;
-}
 .conf-text {
     color: #00a700;
 }
 .error-text {
     color: #e00000;
-}
-.schedule-label {
-    min-width: 48px;
-    white-space: nowrap;
 }
 .footnote {
     font-size: small;
