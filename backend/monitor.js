@@ -1,4 +1,3 @@
-var express = require("express");
 const { SETTINGS_FILE } = require("./paths");
 const log = require("./logger").tagged("MONITOR");
 const fs = require("fs");

@@ -27,7 +27,7 @@ let secrets = []; // exact secret values from settings, longest first
 
 const SECRET_PATTERNS = [
   [/(X-Plex-Token[=:"' ]+)[A-Za-z0-9_\-.~]+/gi, "$1***"],
-  [/(hue-application-key["': ]+)[A-Za-z0-9_\-]+/gi, "$1***"],
+  [/(hue-application-key["': ]+)[A-Za-z0-9_-]+/gi, "$1***"],
   // JSON ("token":"x") and util.inspect (token: 'x') styles
   [/(["']?\b(?:token|authToken|accessToken|apiKey|mainApiKey|password)["']?\s*:\s*["'])[^"']+(["'])/gi, "$1***$2"],
 ];

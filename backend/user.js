@@ -4,7 +4,6 @@ const log = require("./logger").tagged("PAIRING");
 var router = express.Router();
 var axios = require("axios").default;
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
-var os = require("os");
 var fs = require("fs");
 var https = require("https");
 
