@@ -1,5 +1,45 @@
 # Lumunarr Version History
 
+## 1.7.0
+
+### Added
+
+- New **Host** section in Settings for running Lumunarr on a different port or behind a reverse proxy with a URL base (e.g. `mydomain.com/lumunarr`).
+  1. Shows the port and URL base Lumunarr is currently running on.
+  2. The `APP_PORT` and `APP_BASE_URL` environment variables override these settings. The fields are locked with a note when they are set.
+  3. Changes require a restart. The Docker health check follows the configured port and URL base.
+- New **Logging** section in Settings to choose the log level (Info or Debug), the maximum log file size and how many log files to keep. Changes apply as soon as they are saved, without a restart.
+- Logs now explain what happened with each Plex webhook. At Info level every play/pause/resume/stop/scrobble is logged along with which profile acted on it, or a note when no profile matched. At Debug level each profile lists the reason it was skipped (different player, user, media type or library, outside its schedule, or room lights off).
+- Lumunarr logs its version, Node version, platform, port, URL base and config folder at startup.
+- New `CONFIG_DIR` environment variable to keep settings and logs somewhere other than `/config`.
+- Contributing guide (`CONTRIBUTING.md`) and development tooling for contributors: a Vite dev server with hot reload, ESLint for the frontend and backend, a shared Prettier configuration, and `npm run dev` with a separate development config folder. Thanks to @nimbleghost for the suggestions. {[#10](https://github.com/chadwpalm/Lumunarr/issues/10)}
+
+### Changes
+
+- Security updates. Updated Node to version 26 LTS in the Docker image (Node 20 is end-of-life and Node 22 reaches end-of-life in April 2027).
+- Security updates. Updated all frontend and backend packages to their latest versions with no known vulnerabilities, including React 19, React Router 7 and Express 5.
+- Security updates. The Docker image is now based on Alpine Linux instead of Debian and no longer includes npm at runtime. This removed all 50 high-severity vulnerabilities reported in the previous image's operating system packages and bundled npm, and reduced the image size from 330 MB to 239 MB. Time zone data is included so the `TZ` environment variable keeps working.
+- Replaced Create React App, which is no longer maintained, with Vite for building the web interface. This removed every remaining build-tool vulnerability and makes builds much faster.
+- Redesigned the Settings, Server and client profile pages with sections in cards, side-by-side fields on larger screens, and better use of space on phones.
+- The profile form's actions are now one row per Plex event. Poster options appear directly under the event that uses them, the pause and scrobble delays sit next to their event, and the number of poster colors is chosen with buttons.
+- Poster colors are now ordered by how much of the poster they cover, so the dominant light gets the poster's most dominant color. Posters are processed in memory instead of being written to a temporary file.
+- Log lines now include a tag for the part of the app they come from, errors are summarized on a single line, routine messages moved to Debug, and Plex tokens and Hue keys are masked.
+- Bridge discovery now always uses the bridge's IPv4 address.
+- General code cleanup, removing about 1,450 lines of duplicated code from the profile and Server pages.
+
+### Fixes
+
+- Fixed poster mode not changing the lights when the number of poster colors was set to 1 (the default).
+- Fixed editing a client profile replacing the Stop action's poster brightness with the Pause action's.
+- Fixed the pause and scrobble delays showing "0 ms" instead of "Off" after moving the slider back to zero.
+- Fixed pages being slightly off-center with unused space on the right side.
+- Fixed the About dialog always showing "/Lumunarr" as the app folder.
+- Fixed the Server page failing to load instead of showing an error when the Hue bridge could not be reached.
+- Fixed an error in the Server alert blink sequence when a light update failed.
+- Fixed unexpected server errors causing a second error instead of being reported.
+- The Hue application key is no longer written to the log when pairing with a bridge.
+- Fixed the app icons used when adding Lumunarr to a phone's home screen.
+
 ## 1.6.1
 
 ### Added
