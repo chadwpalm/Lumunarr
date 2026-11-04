@@ -48,5 +48,6 @@ function onListening() {
     `Lumunarr ${version.version ?? "?"} (${version.branch ?? "?"} branch, build ${process.env.BUILD || "Native"}) ` +
       `on Node ${process.versions.node}, ${os.platform()} ${os.release()} ${os.arch()}`,
   );
-  log.info(`Listening on port ${port} at "${getBaseURL() || "/"}", settings and logs in /config`);
+  const { CONFIG_DIR } = require("../backend/paths");
+  log.info(`Listening on port ${port} at "${getBaseURL() || "/"}", settings and logs in ${CONFIG_DIR}`);
 }

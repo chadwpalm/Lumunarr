@@ -1,4 +1,5 @@
 var express = require("express");
+const { SETTINGS_FILE } = require("./paths");
 const log = require("./logger").tagged("PAIRING");
 var router = express.Router();
 var axios = require("axios").default;
@@ -55,7 +56,7 @@ router.post("/", async function (req, res, next) {
   var fileData = JSON.stringify(settings);
 
   try {
-    fs.writeFileSync("/config/settings.js", fileData);
+    fs.writeFileSync(SETTINGS_FILE, fileData);
     log.debug("Settings file saved");
   } catch (err) {
     if (err) throw err;

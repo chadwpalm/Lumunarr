@@ -22,3 +22,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# local development data (CONFIG_DIR)
+/dev-config
+/docker-config

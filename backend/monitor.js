@@ -1,4 +1,5 @@
 var express = require("express");
+const { SETTINGS_FILE } = require("./paths");
 const log = require("./logger").tagged("MONITOR");
 const fs = require("fs");
 var https = require("https");
@@ -14,19 +15,19 @@ const httpsAgent = new https.Agent({
 log.info(`Bridge monitor active, checking every ${interval} minutes`);
 
 // Path to the JSON file
-const jsonFilePath = "/config/settings.js";
+const jsonFilePath = SETTINGS_FILE;
 
 function writeToSettings(ip) {
   var fileData = "";
   try {
-    fileData = fs.readFileSync("/config/settings.js");
+    fileData = fs.readFileSync(SETTINGS_FILE);
   } catch (error) {
     log.error("Could not read settings file:", error);
   }
   var temp = JSON.parse(fileData);
   temp.bridge.ip = ip;
   try {
-    fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(temp));
   } catch (error) {
     log.error("Could not write settings file:", error);
   }

@@ -1,7 +1,8 @@
 const fs = require("fs");
+const { CONFIG_DIR, SETTINGS_FILE } = require("./paths");
 
 const LOG_TAG = "[CONFIG]";
-const SETTINGS_PATH = "/config/settings.js";
+const SETTINGS_PATH = SETTINGS_FILE;
 const DEFAULT_PORT = 3939;
 
 let activePort = null;
@@ -103,6 +104,8 @@ function getHostInfo() {
     defaultPort: DEFAULT_PORT,
     baseURL: getBaseURL(),
     baseURLSource,
+    configDir: CONFIG_DIR,
+    appDir: require("path").resolve(__dirname, ".."),
   };
 }
 

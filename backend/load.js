@@ -1,4 +1,5 @@
 var express = require("express");
+const { CONFIG_DIR, SETTINGS_FILE, configPath } = require("./paths");
 const log = require("./logger").tagged("SETTINGS");
 var router = express.Router();
 var fs = require("fs");
@@ -41,12 +42,12 @@ var fileData = `{"connected": "false","platform":"${
 }","uuid":"${uuid()}","version":"${appVersion}","branch":"${branch}","build":"${build}","appId":"Lumunarr#${hostname}","clients":[],"settings":{"transition":"0","startHour":"12","startMin":"0","startMed":"1","endHour":"11","endMin":"59","endMed":"2"},"api": "v2"}`;
 
 try {
-  fileData = fs.readFileSync("/config/settings.js");
+  fileData = fs.readFileSync(SETTINGS_FILE);
   var temp = JSON.parse(fileData);
 
   if (temp.api !== "v2") {
     log.info('Backing up old settings file to "settings_v1.bak"');
-    fs.writeFileSync("/config/settings_v1.bak", JSON.stringify(temp));
+    fs.writeFileSync(configPath("settings_v1.bak"), JSON.stringify(temp));
     updates.updateScenes(temp).then((temp2) => {
       updates.updateLights(temp2).then((newTemp) => {
         newTemp.api = "v2";
@@ -81,8 +82,8 @@ try {
           }
         });
 
-        fs.writeFileSync("/config/settings.js", JSON.stringify(newTemp));
-        fs.chownSync("/config/settings.js", UID, GID, (err) => {
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newTemp));
+        fs.chownSync(SETTINGS_FILE, UID, GID, (err) => {
           if (err) throw err;
         });
         log.info(`Config file updated to UID: ${UID} GID: ${GID}`);
@@ -121,8 +122,8 @@ try {
       }
     });
 
-    fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
-    fs.chownSync("/config/settings.js", UID, GID, (err) => {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(temp));
+    fs.chownSync(SETTINGS_FILE, UID, GID, (err) => {
       if (err) throw err;
     });
     log.info(`Config file updated to UID: ${UID} GID: ${GID}`);
@@ -131,12 +132,12 @@ try {
 } catch (err) {
   log.info("Settings file not found, creating");
   try {
-    if (!fs.existsSync("/config")) {
-      fs.mkdirSync("/config");
+    if (!fs.existsSync(CONFIG_DIR)) {
+      fs.mkdirSync(CONFIG_DIR, { recursive: true });
     }
-    fs.writeFileSync("/config/settings.js", fileData);
+    fs.writeFileSync(SETTINGS_FILE, fileData);
     log.info("Settings file created");
-    fs.chownSync("/config/settings.js", UID, GID, (err) => {
+    fs.chownSync(SETTINGS_FILE, UID, GID, (err) => {
       if (err) throw err;
     });
     log.info(`Config file set to UID: ${UID} GID: ${GID}`);
@@ -147,7 +148,7 @@ try {
 
 router.get("/", function (req, res, next) {
   try {
-    fileData = fs.readFileSync("/config/settings.js");
+    fileData = fs.readFileSync(SETTINGS_FILE);
     log.debug("Settings file read");
   } catch (err) {
     log.error("Settings file not found");

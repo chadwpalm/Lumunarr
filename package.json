@@ -2,7 +2,8 @@
   "name": "lumunarr",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "nodemon ./bin/www",
+    "dev": "CONFIG_DIR=./dev-config nodemon ./bin/www"
   },
   "overrides": {
     "semver": "^7.5.4",

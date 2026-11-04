@@ -1,4 +1,5 @@
 var express = require("express");
+const { SETTINGS_FILE } = require("../backend/paths");
 const log = require("../backend/logger").tagged("WEBHOOK");
 var router = express.Router();
 var multer = require("multer");
@@ -15,7 +16,7 @@ var isPaused = false;
 
 var upload = multer({ dest: "/tmp/" });
 
-const filePath = "/config/settings.js";
+const filePath = SETTINGS_FILE;
 
 let colors = [
   [0.64, 0.33],

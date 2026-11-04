@@ -144,7 +144,14 @@ export default class App extends Component {
 
   handleClose = () => this.setState({ show: false });
 
-  handleOpen = () => this.setState({ show: true, fullscreen: "md-down" });
+  handleOpen = () => {
+    this.setState({ show: true, fullscreen: "md-down" });
+    // Config/app folders come from the server (CONFIG_DIR can change the config folder)
+    fetch("backend/host")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((host) => host && this.setState({ host }))
+      .catch(() => {});
+  };
 
   handleCloseAnn = () => {
     this.setState({ announce: false });
@@ -367,9 +374,9 @@ export default class App extends Component {
                     <br />
                     <b>Build:</b> &nbsp;{this.state.config.build}
                     <br />
-                    <b>Config Dir:</b>&nbsp; /config
+                    <b>Config Dir:</b>&nbsp; {this.state.host?.configDir ?? "…"}
                     <br />
-                    <b>App Dir:</b>&nbsp; /Lumunarr
+                    <b>App Dir:</b>&nbsp; {this.state.host?.appDir ?? "…"}
                     <br />
                     <b>App ID:</b>&nbsp; {this.state.config.appId}
                     <br />

@@ -317,7 +317,7 @@ export default class Settings extends Component {
             {/* Logging */}
             <SettingsSection
               title="Logging"
-              tooltip="Logs are written to the logs folder inside your config directory (/config/logs) and to the console. Changes apply as soon as you save."
+              tooltip={`Logs are written to ${host?.configDir ?? "/config"}/logs and to the console. Changes apply as soon as you save.`}
               isDarkMode={this.props.isDarkMode}
             >
               <Row className="g-3">

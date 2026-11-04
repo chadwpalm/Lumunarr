@@ -8,12 +8,13 @@
 // - Secrets (Plex token, Hue application key, email) are masked in everything written.
 // - Plain console.* calls are routed through here too (untagged).
 const fs = require("fs");
+const paths = require("./paths");
 const util = require("util");
 const { createLogger, format, transports } = require("winston");
 const DailyRotateFile = require("winston-daily-rotate-file");
 
-const SETTINGS_PATH = "/config/settings.js";
-const LOG_DIR = "/config/logs";
+const SETTINGS_PATH = paths.SETTINGS_FILE;
+const LOG_DIR = paths.LOG_DIR;
 const DEFAULTS = { logLevel: "0", logSize: "10", logFiles: "5" }; // 0 = info, 1 = debug
 
 // Keep the original console for last-resort output (e.g. when the logger itself fails)
