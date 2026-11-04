@@ -1,4 +1,5 @@
 var express = require("express");
+const log = require("./logger").tagged("SERVER-PAGE");
 var router = express.Router();
 var axios = require("axios").default;
 var https = require("https");
@@ -13,8 +14,9 @@ router.post("/", async function (req, res, next) {
   var lights = [];
   var groupList = [];
   var output = [];
+  var message = []; // problems to report to the UI
 
-  console.info("Retrieving information for server page...");
+  log.debug("Retrieving information for server page...");
 
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
 
@@ -28,7 +30,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Rooms");
+      log.debug("Retrieving Rooms");
       rooms = response.data.data;
       for (const [key, value] of Object.entries(rooms)) {
         try {
@@ -40,13 +42,13 @@ router.post("/", async function (req, res, next) {
 
           groupList.push(JSON.parse(array));
         } catch (error) {
-          console.error("GroupList: ", error);
+          log.error("GroupList: ", error);
         }
       }
-      console.log(`${rooms.length} total room(s) retrieved`);
+      log.debug(`${rooms.length} total room(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting rooms:", error);
       message.push("Could not connect to the Hue Bridge while requesting rooms");
     });
 
@@ -62,7 +64,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Zones");
+      log.debug("Retrieving Zones");
       zones = response.data.data;
       for (const [key, value] of Object.entries(zones)) {
         try {
@@ -74,13 +76,13 @@ router.post("/", async function (req, res, next) {
 
           groupList.push(JSON.parse(array));
         } catch (error) {
-          console.error("GroupList: ", error);
+          log.error("GroupList: ", error);
         }
       }
-      console.log(`${zones.length} total zones(s) retrieved`);
+      log.debug(`${zones.length} total zone(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting rooms:", error);
       message.push("Could not connect to the Hue Bridge while requesting rooms");
     });
 
@@ -96,7 +98,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Lights");
+      log.debug("Retrieving Lights");
       var data = {};
       data = response.data.data;
       data.forEach((light) => {
@@ -107,7 +109,7 @@ router.post("/", async function (req, res, next) {
                 let array = `{ "Id":"${light.id}", "Name":"${light.metadata.name}", "Room":"${room.metadata.name}"}`;
                 lights.push(JSON.parse(array));
               } catch (error) {
-                console.error("Lights: ", error);
+                log.error("Lights: ", error);
               }
             }
           });
@@ -122,7 +124,7 @@ router.post("/", async function (req, res, next) {
                 let array = `{ "Id":"${light.id}", "Name":"${light.metadata.name}", "Room":"${zone.metadata.name}"}`;
                 lights.push(JSON.parse(array));
               } catch (error) {
-                console.error("Lights: ", error);
+                log.error("Lights: ", error);
               }
             }
           });
@@ -132,19 +134,20 @@ router.post("/", async function (req, res, next) {
       lights.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       lights.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
 
-      console.log(`${lights.length} total lights(s) retrieved`);
+      log.debug(`${lights.length} total light(s) retrieved`);
 
       output.push(lights);
       output.push(groupList);
     })
     .catch(function (error) {
-      if (error.request) {
-        console.error("Could not connect to the Hue bridge");
-        res.status(403).send("Could not connect to the Hue bridge");
-      }
+      log.error("Error while trying to connect to the Hue bridge while requesting lights:", error);
+      message.push("Could not connect to the Hue bridge while requesting lights");
     });
 
-  console.info("Sending server information to user interface...");
+  if (message.length) {
+    return res.status(403).send(message.join(". "));
+  }
+  log.debug("Sending server information to user interface...");
   res.send(JSON.stringify(output));
 });
 

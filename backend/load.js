@@ -1,4 +1,5 @@
 var express = require("express");
+const log = require("./logger").tagged("SETTINGS");
 var router = express.Router();
 var fs = require("fs");
 var os = require("os");
@@ -14,7 +15,7 @@ try {
   appVersion = JSON.parse(info).version;
   branch = JSON.parse(info).branch;
 } catch (err) {
-  console.error("Cannot grab version and branch info", err);
+  log.error("Cannot grab version and branch info", err);
 }
 
 if (process.env.PUID) {
@@ -44,13 +45,13 @@ try {
   var temp = JSON.parse(fileData);
 
   if (temp.api !== "v2") {
-    console.info('Backing up old settings file to "settings_v1.bak"');
+    log.info('Backing up old settings file to "settings_v1.bak"');
     fs.writeFileSync("/config/settings_v1.bak", JSON.stringify(temp));
     updates.updateScenes(temp).then((temp2) => {
       updates.updateLights(temp2).then((newTemp) => {
         newTemp.api = "v2";
         if (newTemp.version !== appVersion || newTemp.build !== build || newTemp.branch !== branch) {
-          console.info(
+          log.info(
             "Version updated from",
             newTemp.version,
             "build",
@@ -84,13 +85,13 @@ try {
         fs.chownSync("/config/settings.js", UID, GID, (err) => {
           if (err) throw err;
         });
-        console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
-        console.info("Settings file read");
+        log.info(`Config file updated to UID: ${UID} GID: ${GID}`);
+        log.debug("Settings file read");
       });
     });
   } else {
     if (temp.version !== appVersion || temp.build !== build || temp.branch !== branch) {
-      console.info(
+      log.info(
         "Version updated from",
         temp.version,
         "build",
@@ -124,21 +125,21 @@ try {
     fs.chownSync("/config/settings.js", UID, GID, (err) => {
       if (err) throw err;
     });
-    console.info(`Config file updated to UID: ${UID} GID: ${GID}`);
-    console.info("Settings file read");
+    log.info(`Config file updated to UID: ${UID} GID: ${GID}`);
+    log.debug("Settings file read");
   }
 } catch (err) {
-  console.info("Settings file not found, creating");
+  log.info("Settings file not found, creating");
   try {
     if (!fs.existsSync("/config")) {
       fs.mkdirSync("/config");
     }
     fs.writeFileSync("/config/settings.js", fileData);
-    console.info("Settings file created");
+    log.info("Settings file created");
     fs.chownSync("/config/settings.js", UID, GID, (err) => {
       if (err) throw err;
     });
-    console.info(`Config file set to UID: ${UID} GID: ${GID}`);
+    log.info(`Config file set to UID: ${UID} GID: ${GID}`);
   } catch (err) {
     if (err) throw err;
   }
@@ -147,9 +148,9 @@ try {
 router.get("/", function (req, res, next) {
   try {
     fileData = fs.readFileSync("/config/settings.js");
-    console.info("Settings file read");
+    log.debug("Settings file read");
   } catch (err) {
-    console.error("Settings file not found");
+    log.error("Settings file not found");
   }
 
   res.send(fileData);

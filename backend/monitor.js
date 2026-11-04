@@ -1,4 +1,5 @@
 var express = require("express");
+const log = require("./logger").tagged("MONITOR");
 const fs = require("fs");
 var https = require("https");
 var axios = require("axios").default;
@@ -10,7 +11,7 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
 
-console.info("Bridge checking monitor is active");
+log.info(`Bridge monitor active, checking every ${interval} minutes`);
 
 // Path to the JSON file
 const jsonFilePath = "/config/settings.js";
@@ -20,16 +21,16 @@ function writeToSettings(ip) {
   try {
     fileData = fs.readFileSync("/config/settings.js");
   } catch (error) {
-    console.error("Could not read settings file, (monitor.js)");
+    log.error("Could not read settings file:", error);
   }
   var temp = JSON.parse(fileData);
   temp.bridge.ip = ip;
   try {
     fs.writeFileSync("/config/settings.js", JSON.stringify(temp));
   } catch (error) {
-    console.error("Could not write settings file, (monitor.js)");
+    log.error("Could not write settings file:", error);
   }
-  console.info(`Writing IP ${ip} to settings`);
+  log.info(`Saved new bridge IP ${ip} to settings`);
 }
 
 // Function to check the results
@@ -46,11 +47,11 @@ async function checkResults(data) {
       .then(function (response) {
         var bridgeData = response.data;
 
-        // console.info(`Bridge check: ${bridgeData.bridgeid} found at ${data.bridge.ip}`);
+        // log.info(`Bridge check: ${bridgeData.bridgeid} found at ${data.bridge.ip}`);
       })
       .catch(function (error) {
         if (error.request) {
-          console.error("Bridge not online at", data.bridge.ip);
+          log.warn(`Bridge not reachable at ${data.bridge.ip}, searching the network for it`);
 
           axios
             .post(
@@ -76,20 +77,20 @@ async function checkResults(data) {
                     var newData = response.data;
 
                     if (newData.bridgeid === data.bridge.id) {
-                      console.info(`Bridge with ID ${newData.bridgeid} was found at ${element.IP}`);
+                      log.info(`Bridge with ID ${newData.bridgeid} was found at ${element.IP}`);
                       writeToSettings(element.IP);
                     }
                   })
                   .catch(function (error) {
                     if (error.request) {
-                      console.error("Bridge not online at", data.bridge.ip);
+                      log.debug(`No matching bridge at ${element.IP}`);
                     }
                   });
               });
             })
             .catch(function (error) {
               if (error.request) {
-                console.error(error);
+                log.error("Bridge search failed:", error);
               }
             });
         }
@@ -100,14 +101,14 @@ async function checkResults(data) {
 function readAndCheckJson() {
   fs.readFile(jsonFilePath, "utf8", (err, data) => {
     if (err) {
-      console.error("Error reading the file:", err);
+      log.error("Error reading the file:", err);
       return;
     }
     try {
       const jsonData = JSON.parse(data);
       checkResults(jsonData);
     } catch (parseError) {
-      console.error("Error parsing JSON:", parseError);
+      log.error("Error parsing JSON:", parseError);
     }
   });
 }
