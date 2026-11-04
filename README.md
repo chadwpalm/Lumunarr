@@ -22,6 +22,10 @@ Lumunarr is a connector application for controlling Philips Hue lighting using P
 - [Issues](https://github.com/chadwpalm/Lumunarr/issues)
 - [Discord](https://discord.gg/d76vc6bBJ6)
 
+### Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for how to set up a development environment and open a pull request.
+
 ### Licenses
 
 - [GNU GPL v3](https://www.gnu.org/licenses/gpl.html)
