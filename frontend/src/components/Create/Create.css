@@ -1,13 +1,6 @@
 .div-seperator {
     padding-bottom: 0.75rem;
 }
-.slider-style {
-    width: 50px;
-    text-align: right;
-}
-.sched-style {
-    width: 68px !important;
-}
 .form-content.dark-mode .repeat-icon {
     filter: invert(100%);
 }
@@ -32,4 +25,40 @@
 }
 .modal.dark-mode .modal-content {
     background-color: #363636;
+}
+/* Actions card: one row per Plex event, separated by a thin line */
+.event-action {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+}
+.event-action:first-child {
+    padding-top: 0;
+}
+.event-action:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.event-label {
+    font-weight: 600;
+}
+/* Number of Colors buttons: accent color when selected, readable in both themes */
+.color-count .btn {
+    min-width: 34px;
+}
+.color-count .btn-check:checked + .btn {
+    background-color: #7b5cff;
+    border-color: #7b5cff;
+    color: #fff;
+}
+.form-content.dark-mode .color-count .btn-check:not(:checked) + .btn {
+    color: #dee2e6;
+    border-color: #898989;
+}
+/* Poster options open underneath their event, indented with an accent line */
+.poster-options {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid #7b5cff;
+    background-color: rgba(128, 128, 128, 0.08);
+    border-radius: 0 6px 6px 0;
 }
