@@ -36,5 +36,17 @@ function onError(error) {
 }
 
 function onListening() {
-  console.info(`[STARTUP] Lumunarr listening on port ${port} at "${getBaseURL() || "/"}"`);
+  const log = require("../backend/logger").tagged("STARTUP");
+  let version = {};
+  try {
+    version = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "../version.json"), "utf8"));
+  } catch {
+    /* version.json missing */
+  }
+  const os = require("os");
+  log.info(
+    `Lumunarr ${version.version ?? "?"} (${version.branch ?? "?"} branch, build ${process.env.BUILD || "Native"}) ` +
+      `on Node ${process.versions.node}, ${os.platform()} ${os.release()} ${os.arch()}`,
+  );
+  log.info(`Listening on port ${port} at "${getBaseURL() || "/"}", settings and logs in /config`);
 }

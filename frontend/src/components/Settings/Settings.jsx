@@ -7,7 +7,8 @@ import Info from "bootstrap-icons/icons/info-circle.svg";
 import Button from "react-bootstrap/Button";
 import Stack from "react-bootstrap/Stack";
 import SettingsSection from "../SettingsSection/SettingsSection";
-import { TimeRange } from "../Common/FormFields";
+import Col from "react-bootstrap/Col";
+import { InfoLabel, TimeRange } from "../Common/FormFields";
 import "./Settings.css";
 
 // Must match normalizeBaseURL() in backend/config.js
@@ -18,6 +19,11 @@ function normalizeBaseURL(value) {
     return null; // invalid
   }
   return "/" + trimmed;
+}
+
+function validInt(value, min, max) {
+  const n = Number(value);
+  return String(value ?? "").trim() !== "" && Number.isInteger(n) && n >= min && n <= max;
 }
 
 function validPort(value) {
@@ -42,6 +48,9 @@ export default class Settings extends Component {
       longitude: s?.longitude ?? "",
       appPort: s?.appPort ?? "",
       baseURL: s?.baseURL ?? "",
+      logLevel: s?.logLevel ?? "0",
+      logSize: s?.logSize ?? "10",
+      logFiles: s?.logFiles ?? "5",
       host: null, // what the server is running with, from backend/host
       isSaved: false,
       error: null,
@@ -56,17 +65,19 @@ export default class Settings extends Component {
       .catch(() => this.setState({ host: null }));
   }
 
-  hostErrors() {
+  formErrors() {
     const errors = {};
     if (!validPort(this.state.appPort)) errors.appPort = "Port must be a whole number from 1 to 65535.";
     if (normalizeBaseURL(this.state.baseURL) === null)
       errors.baseURL = "Use letters, numbers and . _ ~ - separated by /, e.g. /lumunarr";
+    if (!validInt(this.state.logSize, 1, 100)) errors.logSize = "Enter a whole number from 1 to 100.";
+    if (!validInt(this.state.logFiles, 1, 60)) errors.logFiles = "Enter a whole number from 1 to 60.";
     return errors;
   }
 
   handleFormSubmit = (e) => {
     e.preventDefault();
-    if (Object.keys(this.hostErrors()).length) return;
+    if (Object.keys(this.formErrors()).length) return;
 
     if (!this.props.settings.settings) this.props.settings.settings = {};
     const settings = this.props.settings.settings;
@@ -82,6 +93,9 @@ export default class Settings extends Component {
     settings.longitude = this.state.longitude;
     settings.appPort = String(this.state.appPort).trim();
     settings.baseURL = normalizeBaseURL(this.state.baseURL);
+    settings.logLevel = this.state.logLevel;
+    settings.logSize = String(parseInt(this.state.logSize, 10));
+    settings.logFiles = String(parseInt(this.state.logFiles, 10));
 
     var xhr = new XMLHttpRequest();
 
@@ -124,7 +138,7 @@ export default class Settings extends Component {
 
   render() {
     const { host } = this.state;
-    const errors = this.hostErrors();
+    const errors = this.formErrors();
     const portOverride = host && (host.portSource === "APP_PORT" || host.portSource === "PORT") ? host.portSource : null;
     const baseOverride = host && host.baseURLSource === "APP_BASE_URL";
 
@@ -298,6 +312,73 @@ export default class Settings extends Component {
                   ? "Set by the APP_BASE_URL environment variable; this setting is ignored."
                   : "Requires restart to take effect"}
               </div>
+            </SettingsSection>
+
+            {/* Logging */}
+            <SettingsSection
+              title="Logging"
+              tooltip="Logs are written to the logs folder inside your config directory (/config/logs) and to the console. Changes apply as soon as you save."
+              isDarkMode={this.props.isDarkMode}
+            >
+              <Row className="g-3">
+                <Col xs={12} md={4}>
+                  <InfoLabel
+                    htmlFor="logLevel"
+                    tip={
+                      <>
+                        Info: what Lumunarr did (webhooks received, scenes recalled, errors).
+                        <br />
+                        <br />
+                        Debug: also why it did or didn't act (e.g. why a profile didn't match a webhook), every API
+                        request, and details of Hue/Plex lookups. Use this when troubleshooting.
+                      </>
+                    }
+                  >
+                    Log Level
+                  </InfoLabel>
+                  <Form.Select value={this.state.logLevel} id="logLevel" name="logLevel" onChange={this.handleField} size="sm">
+                    <option value="0">Info</option>
+                    <option value="1">Debug</option>
+                  </Form.Select>
+                </Col>
+                <Col xs={6} md={4}>
+                  <InfoLabel htmlFor="logSize" tip="Maximum size of a log file before a new one is started. Default is 10 MB.">
+                    Max File Size (MB)
+                  </InfoLabel>
+                  <Form.Control
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={this.state.logSize}
+                    id="logSize"
+                    name="logSize"
+                    onChange={this.handleField}
+                    isInvalid={!!errors.logSize}
+                    size="sm"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.logSize}</Form.Control.Feedback>
+                </Col>
+                <Col xs={6} md={4}>
+                  <InfoLabel
+                    htmlFor="logFiles"
+                    tip="How many log files to keep. A new file starts each day or when the size limit is reached; the oldest are deleted. Default is 5."
+                  >
+                    Files to Keep
+                  </InfoLabel>
+                  <Form.Control
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={this.state.logFiles}
+                    id="logFiles"
+                    name="logFiles"
+                    onChange={this.handleField}
+                    isInvalid={!!errors.logFiles}
+                    size="sm"
+                  />
+                  <Form.Control.Feedback type="invalid">{errors.logFiles}</Form.Control.Feedback>
+                </Col>
+              </Row>
             </SettingsSection>
 
             {/* Save */}

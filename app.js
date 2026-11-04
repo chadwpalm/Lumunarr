@@ -2,8 +2,9 @@ var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var fs = require("fs");
-require("./backend/logger");
+const logger = require("./backend/logger");
 const { getBaseURL } = require("./backend/config");
+const httpLog = logger.tagged("HTTP");
 
 var webhookRouter = require("./webhook/index");
 var load = require("./backend/load");
@@ -22,6 +23,18 @@ var app = express();
 const base = getBaseURL();
 const basePath = base + "/";
 const frontendDir = path.join(__dirname, "frontend/production");
+
+// Debug: one line per API/webhook request (static files are skipped)
+app.use((req, res, next) => {
+  if (!/\/(backend|webhook)(\/|$)/.test(req.path)) return next();
+  const start = process.hrtime.bigint();
+  const path = req.path; // routers rewrite req.path while handling, so capture it now
+  res.on("finish", () => {
+    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+    httpLog.debug(`${req.method} ${path} ${res.statusCode} ${ms.toFixed(0)}ms`);
+  });
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -69,7 +82,7 @@ app.use(function (req, res, next) {
 // error handler (no view engine is configured, so reply with plain text)
 app.use(function (err, req, res, next) {
   const status = err.status || err.statusCode || 500;
-  if (status >= 500) console.error(err.stack || err);
+  if (status >= 500) httpLog.error(`${req.method} ${req.originalUrl.split("?")[0]} failed:`, err);
   res.status(status).send(err.expose ? err.message : status >= 500 ? "Internal Server Error" : err.message);
 });
 
