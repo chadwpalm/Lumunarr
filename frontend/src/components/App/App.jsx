@@ -327,7 +327,7 @@ export default class App extends Component {
                             {this.state.config.email}
                           </NavDropdown.Header>
                           <NavDropdown.Divider />
-                          <NavDropdown.Item href="https://github.com/chadwpalm/Lumunarr/wiki" target="_blank">
+                          <NavDropdown.Item href="https://lumunarr.org/docs/Introduction" target="_blank">
                             Documentation
                           </NavDropdown.Item>
                           <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
@@ -382,7 +382,7 @@ export default class App extends Component {
                     <br />
                     <b>Docker:</b>&nbsp;
                     <a
-                      href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general"
+                      href="https://hub.docker.com/r/chadwpalm/lumunarr"
                       target="_blank"
                       rel="noreferrer"
                     >

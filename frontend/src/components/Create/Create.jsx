@@ -651,7 +651,7 @@ export default class Create extends Component {
             <br />
             See{" "}
             <a
-              href="https://github.com/chadwpalm/Lumunarr/wiki/User-Guide#profile-design-tips"
+              href="https://lumunarr.org/docs/Reference/Profile_Tips"
               target="_blank"
               rel="noreferrer"
             >
