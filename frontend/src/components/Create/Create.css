@@ -1,35 +1,64 @@
 .div-seperator {
-    padding-bottom: 0.75rem;
-}
-.slider-style {
-    width: 50px;
-    text-align: right;
-}
-.sched-style {
-    width: 68px !important;
+  padding-bottom: 0.75rem;
 }
 .form-content.dark-mode .repeat-icon {
-    filter: invert(100%);
+  filter: invert(100%);
 }
 .form-content.dark-mode .btn-outline-light {
-    --bs-btn-hover-bg: rgb(54, 54, 54);
-    --bs-btn-active-bg: black;
-    --bs-btn-border-color: #9f9f9f;
+  --bs-btn-hover-bg: rgb(54, 54, 54);
+  --bs-btn-active-bg: black;
+  --bs-btn-border-color: #9f9f9f;
 }
 .form-content.dark-mode .form-control {
-    color: white;
-    background-color: rgb(46, 46, 46);
-    border-color: #898989;
+  color: white;
+  background-color: rgb(46, 46, 46);
+  border-color: #898989;
 }
 .form-content.dark-mode .form-select {
-    color: white;
-    background-color: rgb(46, 46, 46);
-    border-color: #898989;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+  color: white;
+  background-color: rgb(46, 46, 46);
+  border-color: #898989;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
 }
 .form-content.dark-mode .image-info {
-    filter: invert(100%);
+  filter: invert(100%);
 }
 .modal.dark-mode .modal-content {
-    background-color: #363636;
+  background-color: #363636;
+}
+/* Actions card: one row per Plex event, separated by a thin line */
+.event-action {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+}
+.event-action:first-child {
+  padding-top: 0;
+}
+.event-action:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.event-label {
+  font-weight: 600;
+}
+/* Number of Colors buttons: accent color when selected, readable in both themes */
+.color-count .btn {
+  min-width: 34px;
+}
+.color-count .btn-check:checked + .btn {
+  background-color: #7b5cff;
+  border-color: #7b5cff;
+  color: #fff;
+}
+.form-content.dark-mode .color-count .btn-check:not(:checked) + .btn {
+  color: #dee2e6;
+  border-color: #898989;
+}
+/* Poster options open underneath their event, indented with an accent line */
+.poster-options {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid #7b5cff;
+  background-color: rgba(128, 128, 128, 0.08);
+  border-radius: 0 6px 6px 0;
 }

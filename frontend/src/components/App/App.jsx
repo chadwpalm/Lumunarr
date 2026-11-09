@@ -1,7 +1,6 @@
-import React from "react";
 import { Component } from "react";
 import Loading from "../../images/loading-gif.gif";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from "react-router-dom";
 import Login from "../Login/Login";
 import Bridge from "../Bridge/Bridge";
 import Device from "../Device/Device";
@@ -13,7 +12,6 @@ import Row from "react-bootstrap/Row";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { LinkContainer } from "react-router-bootstrap";
 import Logout from "bootstrap-icons/icons/box-arrow-right.svg";
 import Modal from "react-bootstrap/Modal";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -24,6 +22,9 @@ import Moon from "bootstrap-icons/icons/moon-stars.svg";
 import Sun from "bootstrap-icons/icons/sun.svg";
 import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
 import "./App.css";
+
+// URL base injected by the backend into index.html (see app.js); "/" in the dev server
+const basePath = window.__BASE_PATH__ || "/";
 
 export default class App extends Component {
   state = {
@@ -120,7 +121,7 @@ export default class App extends Component {
       }
     });
 
-    xhr.open("GET", "/backend/load", true);
+    xhr.open("GET", "backend/load", true);
     xhr.send();
   }
 
@@ -143,7 +144,14 @@ export default class App extends Component {
 
   handleClose = () => this.setState({ show: false });
 
-  handleOpen = () => this.setState({ show: true, fullscreen: "md-down" });
+  handleOpen = () => {
+    this.setState({ show: true, fullscreen: "md-down" });
+    // Config/app folders come from the server (CONFIG_DIR can change the config folder)
+    fetch("backend/host")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((host) => host && this.setState({ host }))
+      .catch(() => {});
+  };
 
   handleCloseAnn = () => {
     this.setState({ announce: false });
@@ -156,8 +164,7 @@ export default class App extends Component {
 
       xhr.addEventListener("readystatechange", () => {
         if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-          } else {
+          if (xhr.status !== 200) {
             // error
             this.setState({
               error: xhr.responseText,
@@ -166,7 +173,7 @@ export default class App extends Component {
         }
       });
 
-      xhr.open("POST", "/backend/save", true);
+      xhr.open("POST", "backend/save", true);
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhr.send(JSON.stringify(settings));
     }
@@ -214,7 +221,7 @@ export default class App extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -227,8 +234,7 @@ export default class App extends Component {
       var xhr = new XMLHttpRequest();
       xhr.addEventListener("readystatechange", () => {
         if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-          } else {
+          if (xhr.status !== 200) {
             // error
             this.setState({
               error: xhr.responseText,
@@ -236,7 +242,7 @@ export default class App extends Component {
           }
         }
       });
-      xhr.open("POST", "/backend/save", true);
+      xhr.open("POST", "backend/save", true);
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhr.send(JSON.stringify(settings));
       return { isDarkMode: newMode };
@@ -266,7 +272,7 @@ export default class App extends Component {
         if (this.state.isLoggedIn) {
           // success
           return (
-            <Router>
+            <Router basename={basePath}>
               <Container fluid>
                 <Row className={`navbar-row ${this.state.isDarkMode ? "dark-mode" : ""}`}>
                   <Navbar className={`navbar-content ${this.state.isDarkMode ? "dark-mode" : ""}`} expand="md">
@@ -278,41 +284,18 @@ export default class App extends Component {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                       <Nav className="me-auto">
-                        {!this.state.isConnected ? (
-                          <>
-                            <LinkContainer to="/">
-                              <Nav.Link disabled>Clients</Nav.Link>
-                            </LinkContainer>
-                            <LinkContainer to="/server">
-                              <Nav.Link disabled>Server</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        ) : (
-                          <>
-                            <LinkContainer to="/">
-                              <Nav.Link>Clients</Nav.Link>
-                            </LinkContainer>
-                            <LinkContainer to="/server">
-                              <Nav.Link>Server</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        )}
-                        <LinkContainer to="/bridge">
-                          <Nav.Link>Bridge</Nav.Link>
-                        </LinkContainer>
-                        {!this.state.isConnected ? (
-                          <>
-                            <LinkContainer to="/settings">
-                              <Nav.Link disabled>Settings</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        ) : (
-                          <>
-                            <LinkContainer to="/settings">
-                              <Nav.Link>Settings</Nav.Link>
-                            </LinkContainer>
-                          </>
-                        )}
+                        <Nav.Link as={NavLink} to="/" end disabled={!this.state.isConnected}>
+                          Clients
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/server" disabled={!this.state.isConnected}>
+                          Server
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/bridge">
+                          Bridge
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/settings" disabled={!this.state.isConnected}>
+                          Settings
+                        </Nav.Link>
                       </Nav>
                       <Nav className="ms-auto d-flex align-items-center">
                         <Image
@@ -344,7 +327,7 @@ export default class App extends Component {
                             {this.state.config.email}
                           </NavDropdown.Header>
                           <NavDropdown.Divider />
-                          <NavDropdown.Item href="https://github.com/chadwpalm/Lumunarr/wiki" target="_blank">
+                          <NavDropdown.Item href="https://lumunarr.org/docs/Introduction" target="_blank">
                             Documentation
                           </NavDropdown.Item>
                           <NavDropdown.Item onClick={this.handleOpen}>About</NavDropdown.Item>
@@ -391,15 +374,15 @@ export default class App extends Component {
                     <br />
                     <b>Build:</b> &nbsp;{this.state.config.build}
                     <br />
-                    <b>Config Dir:</b>&nbsp; /config
+                    <b>Config Dir:</b>&nbsp; {this.state.host?.configDir ?? "…"}
                     <br />
-                    <b>App Dir:</b>&nbsp; /Lumunarr
+                    <b>App Dir:</b>&nbsp; {this.state.host?.appDir ?? "…"}
                     <br />
                     <b>App ID:</b>&nbsp; {this.state.config.appId}
                     <br />
                     <b>Docker:</b>&nbsp;
                     <a
-                      href="https://hub.docker.com/repository/docker/chadwpalm/lumunarr/general"
+                      href="https://hub.docker.com/r/chadwpalm/lumunarr"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -474,7 +457,7 @@ export default class App extends Component {
           );
         } else {
           return (
-            <Router>
+            <Router basename={basePath}>
               <Routes>
                 <Route path="*" element={<Navigate replace to="/login" />} />
                 <Route

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import { v4 as uuid } from "uuid";
 import Client from "../Client/Client";
 import AddIcon from "../../images/add-icon.png";
@@ -83,7 +83,7 @@ export default class Device extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -128,7 +128,7 @@ export default class Device extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
 
@@ -148,8 +148,7 @@ export default class Device extends Component {
 
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-        } else {
+        if (xhr.status !== 200) {
           // error
           this.setState({
             show: false,
@@ -159,7 +158,7 @@ export default class Device extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };

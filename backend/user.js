@@ -1,8 +1,9 @@
 var express = require("express");
+const { SETTINGS_FILE } = require("./paths");
+const log = require("./logger").tagged("PAIRING");
 var router = express.Router();
 var axios = require("axios").default;
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
-var os = require("os");
 var fs = require("fs");
 var https = require("https");
 
@@ -13,8 +14,8 @@ const httpsAgent = new https.Agent({
 router.post("/", async function (req, res, next) {
   var settings = req.body;
 
-  console.info("IP: ", settings.bridge.ip);
-  console.info("Hue Application Name:", `${settings.appId}`);
+  log.info(`Pairing with bridge at ${settings.bridge.ip}`);
+  log.debug(`Hue application name: ${settings.appId}`);
 
   var flag = false;
   var startTime = new Date().getTime();
@@ -26,21 +27,21 @@ router.post("/", async function (req, res, next) {
       .post(url, { devicetype: `${settings.appId}` }, { httpsAgent })
       .then(function (response) {
         if (!response.data[0].error) {
-          console.info(`New bridge user created - Username: ${response.data[0].success.username}`);
+          log.info("Paired with the bridge, new application key created");
           username = response.data[0].success.username;
           flag = true;
         }
       })
       .catch(function (error) {
         if (error.request) {
-          console.error("Could not reach bridge during detection:", error);
+          log.error("Could not reach bridge during detection:", error);
         }
       });
     await setTimeoutPromise(200);
   }
 
   if (!username) {
-    console.info(`Link button not pressed. Try again...`);
+    log.info("Bridge link button not pressed yet, waiting...");
   } else {
     settings.connected = "true";
   }
@@ -54,8 +55,8 @@ router.post("/", async function (req, res, next) {
   var fileData = JSON.stringify(settings);
 
   try {
-    fs.writeFileSync("/config/settings.js", fileData);
-    console.info("Settings file saved");
+    fs.writeFileSync(SETTINGS_FILE, fileData);
+    log.debug("Settings file saved");
   } catch (err) {
     if (err) throw err;
   }

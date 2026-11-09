@@ -1,4 +1,5 @@
 var express = require("express");
+const log = require("./logger").tagged("PROFILES");
 var router = express.Router();
 var axios = require("axios").default;
 var https = require("https");
@@ -19,7 +20,7 @@ router.post("/", async function (req, res, next) {
   var libraries = [];
   var unauth = false;
 
-  console.info("Retrieving information for Plex Clients...");
+  log.debug("Retrieving information for Plex Clients...");
 
   var url = `https://${req.body.bridge.ip}/clip/v2/resource/room`;
 
@@ -33,7 +34,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Rooms");
+      log.debug("Retrieving Rooms");
       rooms = response.data.data;
       for (const [key, value] of Object.entries(rooms)) {
         try {
@@ -41,13 +42,13 @@ router.post("/", async function (req, res, next) {
 
           groupList.push(JSON.parse(array));
         } catch (error) {
-          console.error("GroupList: ", error);
+          log.error("GroupList: ", error);
         }
       }
-      console.log(`${rooms.length} total room(s) retrieved`);
+      log.debug(`${rooms.length} total room(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting rooms: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting rooms:", error);
       message.push("Could not connect to the Hue Bridge while requesting rooms");
     });
 
@@ -63,7 +64,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Zones");
+      log.debug("Retrieving Zones");
       zones = response.data.data;
 
       for (const [key, value] of Object.entries(zones)) {
@@ -72,13 +73,13 @@ router.post("/", async function (req, res, next) {
 
           groupList.push(JSON.parse(array));
         } catch (error) {
-          console.error("GroupList: ", error);
+          log.error("GroupList: ", error);
         }
       }
-      console.log(`${zones.length} total zone(s) retrieved`);
+      log.debug(`${zones.length} total zone(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting zones: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting zones:", error);
       message.push("Could not connect to the Hue Bridge while requesting zones");
     });
 
@@ -94,7 +95,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Light Scenes:");
+      log.debug("Retrieving Light Scenes");
       var data = [];
       data = response.data.data;
       data.forEach((scene) => {
@@ -112,14 +113,14 @@ router.post("/", async function (req, res, next) {
             }
           });
         } catch (error) {
-          console.error("Scenes: ", error);
+          log.error("Scenes: ", error);
         }
       });
       scenes.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting scenes: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting scenes:", error);
       message.push("Could not connect to the Hue bridge while requesting scenes");
     });
 
@@ -135,7 +136,7 @@ router.post("/", async function (req, res, next) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Retrieving Smart Scenes");
+      log.debug("Retrieving Smart Scenes");
       var data = [];
       data = response.data.data;
       data.forEach((scene) => {
@@ -153,16 +154,16 @@ router.post("/", async function (req, res, next) {
             }
           });
         } catch (error) {
-          console.error("Scenes: ", error);
+          log.error("Scenes: ", error);
         }
       });
       scenes.sort((a, b) => (a.Name > b.Name ? 1 : b.Name > a.Name ? -1 : 0));
       scenes.sort((a, b) => (a.Room > b.Room ? 1 : b.Room > a.Room ? -1 : 0));
 
-      console.log(`${scenes.length} total scene(s) retrieved`);
+      log.debug(`${scenes.length} total scene(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while requesting smart scenes: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while requesting smart scenes:", error);
       message.push("Could not connect to the Hue bridge while requesting smart scenes");
     });
 
@@ -172,7 +173,7 @@ router.post("/", async function (req, res, next) {
     .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
-      console.info("Retrieving Plex Accounts");
+      log.debug("Retrieving Plex Accounts");
 
       var user = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.User;
 
@@ -188,7 +189,7 @@ router.post("/", async function (req, res, next) {
       if (error.response.status === 401) {
         unauth = true;
       }
-      console.error("Issue with connection to online Plex account while requesting friends: ", error.message);
+      log.error("Issue with connection to online Plex account while requesting friends:", error);
       message.push("Issue with connection to online Plex account while requesting friends. Check logs for reason.");
     });
 
@@ -198,7 +199,7 @@ router.post("/", async function (req, res, next) {
     .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
-      console.info("Retrieving Server Admin Information");
+      log.debug("Retrieving Server Admin Information");
 
       let user = parser.xml2js(response.data, { compact: true, spaces: 4 }).user;
 
@@ -208,15 +209,15 @@ router.post("/", async function (req, res, next) {
 
       users.push(temp);
       users.sort((a, b) =>
-        a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0
+        a._attributes.title > b._attributes.title ? 1 : b._attributes.title > a._attributes.title ? -1 : 0,
       );
 
-      console.log(`${users.length} total users(s) retrieved`);
+      log.debug(`${users.length} total user(s) retrieved`);
     })
     .catch(function (error) {
-      console.error("Issue with connection to online Plex account while requesting account info: ", error.message);
+      log.error("Issue with connection to online Plex account while requesting account info:", error);
       message.push(
-        "Issue with connection to online Plex account while requesting account info. Check logs for reason."
+        "Issue with connection to online Plex account while requesting account info. Check logs for reason.",
       );
     });
 
@@ -226,7 +227,7 @@ router.post("/", async function (req, res, next) {
     .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
-      console.info("Retrieving Plex Libraries");
+      log.debug("Retrieving Plex Libraries");
 
       var servers = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Server;
 
@@ -250,16 +251,16 @@ router.post("/", async function (req, res, next) {
               });
             })
             .catch(function (error) {
-              console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
+              log.error("Issue with connection to online Plex account while requesting servers:", error);
               message.push(
-                "Issue with connection to online Plex account while requesting servers. Check logs for reason."
+                "Issue with connection to online Plex account while requesting servers. Check logs for reason.",
               );
             });
         }
       });
     })
     .catch(function (error) {
-      console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
+      log.error("Issue with connection to online Plex account while requesting servers:", error);
       message.push("Issue with connection to online Plex account while requesting servers. Check logs for reason.");
     });
 
@@ -269,7 +270,7 @@ router.post("/", async function (req, res, next) {
     .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
 
     .then(function (response) {
-      console.info("Retrieving Plex Clients");
+      log.debug("Retrieving Plex Clients");
 
       let list = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Device;
 
@@ -283,7 +284,7 @@ router.post("/", async function (req, res, next) {
         }
       }
 
-      console.log(`${list.length} total Plex clients(s) retrieved`);
+      log.debug(`${list.length} total Plex client(s) retrieved`);
 
       data.push(users);
       data.push(list);
@@ -292,20 +293,20 @@ router.post("/", async function (req, res, next) {
       data.push(libraries);
     })
     .catch(function (error) {
-      console.error("Issue with connection to online Plex account while requesting device info: ", error.message);
+      log.error("Issue with connection to online Plex account while requesting device info:", error);
       message.push("Issue with connection to online Plex account while requesting device info. Check logs for reason.");
     });
 
   if (message.length !== 0) {
     if (unauth) {
-      console.info("Invalid Plex token. Signing out of account. Please sign back in to fetch new token.");
+      log.warn("Plex rejected the saved token. Signing out; please sign back in to get a new token.");
       res.status(401).send(JSON.stringify([]));
     } else {
-      console.log(JSON.stringify(message));
+      log.warn("Profile page data incomplete:", message.join("; "));
       res.status(403).send(JSON.stringify(message));
     }
   } else {
-    console.info("Sending client information to user interface...");
+    log.debug("Sending client information to user interface...");
     res.send(JSON.stringify(data));
   }
 });

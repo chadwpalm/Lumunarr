@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import Card from "react-bootstrap/Card";
 import Xclose from "bootstrap-icons/icons/x-square.svg";
 import Edit from "bootstrap-icons/icons/pencil-square.svg";

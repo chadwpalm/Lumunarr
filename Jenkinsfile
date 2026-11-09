@@ -62,6 +62,8 @@ pipeline {
           sh "docker push ${REPO}/${IMAGE_NAME}:latest"
           sh "docker rmi ${REPO}/${IMAGE_NAME}:${APPVersion}"
         }
+        // Rebuild the docs site so it picks up the new release
+        build job: 'Lumunarr-Docs/main', wait: false
       }
     }
     stage('Build Features/Fixes') {

@@ -1,4 +1,3 @@
-import React from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -18,27 +17,53 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         <Modal.Title>Announcement</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <b>Lumunarr v1.6.0 Update</b>
+        <b>Lumunarr v1.7.0 Update</b>
         <br />
         <br />
-        While this release was originally intended to fix a backend crash due to a very niche edge-case, it ended up
-        being an update worthy of a major version number change.
+        Remember back in v1.5.0 when I said that would probably be the last major update? Yeah... about that. What
+        started as a routine security update turned into giving Lumunarr a fresh coat of paint and a brand new engine
+        under the hood.
+        <ul>
+          <li>
+            <b>A new look.</b> The Settings, Server and profile pages are now organized into tidy sections, and they
+            make much better use of the screen, especially on your phone.
+          </li>
+          <li>
+            <b>Easier profiles.</b> Each trigger (Play, Pause, Stop and friends) now gets its own row, and the poster
+            options pop up right under the trigger that uses them.
+          </li>
+          <li>
+            <b>Poster colors got some love.</b> Using just one poster color now actually works (oops), and your dominant
+            light gets the poster's most dominant color.
+          </li>
+          <li>
+            <b>"Why didn't my lights change?"</b> Lumunarr now tells you. Set the log level to Debug under Settings &gt;
+            Logging and the logs will explain exactly why each profile did or didn't react.
+          </li>
+          <li>
+            <b>Reverse proxy friendly.</b> Lumunarr can now run on a different port or behind a URL like
+            yourdomain.com/lumunarr. Look for the new Host section in Settings.
+          </li>
+          <li>
+            <b>Fresh and secure.</b> Everything under the hood has been updated to the latest versions, with zero known
+            security vulnerabilities. You won't see most of it, but your Docker image will thank you.
+          </li>
+        </ul>
+        A handful of bugs were squashed along the way too. For the full (and much nerdier) list of changes, check out
+        the{" "}
+        {branch === "dev" ? (
+          <a href="https://github.com/chadwpalm/Lumunarr/blob/develop/history.md" target="_blank" rel="noreferrer">
+            changelog
+          </a>
+        ) : (
+          <a href="https://github.com/chadwpalm/Lumunarr/blob/main/history.md" target="_blank" rel="noreferrer">
+            changelog
+          </a>
+        )}
+        .
         <br />
         <br />
-        Most of the changes are on the backend, but proved to be very important. The first change was updating Node to
-        version 20 LTS in the Docker image since v18 is EOL. Speaking of Docker, I also changed the way the image
-        builds, greatly reducing the image size.
-        <br />
-        <br />
-        I also took the time to update all of the Node packages that are used in the app to remove all security
-        vulnerablilties. An important part of this process involved ripping the band-aid off and re-writing the Plex
-        login/authorization code to stop using an outdated 3rd-party Plex authorization package. Holding on to this
-        package was forcing me to also hold on to outdated versions of packages it was depending on. So now officially I
-        am rid of all 3rd-party Hue and Plex API helper packages and using custom code to interact with these platforms.
-        Very long overdue.
-        <br />
-        <br />
-        As always, I thank you for your support on this project and I hope you are enjoying using it.
+        As always, thank you for your support on this project, and I hope you enjoy the new look!
         <br />
         <br />
         As a reminder, there is a Lumunarr Discord server located here:&nbsp;

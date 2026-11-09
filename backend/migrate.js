@@ -1,4 +1,5 @@
 var https = require("https");
+const log = require("./logger").tagged("MIGRATE");
 var axios = require("axios").default;
 
 const httpsAgent = new https.Agent({
@@ -18,7 +19,7 @@ async function updateScenes(temp) {
       httpsAgent,
     })
     .then(function (response) {
-      console.info("Migrating Config File to API v2");
+      log.info("Migrating Config File to API v2");
       var data = response.data.data;
       data.forEach((element) => {
         temp.clients.forEach(function (client, index, thisArg) {
@@ -42,7 +43,7 @@ async function updateScenes(temp) {
       return temp;
     })
     .catch(function (error) {
-      console.error("Error while trying to connect to the Hue bridge while migrating settings: ", error.message);
+      log.error("Error while trying to connect to the Hue bridge while migrating settings:", error);
     });
 }
 
@@ -71,7 +72,7 @@ async function updateLights(temp) {
         return temp;
       })
       .catch(function (error) {
-        console.error("Error while trying to connect to the Hue bridge while migrating settings: ", error.message);
+        log.error("Error while trying to connect to the Hue bridge while migrating settings:", error);
       });
   } else {
     return temp;

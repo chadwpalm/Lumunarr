@@ -1,15 +1,12 @@
 var express = require("express");
+const { SETTINGS_FILE } = require("../backend/paths");
+const log = require("../backend/logger").tagged("WEBHOOK");
 var router = express.Router();
 var multer = require("multer");
 var fs = require("fs");
 var axios = require("axios").default;
 var https = require("https");
 var parser = require("xml-js");
-var path = require("path");
-var { promisify } = require("util");
-var stream = require("stream");
-var pipeline = promisify(stream.pipeline);
-var fetch = require("node-fetch").default;
 var ColorThief = require("colorthief");
 var { rgbToXy } = require("./colorUtils");
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
@@ -19,7 +16,7 @@ var isPaused = false;
 
 var upload = multer({ dest: "/tmp/" });
 
-const filePath = "/config/settings.js";
+const filePath = SETTINGS_FILE;
 
 let colors = [
   [0.64, 0.33],
@@ -102,7 +99,7 @@ async function isSunRiseSet(lat, long) {
     // Check if current time is between sunrise and sunset
     return currentEpoch >= sunset && currentEpoch <= sunrise;
   } catch (error) {
-    console.error("Could not retrieve sunrise/sunset times", error);
+    log.error("Could not retrieve sunrise/sunset times", error);
     return false;
   }
 }
@@ -125,10 +122,10 @@ function setScene(scene, transition, ip, user) {
         },
       )
       .then(function (response) {
-        console.info(`Scene ${scene} recalled`);
+        log.debug(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
-        console.info("Not a normal scene....checking if smart scene");
+        log.debug(`${scene} is not a regular scene, trying it as a smart scene`);
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
 
         axios
@@ -145,17 +142,10 @@ function setScene(scene, transition, ip, user) {
             },
           )
           .then(function (response) {
-            console.info(`Smart Scene ${scene} recalled`);
+            log.debug(`Smart scene ${scene} recalled`);
           })
           .catch(function (error) {
-            if (error.response) {
-              console.error("Scene retrieval failed:");
-              console.error(`Status Code: ${error.response.status}`);
-              console.error(`Status Text: ${error.response.statusText}`);
-              console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-            } else {
-              console.error("Unknown error:", error.message);
-            }
+            log.error("Scene retrieval failed:", error);
           });
       });
   } else {
@@ -173,7 +163,7 @@ function setScene(scene, transition, ip, user) {
         },
       )
       .then(function (response) {
-        console.info(`Scene ${scene} recalled`);
+        log.debug(`Scene ${scene} recalled`);
       })
       .catch(function (error) {
         var url = `https://${ip}/clip/v2/resource/smart_scene/${scene}`;
@@ -192,17 +182,10 @@ function setScene(scene, transition, ip, user) {
             },
           )
           .then(function (response) {
-            console.info(`Smart Scene ${scene} recalled`);
+            log.debug(`Smart scene ${scene} recalled`);
           })
           .catch(function (error) {
-            if (error.response) {
-              console.error("Scene retrieval failed:");
-              console.error(`Status Code: ${error.response.status}`);
-              console.error(`Status Text: ${error.response.statusText}`);
-              console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-            } else {
-              console.error("Unknown error:", error.message);
-            }
+            log.error("Scene retrieval failed:", error);
           });
       });
   }
@@ -223,7 +206,7 @@ async function retryRequest(url, data, config, retries = 3) {
       return await axios.put(url, data, config);
     } catch (error) {
       if (error.response && error.response.status === 429 && i < retries - 1) {
-        console.warn(`Rate limit hit. Retrying in ${100 * 2 ** i}ms...`);
+        log.warn(`Rate limit hit. Retrying in ${100 * 2 ** i}ms...`);
         await wait(100 * 2 ** i); // Exponential backoff
       } else {
         throw error; // Rethrow if not a rate-limit error or retries are exhausted
@@ -251,7 +234,7 @@ async function turnoffGroup(room, ip, user, transition) {
       })
       .catch((error) => {
         if (error.request) {
-          console.error("Could not retrieve rooms: ", error);
+          log.error("Could not retrieve rooms: ", error);
         }
       });
 
@@ -274,7 +257,7 @@ async function turnoffGroup(room, ip, user, transition) {
             );
           }
         } catch (error) {
-          console.error("GroupList (room):", error);
+          log.error("GroupList (room):", error);
         }
       }),
     );
@@ -295,7 +278,7 @@ async function turnoffGroup(room, ip, user, transition) {
         zones = Array.isArray(response.data.data) ? response.data.data : [];
       })
       .catch(() => {
-        console.error("Could not retrieve zones.");
+        log.error("Could not retrieve zones.");
       });
 
     await Promise.all(
@@ -317,12 +300,12 @@ async function turnoffGroup(room, ip, user, transition) {
             );
           }
         } catch (error) {
-          console.error("GroupList (zone):", error);
+          log.error("GroupList (zone):", error);
         }
       }),
     );
   } catch (error) {
-    console.error("Unexpected error in turnoffGroup:", error);
+    log.error("Unexpected error in turnoffGroup:", error);
   }
 }
 
@@ -375,19 +358,13 @@ async function getChildren(types, roomName, uid, ip, key) {
             try {
               children.lights.push(light);
             } catch (error) {
-              console.error("Error adding light to children:", error);
+              log.error("Error adding light to children:", error);
             }
           }
         }
       }
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        error.response.data.errors.forEach((desc) => {
-          console.error(`Error description for ${type}:`, desc.description);
-        });
-      } else {
-        console.error(`Error retrieving ${type}:`, error);
-      }
+      log.error(`Error retrieving ${type}:`, error);
     }
   }
   return children;
@@ -442,14 +419,7 @@ async function recallDanglingScene(roomName, ip, key) {
       danglingScene = res.find((scene) => scene.metadata.name === `Lumunarr ${roomName}`);
     })
     .catch((error) => {
-      if (error.response) {
-        console.error("Scene retrieval failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
+      log.error("Scene retrieval failed:", error);
     });
 
   return danglingScene ?? null;
@@ -473,14 +443,7 @@ async function createScene(types, roomName, ip, key, transition) {
       originalScene = res.find((scene) => scene.metadata.name === `Lumunarr ${roomName}`);
     })
     .catch((error) => {
-      if (error.response) {
-        console.error("Scene retrieval failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
+      log.error("Scene retrieval failed:", error);
     });
 
   if (originalScene) {
@@ -496,17 +459,10 @@ async function createScene(types, roomName, ip, key, transition) {
         httpsAgent,
       })
       .then(() => {
-        console.info(`Scene ${originalScene.id} was removed`);
+        log.debug(`Removed temporary scene ${originalScene.id}`);
       })
       .catch((error) => {
-        if (error.response) {
-          console.error("Scene deletion failed:");
-          console.error(`Status Code: ${error.response.status}`);
-          console.error(`Status Text: ${error.response.statusText}`);
-          console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-        } else {
-          console.error("Unknown error:", error.message);
-        }
+        log.error("Scene deletion failed:", error);
       });
   }
 
@@ -582,14 +538,7 @@ async function createScene(types, roomName, ip, key, transition) {
       }
     })
     .catch((error) => {
-      if (error.response) {
-        console.error("Scene creation failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
+      log.error("Scene creation failed:", error);
     });
 }
 
@@ -619,17 +568,10 @@ async function deleteScene(roomName, transition, ip, key) {
       httpsAgent,
     })
     .then((response) => {
-      console.info(`Scene ${parsedId} was removed`);
+      log.debug(`Removed temporary scene ${parsedId}`);
     })
     .catch((error) => {
-      if (error.response) {
-        console.error("Scene creation failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
+      log.error("Scene creation failed:", error);
     });
 }
 
@@ -644,43 +586,44 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
       serverIP = serverPayload._attributes.localAddresses;
     })
     .catch(function (error) {
-      console.error("Issue with connection to online Plex account while requesting servers: ", error.message);
+      log.error("Issue with connection to online Plex account while requesting servers:", error);
     });
 
   if (!serverIP) {
-    console.error("Plex server IP unknown");
+    log.error("Plex server IP unknown");
     return;
   }
 
   const posterURL = `http://${serverIP}:32400${thumbURL}`;
 
   try {
-    console.info(`Pulling poster from ${posterURL}`);
+    log.debug(`Downloading poster ${posterURL}`);
 
     const response = await fetch(posterURL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const tempPath = path.join(__dirname, `temp-${Date.now()}.jpg`);
-    console.log(tempPath);
-    await pipeline(response.body, fs.createWriteStream(tempPath));
+    const poster = Buffer.from(await response.arrayBuffer());
 
-    palette = await ColorThief.getPalette(tempPath, num);
-
-    await fs.promises.unlink(tempPath).catch((err) => {
-      console.error("Error deleting temp file:", err);
-    });
+    // colorthief needs at least 2 colors; take the most dominant `num` of them.
+    // "rgb" quantization matches the colors colorthief v2 produced.
+    const count = Math.max(1, Number(num) || 1);
+    const colors = await ColorThief.getPalette(poster, { colorCount: Math.max(2, count), colorSpace: "rgb" });
+    palette = (colors || [])
+      .sort((a, b) => b.population - a.population)
+      .slice(0, count)
+      .map((c) => c.array());
   } catch (err) {
-    console.error(err);
+    log.error(err);
   }
 
   const lightGroup = await getChildren(["room", "zone"], room, null, ip, user);
 
   if (!Array.isArray(palette) || palette.length === 0) {
-    console.error("No valid palette available, aborting");
+    log.error("No valid palette available, aborting");
     return;
   }
   if (!lightGroup.lights || lightGroup.lights.length === 0) {
-    console.warn("No lights found for room", room);
+    log.warn("No lights found for room", room);
     return;
   }
 
@@ -706,10 +649,10 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
 
   const actions = lightsArray
     .map((light, i) => {
-      const idx = i % num;
+      const idx = i % palette.length;
       const entry = palette[idx];
       if (!entry || entry.length < 3) {
-        console.warn("Palette entry malformed", entry);
+        log.warn("Palette entry malformed", entry);
         return null;
       }
 
@@ -773,14 +716,7 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
       setScene(res.rid, parseFloat(transition) * 1000, ip, user);
     })
     .catch((error) => {
-      if (error.response) {
-        console.error("Scene creation failed:");
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Status Text: ${error.response.statusText}`);
-        console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-      } else {
-        console.error("Unknown error:", error.message);
-      }
+      log.error("Scene creation failed:", error);
     });
 
   if (finalID) {
@@ -796,20 +732,13 @@ async function setLightsToPoster(room, brightness, transition, ip, user, token, 
         httpsAgent,
       })
       .then((response) => {
-        console.info(`Scene ${finalID} was removed`);
+        log.debug(`Removed temporary scene ${finalID}`);
       })
       .catch((error) => {
-        if (error.response) {
-          console.error("Scene deletion failed:");
-          console.error(`Status Code: ${error.response.status}`);
-          console.error(`Status Text: ${error.response.statusText}`);
-          console.error("Error Response Data:", JSON.stringify(error.response.data, null, 2));
-        } else {
-          console.error("Unknown error:", error.message);
-        }
+        log.error("Scene deletion failed:", error);
       });
   } else {
-    console.warn("No final scene ID to delete");
+    log.debug("No temporary scene to delete");
   }
 }
 
@@ -824,9 +753,50 @@ async function checkIfOff(roomName, ip, key) {
   return true;
 }
 
+const MEDIA_EVENTS = ["media.play", "media.pause", "media.resume", "media.stop", "media.scrobble"];
+
+/** Profile name for log lines */
+function profileName(client) {
+  return client?.client?.title || client?.client?.name || client?.uid || "profile";
+}
+
+/** e.g. media.play from "SHIELD" by chadwpalm: "Show - S01E02 - Title" (TV Shows on "MyServer") */
+function describeWebhook(payload) {
+  const m = payload.Metadata || {};
+  const pad = (n) => String(n ?? "?").padStart(2, "0");
+  const title =
+    m.type === "episode"
+      ? `${m.grandparentTitle} - S${pad(m.parentIndex)}E${pad(m.index)} - ${m.title}`
+      : m.title || "?";
+  const where = m.librarySectionTitle ? ` (${m.librarySectionTitle} on "${payload.Server?.title ?? "?"}")` : "";
+  const who = payload.Player ? ` from "${payload.Player.title}"` : "";
+  const by = payload.Account ? ` by ${payload.Account.title}` : "";
+  return `${payload.event}${who}${by}: "${title}"${where}`;
+}
+
+/** Why a profile's media type/library didn't match the webhook */
+function mediaMismatch(client, payload) {
+  const m = payload.Metadata || {};
+  const got = m.cinemaTrailer
+    ? "a trailer/preroll"
+    : `${m.librarySectionType ?? "?"} from library "${m.librarySectionTitle ?? "?"}" on "${payload.Server?.title ?? "?"}"`;
+  let want = client.media === "cinemaTrailer" ? "trailers/prerolls" : client.media;
+  if (client.media !== "cinemaTrailer" && client.library && client.library !== "All") {
+    want += ` from library "${client.library}" on "${client.server}"`;
+  }
+  return `media is ${got}, profile wants ${want}`;
+}
+
 router.post("/", upload.single("thumb"), async function (req, res, next) {
   var payload = JSON.parse(req.body.payload);
   var settings = JSON.parse(fs.readFileSync(filePath));
+
+  if (MEDIA_EVENTS.includes(payload.event)) {
+    log.info(`Received ${describeWebhook(payload)}`);
+  } else {
+    log.debug(`Received ${describeWebhook(payload)}`);
+  }
+  if (payload.Player) log.debug(`Player "${payload.Player.title}" has ID ${payload.Player.uuid}`);
 
   if (settings.bridge) {
     try {
@@ -834,7 +804,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
         var global = settings.settings;
         var server = settings.server;
         if (payload.event === "playback.started") {
-          console.info("Playback has started from an external user");
+          log.info(`Server alert: playback started by ${payload.Account?.title}`);
           var sFlag = true;
 
           switch (server.scheduleType) {
@@ -892,16 +862,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .then(function (response) {
-                      console.info(`...Playback started on server by ${payload.Account.title}`, response);
+                      log.debug("Server alert light updated (playback started)");
                     })
                     .catch(function (error) {
-                      if (error.response && error.response.data && error.response.data.errors) {
-                        error.response.data.errors.forEach(function (desc) {
-                          console.error("Error description:", desc.description);
-                        });
-                      } else {
-                        console.error("Error data:", error);
-                      }
+                      log.error("Hue request failed:", error);
                     });
                 } else {
                   var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightPlay}`;
@@ -927,16 +891,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .then(function (response) {
-                      console.info(`Playback started on server by ${payload.Account.title}`);
+                      log.debug("Server alert light updated (playback started)");
                     })
                     .catch(function (error) {
-                      if (error.response && error.response.data && error.response.data.errors) {
-                        error.response.data.errors.forEach(function (desc) {
-                          console.error("Error description:", desc.description);
-                        });
-                      } else {
-                        console.error("Error data:", error);
-                      }
+                      log.error("Hue request failed:", error);
                     });
                 }
               }
@@ -950,7 +908,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       });
                     })
                     .catch((error) => {
-                      console.error("Error retrieving children:", error);
+                      log.error("Error retrieving children:", error);
                     });
 
                   for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
@@ -972,18 +930,11 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        if (error.response && error.response.data && error.response.data.errors) {
-                          error.response.data.errors.forEach(function (desc) {
-                            console.error("Error description:", desc.description);
-                          });
-                        } else {
-                          console.error("Error data:", error);
-                        }
-                        grouped_;
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
-                    bri = Math.floor(parseInt(server.brightnessPlay));
+                    var bri = Math.floor(parseInt(server.brightnessPlay));
                     x = colors[server.colorPlay][0];
                     y = colors[server.colorPlay][1];
 
@@ -1006,13 +957,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        if (error.response && error.response.data && error.response.data.errors) {
-                          error.response.data.errors.forEach(function (desc) {
-                            console.error("Error description:", desc.description);
-                          });
-                        } else {
-                          console.error("Error data:", error);
-                        }
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
@@ -1034,13 +979,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .catch(function (error) {
-                      if (error.response && error.response.data && error.response.data.errors) {
-                        error.response.data.errors.forEach(function (desc) {
-                          console.error("Error description:", desc.description);
-                        });
-                      } else {
-                        console.error("Error data:", error);
-                      }
+                      log.error("Hue request failed:", error);
                     });
 
                   await setTimeoutPromise(500);
@@ -1067,13 +1006,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          if (error.response && error.response.data && error.response.data.errors) {
-                            error.response.data.errors.forEach(function (desc) {
-                              console.error("Error description restore:", desc.description);
-                            });
-                          } else {
-                            console.error("Error data restore:", error);
-                          }
+                          log.error("Hue request failed (restore):", error);
                         });
                     }
                   }
@@ -1095,7 +1028,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       state = response.data.data[0];
                     })
                     .catch(function (error) {
-                      console.error(error.stack);
+                      log.error("Hue request failed:", error);
                     });
 
                   for (let i = 0; i < parseInt(server.intervalsPlay); i++) {
@@ -1117,7 +1050,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        console.error(error.stack);
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
@@ -1144,7 +1077,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        console.error(error.stack);
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
@@ -1166,7 +1099,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .catch(function (error) {
-                      console.error(error.stack);
+                      log.error("Hue request failed:", error);
                     });
 
                   await setTimeoutPromise(500);
@@ -1191,18 +1124,20 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        console.error(error.stack);
+                        log.error("Hue request failed:", error);
                       });
                   }
                 }
               }
             }
           } else {
-            console.info("Not within schedule");
+            log.debug("Server alert skipped: outside its schedule");
           }
         }
         if (payload.event === "library.new") {
-          console.info("New media has been added to library");
+          log.info(
+            `Server alert: new media added${payload.Metadata?.librarySectionTitle ? ` to ${payload.Metadata.librarySectionTitle}` : ""}`,
+          );
           var sFlag = true;
 
           switch (server.scheduleType) {
@@ -1260,16 +1195,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .then(function (response) {
-                      console.info("New media has been added to the Plex server");
+                      log.debug("Server alert light updated (library new)");
                     })
                     .catch(function (error) {
-                      if (error.response && error.response.data && error.response.data.errors) {
-                        error.response.data.errors.forEach(function (desc) {
-                          console.error("Error description:", desc.description);
-                        });
-                      } else {
-                        console.error("Error data:", error);
-                      }
+                      log.error("Hue request failed:", error);
                     });
                 } else {
                   var url = `https://${settings.bridge.ip}/clip/v2/resource/light/${server.lightNew}`;
@@ -1295,16 +1224,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                       },
                     )
                     .then(function (response) {
-                      console.info(`New media has been added to the Plex server`);
+                      log.debug("Server alert light updated (library new)");
                     })
                     .catch(function (error) {
-                      if (error.response && error.response.data && error.response.data.errors) {
-                        error.response.data.errors.forEach(function (desc) {
-                          console.error("Error description:", desc.description);
-                        });
-                      } else {
-                        console.error("Error data:", error);
-                      }
+                      log.error("Hue request failed:", error);
                     });
                 }
               }
@@ -1320,7 +1243,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         });
                       })
                       .catch((error) => {
-                        console.error("Error retrieving children:", error);
+                        log.error("Error retrieving children:", error);
                       });
 
                     for (let i = 0; i < parseInt(server.intervalsNew); i++) {
@@ -1342,18 +1265,11 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          if (error.response && error.response.data && error.response.data.errors) {
-                            error.response.data.errors.forEach(function (desc) {
-                              console.error("Error description:", desc.description);
-                            });
-                          } else {
-                            console.error("Error data:", error);
-                          }
-                          grouped_;
+                          log.error("Hue request failed:", error);
                         });
 
                       await setTimeoutPromise(500);
-                      bri = Math.floor(parseInt(server.brightnessNew));
+                      var bri = Math.floor(parseInt(server.brightnessNew));
                       x = colors[server.colorNew][0];
                       y = colors[server.colorNew][1];
 
@@ -1376,13 +1292,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          if (error.response && error.response.data && error.response.data.errors) {
-                            error.response.data.errors.forEach(function (desc) {
-                              console.error("Error description:", desc.description);
-                            });
-                          } else {
-                            console.error("Error data:", error);
-                          }
+                          log.error("Hue request failed:", error);
                         });
 
                       await setTimeoutPromise(500);
@@ -1404,13 +1314,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        if (error.response && error.response.data && error.response.data.errors) {
-                          error.response.data.errors.forEach(function (desc) {
-                            console.error("Error description:", desc.description);
-                          });
-                        } else {
-                          console.error("Error data:", error);
-                        }
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
@@ -1437,13 +1341,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                             },
                           )
                           .catch(function (error) {
-                            if (error.response && error.response.data && error.response.data.errors) {
-                              error.response.data.errors.forEach(function (desc) {
-                                console.error("Error description restore:", desc.description);
-                              });
-                            } else {
-                              console.error("Error data restore:", error);
-                            }
+                            log.error("Hue request failed (restore):", error);
                           });
                       }
                     }
@@ -1469,7 +1367,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         state = response.data.data[0];
                       })
                       .catch(function (error) {
-                        console.error(error.stack);
+                        log.error("Hue request failed:", error);
                       });
 
                     for (let i = 0; i < parseInt(server.intervalsNew); i++) {
@@ -1491,7 +1389,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          console.error(error.stack);
+                          log.error("Hue request failed:", error);
                         });
 
                       await setTimeoutPromise(500);
@@ -1518,7 +1416,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          console.error(error.stack);
+                          log.error("Hue request failed:", error);
                         });
 
                       await setTimeoutPromise(500);
@@ -1540,7 +1438,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         },
                       )
                       .catch(function (error) {
-                        console.error(error.stack);
+                        log.error("Hue request failed:", error);
                       });
 
                     await setTimeoutPromise(500);
@@ -1565,13 +1463,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                           },
                         )
                         .catch(function (error) {
-                          if (error.response && error.response.data && error.response.data.errors) {
-                            error.response.data.errors.forEach(function (desc) {
-                              console.error("Error description restore:", desc.description);
-                            });
-                          } else {
-                            console.error("Error data restore:", error);
-                          }
+                          log.error("Hue request failed (restore):", error);
                         });
                       flag = false;
                     }
@@ -1587,7 +1479,10 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
         var clients = settings.clients;
         var global = settings.settings;
 
-        clients.forEach(async (client) => {
+        let matched = 0;
+        const evaluations = clients.map(async (client) => {
+          const name = profileName(client);
+          const skip = (reason) => log.debug(`"${name}" skipped: ${reason}`);
           try {
             if (client.active && payload?.Player?.uuid) {
               if (payload.Player.uuid === client.client.id) {
@@ -1633,6 +1528,8 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                         !client.lightsOff ||
                         (client.lightsOff && !(await checkIfOff(client.room, settings.bridge.ip, settings.bridge.user)))
                       ) {
+                        matched++;
+                        log.debug(`"${name}" matches this webhook`);
                         if (payload.event === "media.play" && client.play !== "None") {
                           if (client.pause === "-2" || client.stop === "-2") {
                             await createScene(
@@ -1651,7 +1548,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(client.transition) * 1000,
                               );
-                              console.info("Play trigger has turned off lights");
+                              log.info(`"${name}": Play turned the lights off`);
                             } else if (client.play === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -1674,7 +1571,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.ip,
                                 settings.bridge.user,
                               );
-                              console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                              log.info(`"${name}": Play scene recalled`);
                             }
                           } else {
                             if (client.play === "Off") {
@@ -1684,7 +1581,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(global.transition) * 1000,
                               );
-                              console.info("Play trigger has turned off lights");
+                              log.info(`"${name}": Play turned the lights off`);
                             } else if (client.play === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -1707,7 +1604,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.ip,
                                 settings.bridge.user,
                               );
-                              console.info(`Play scene was recalled ${client.media} on ${client.client.name}`);
+                              log.info(`"${name}": Play scene recalled`);
                             }
                           }
                         }
@@ -1721,7 +1618,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(client.transition) * 1000,
                               );
-                              console.info("Stop trigger has turned off lights");
+                              log.info(`"${name}": Stop turned the lights off`);
                             } else if (client.stop === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -1762,7 +1659,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                               );
                             }
-                            console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                            log.info(`"${name}": Stop scene recalled`);
                           } else {
                             if (client.stop === "Off") {
                               turnoffGroup(
@@ -1771,7 +1668,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(global.transition) * 1000,
                               );
-                              console.info("Stop trigger has turned off lights");
+                              log.info(`"${name}": Stop turned the lights off`);
                             } else if (client.stop === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -1811,7 +1708,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   settings.bridge.user,
                                 );
                               }
-                              console.info(`Stop scene was recalled ${client.media} on ${client.client.name}`);
+                              log.info(`"${name}": Stop scene recalled`);
                             }
                           }
                         }
@@ -1826,7 +1723,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                     settings.bridge.user,
                                     parseFloat(client.transition) * 1000,
                                   );
-                                  console.info("Pause trigger has turned off lights");
+                                  log.info(`"${name}": Pause turned the lights off`);
                                 } else if (client.pause === "-3") {
                                   setLightsToPoster(
                                     client.room,
@@ -1853,7 +1750,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                         settings.bridge.user,
                                       );
                                     } else {
-                                      console.info("Recalling stored scene");
+                                      log.info(`"${name}": restoring the pre-play scene`);
                                       const result = await recallDanglingScene(
                                         client.room,
                                         settings.bridge.ip,
@@ -1867,7 +1764,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                           settings.bridge.user,
                                         );
                                       } else {
-                                        console.info("No stored scene found");
+                                        log.warn(`"${name}": no pre-play scene stored to restore`);
                                       }
                                     }
                                   } else {
@@ -1878,7 +1775,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                       settings.bridge.user,
                                     );
                                   }
-                                  console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                                  log.info(`"${name}": Pause scene recalled`);
                                 }
                               } else {
                                 if (client.pause === "Off") {
@@ -1888,7 +1785,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                     settings.bridge.user,
                                     parseFloat(global.transition) * 1000,
                                   );
-                                  console.info("Pause trigger has turned off lights");
+                                  log.info(`"${name}": Pause turned the lights off`);
                                 } else if (client.pause === "-3") {
                                   setLightsToPoster(
                                     client.room,
@@ -1915,7 +1812,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                         settings.bridge.user,
                                       );
                                     } else {
-                                      console.info("Recalling stored scene");
+                                      log.info(`"${name}": restoring the pre-play scene`);
                                       const result = await recallDanglingScene(
                                         client.room,
                                         settings.bridge.ip,
@@ -1929,7 +1826,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                           settings.bridge.user,
                                         );
                                       } else {
-                                        console.info("No stored scene found");
+                                        log.warn(`"${name}": no pre-play scene stored to restore`);
                                       }
                                     }
                                   } else {
@@ -1940,14 +1837,14 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                       settings.bridge.user,
                                     );
                                   }
-                                  console.info(`Pause scene was recalled ${client.media} on ${client.client.name}`);
+                                  log.info(`"${name}": Pause scene recalled`);
                                 }
                               }
                             }
                           };
 
                           if (client.pauseDelayMs && client.pauseDelayMs !== "0") {
-                            console.info(`Waiting ${client.pauseDelayMs}ms before recalling scene`);
+                            log.info(`"${name}": waiting ${client.pauseDelayMs} ms before the Pause scene`);
                             isPaused = true;
                             setTimeout(recallPauseScene, client.pauseDelayMs);
                           } else {
@@ -1965,7 +1862,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(client.transition) * 1000,
                               );
-                              console.info("Resume trigger has turned off lights");
+                              log.info(`"${name}": Resume turned the lights off`);
                             } else if (client.resume === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -1988,7 +1885,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.ip,
                                 settings.bridge.user,
                               );
-                              console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                              log.info(`"${name}": Resume scene recalled`);
                             }
                           } else {
                             if (client.resume === "Off") {
@@ -1998,7 +1895,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.user,
                                 parseFloat(global.transition) * 1000,
                               );
-                              console.info("Resume trigger has turned off lights");
+                              log.info(`"${name}": Resume turned the lights off`);
                             } else if (client.resume === "-3") {
                               setLightsToPoster(
                                 client.room,
@@ -2021,7 +1918,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                 settings.bridge.ip,
                                 settings.bridge.user,
                               );
-                              console.info(`Resume scene was recalled ${client.media} on ${client.client.name}`);
+                              log.info(`"${name}": Resume scene recalled`);
                             }
                           }
                         }
@@ -2035,7 +1932,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   settings.bridge.user,
                                   parseFloat(client.transition) * 1000,
                                 );
-                                console.info("Scrobble trigger has turned off lights");
+                                log.info(`"${name}": Scrobble turned the lights off`);
                               } else if (client.scrobble === "-3") {
                                 setLightsToPoster(
                                   client.room,
@@ -2058,7 +1955,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   settings.bridge.ip,
                                   settings.bridge.user,
                                 );
-                                console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                                log.info(`"${name}": Scrobble scene recalled`);
                               }
                             } else {
                               if (client.scrobble === "Off") {
@@ -2068,7 +1965,7 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   settings.bridge.user,
                                   parseFloat(global.transition) * 1000,
                                 );
-                                console.info("Scrobble trigger has turned off lights");
+                                log.info(`"${name}": Scrobble turned the lights off`);
                               } else if (client.scrobble === "-3") {
                                 setLightsToPoster(
                                   client.room,
@@ -2091,40 +1988,62 @@ router.post("/", upload.single("thumb"), async function (req, res, next) {
                                   settings.bridge.ip,
                                   settings.bridge.user,
                                 );
-                                console.info(`Scrobble scene was recalled ${client.media} on ${client.client.name}`);
+                                log.info(`"${name}": Scrobble scene recalled`);
                               }
                             }
                           };
 
                           if (client.scrobbleDelayMs) {
-                            console.info(`Waiting ${client.scrobbleDelayMs}ms before recalling scene`);
+                            log.info(`"${name}": waiting ${client.scrobbleDelayMs} ms before the Scrobble scene`);
                             setTimeout(recallScrobbleScene, client.scrobbleDelayMs);
                           } else {
                             recallScrobbleScene();
                           }
                         }
+                      } else {
+                        skip("all lights in the room are off and 'Ignore triggers if lights are off' is on");
                       }
+                    } else {
+                      skip(mediaMismatch(client, payload));
                     }
+                  } else {
+                    skip(`webhook user "${payload.Account?.title}" is not the profile's user "${client.user?.name}"`);
                   }
                 } else {
-                  console.info("Not within schedule: ", client.uid);
+                  skip("outside its schedule");
                 }
+              } else {
+                skip(`for a different player ("${client.client?.name}")`);
               }
+            } else {
+              skip(client.active ? "webhook has no player" : "profile is turned off");
             }
           } catch (err) {
-            console.info("There was an issue processing the webhook", err);
+            log.error(`"${name}": error while handling ${payload.event}:`, err);
+          }
+        });
+
+        // Summary once every profile has been checked (does not delay the reply to Plex)
+        Promise.all(evaluations).then(() => {
+          if (!MEDIA_EVENTS.includes(payload.event)) return;
+          if (matched === 0) {
+            log.info(
+              `No profile matched ${payload.event} (${clients.length} checked). Set Log Level to Debug in Settings to see why.`,
+            );
+          } else {
+            log.debug(`${matched} profile(s) matched ${payload.event}`);
           }
         });
       } else {
-        console.info("There are no clients set up yet.");
+        log.debug("No profiles set up yet, ignoring webhook");
       }
     } catch (err) {
-      console.info("Config file not found, please run the web app once to create file", err);
+      log.error("Could not process webhook (is the settings file valid? open the web app once to create it):", err);
     }
 
     res.sendStatus(200);
   } else {
-    console.info("Bridge is not set up");
+    log.debug("Bridge is not set up yet, ignoring webhook");
     res.sendStatus(200);
   }
 });

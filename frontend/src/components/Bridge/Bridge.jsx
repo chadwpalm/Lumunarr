@@ -1,4 +1,3 @@
-import React from "react";
 import { Component } from "react";
 import BridgeInfo from "../Bridgeinfo/BridgeInfo";
 import Row from "react-bootstrap/Row";
@@ -53,7 +52,7 @@ export default class Bridge extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -103,7 +102,7 @@ export default class Bridge extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/user", true);
+    xhr.open("POST", "backend/user", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -137,7 +136,7 @@ export default class Bridge extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -172,7 +171,7 @@ export default class Bridge extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", true);
+    xhr.open("POST", "backend/save", true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
   };
@@ -215,7 +214,7 @@ export default class Bridge extends Component {
         }
       });
 
-      xhr.open("POST", "/backend/discover", true);
+      xhr.open("POST", "backend/discover", true);
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhr.send();
     }
@@ -275,7 +274,7 @@ export default class Bridge extends Component {
           }
         });
 
-        xhr.open("POST", "/backend/discover", true);
+        xhr.open("POST", "backend/discover", true);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhr.send(JSON.stringify({ ip: this.state.manual }));
       }

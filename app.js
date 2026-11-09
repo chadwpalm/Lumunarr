@@ -1,8 +1,10 @@
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
-var cookieParser = require("cookie-parser");
-require("./backend/logger");
+var fs = require("fs");
+const logger = require("./backend/logger");
+const { getBaseURL } = require("./backend/config");
+const httpLog = logger.tagged("HTTP");
 
 var webhookRouter = require("./webhook/index");
 var load = require("./backend/load");
@@ -12,43 +14,79 @@ var discover = require("./backend/discover");
 var thumb = require("./backend/thumb");
 var client = require("./backend/client");
 var server = require("./backend/server");
+var host = require("./backend/host");
 require("./backend/monitor.js");
 
 var app = express();
 
+// URL base for reverse proxies, e.g. "/lumunarr" ("" = root). Everything is mounted under it.
+const base = getBaseURL();
+const basePath = base + "/";
+const frontendDir = path.join(__dirname, "frontend/production");
+
+// Debug: one line per API/webhook request (static files are skipped)
+app.use((req, res, next) => {
+  if (!/\/(backend|webhook)(\/|$)/.test(req.path)) return next();
+  const start = process.hrtime.bigint();
+  const path = req.path; // routers rewrite req.path while handling, so capture it now
+  res.on("finish", () => {
+    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+    httpLog.debug(`${req.method} ${path} ${res.statusCode} ${ms.toFixed(0)}ms`);
+  });
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "frontend/production")));
 
-app.use("/backend/load", load);
-app.use("/backend/save", save);
-app.use("/backend/user", user);
-app.use("/backend/discover", discover);
-app.use("/backend/thumb", thumb);
-app.use("/backend/client", client);
-app.use("/backend/server", server);
-app.use("/webhook", webhookRouter);
+if (base) {
+  // "/" and "/lumunarr" -> "/lumunarr/"
+  app.use((req, res, next) => {
+    if (req.path === "/" || req.path === base) return res.redirect(302, basePath);
+    next();
+  });
+}
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/production/index.html"));
+var routes = express.Router();
+
+routes.use(express.static(frontendDir, { index: false }));
+
+routes.use("/backend/load", load);
+routes.use("/backend/save", save);
+routes.use("/backend/user", user);
+routes.use("/backend/discover", discover);
+routes.use("/backend/thumb", thumb);
+routes.use("/backend/client", client);
+routes.use("/backend/server", server);
+routes.use("/backend/host", host);
+routes.use("/webhook", webhookRouter);
+
+// Single-page app: any other GET returns index.html so client-side routes work.
+// <base href> makes the relative asset and API URLs in the frontend resolve under the URL base,
+// and window.__BASE_PATH__ tells React Router its basename.
+routes.get("/{*splat}", (req, res, next) => {
+  fs.readFile(path.join(frontendDir, "index.html"), "utf8", (err, html) => {
+    if (err) return next(err);
+    const inject = `<base href="${basePath}" /><script>window.__BASE_PATH__=${JSON.stringify(basePath)};</script>`;
+    res
+      .set("Cache-Control", "no-cache")
+      .type("html")
+      .send(html.replace("<head>", `<head>${inject}`));
+  });
 });
+
+app.use(base || "/", routes);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// error handler (no view engine is configured, so reply with plain text)
 app.use(function (err, req, res, next) {
-  console.error(err);
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) httpLog.error(`${req.method} ${req.originalUrl.split("?")[0]} failed:`, err);
+  res.status(status).send(err.expose ? err.message : status >= 500 ? "Internal Server Error" : err.message);
 });
 
 module.exports = app;

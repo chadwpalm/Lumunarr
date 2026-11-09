@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
@@ -178,8 +178,7 @@ export default class Login extends Component {
 
     xhr.addEventListener("readystatechange", () => {
       if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-        } else {
+        if (xhr.status !== 200) {
           // error
           this.setState({
             error: xhr.responseText,
@@ -188,7 +187,7 @@ export default class Login extends Component {
       }
     });
 
-    xhr.open("POST", "/backend/save", false);
+    xhr.open("POST", "backend/save", false);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(settings));
 
@@ -215,7 +214,7 @@ export default class Login extends Component {
         }
       }
     });
-    xhr.open("POST", "/backend/thumb", false);
+    xhr.open("POST", "backend/thumb", false);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(data));
   };
