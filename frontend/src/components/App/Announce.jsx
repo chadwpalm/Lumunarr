@@ -24,8 +24,8 @@ const Announce = ({ announce, fullscreenAnn, handleCloseAnn, branch, handleDismi
         also includes a few quality of life improvements, and a handful of bug fixes.
         <ul>
           <li>
-            <b>Login Security.</b> Your Plex login also servers as your Lumunarr login now, and your Plex token is
-            stored in a more secure way. If you are using Lumunarr from the internet, this is a must-have update.
+            <b>Login Security.</b> Your Plex login also serves as your Lumunarr login now, and your Plex token is stored
+            in a more secure way. If you are using Lumunarr from the internet, this is a must-have update.
           </li>
           <li>
             <b>New Security section in Settings.</b> You can now set Lumunarr to either require authorization for every
