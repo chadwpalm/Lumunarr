@@ -4,6 +4,8 @@ var router = express.Router();
 var axios = require("axios").default;
 var https = require("https");
 var parser = require("xml-js");
+const store = require("./settingsStore");
+const auth = require("./auth");
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
@@ -19,6 +21,8 @@ router.post("/", async function (req, res, next) {
   var message = [];
   var libraries = [];
   var unauth = false;
+  // The saved Plex token (it is not sent to the browser)
+  var token = store.read().token;
 
   log.debug("Retrieving information for Plex Clients...");
 
@@ -170,7 +174,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/api/users";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
 
     .then(function (response) {
       log.debug("Retrieving Plex Accounts");
@@ -186,7 +190,7 @@ router.post("/", async function (req, res, next) {
       }
     })
     .catch(function (error) {
-      if (error.response.status === 401) {
+      if (error.response?.status === 401) {
         unauth = true;
       }
       log.error("Issue with connection to online Plex account while requesting friends:", error);
@@ -196,7 +200,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/users/account";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
 
     .then(function (response) {
       log.debug("Retrieving Server Admin Information");
@@ -224,7 +228,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/api/servers";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
 
     .then(function (response) {
       log.debug("Retrieving Plex Libraries");
@@ -237,7 +241,7 @@ router.post("/", async function (req, res, next) {
         if (server._attributes.owned === "1") {
           var url = `https://plex.tv/api/servers/${server._attributes.machineIdentifier}`;
           await axios
-            .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+            .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
             .then(function (response) {
               var libraries_temp = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Server;
               var sections = libraries_temp.Section;
@@ -267,7 +271,7 @@ router.post("/", async function (req, res, next) {
   var url = "https://plex.tv/devices.xml";
 
   await axios
-    .get(url, { timeout: 10000, params: { "X-Plex-Token": req.body.token } })
+    .get(url, { timeout: 10000, params: { "X-Plex-Token": token } })
 
     .then(function (response) {
       log.debug("Retrieving Plex Clients");
@@ -299,8 +303,10 @@ router.post("/", async function (req, res, next) {
 
   if (message.length !== 0) {
     if (unauth) {
-      log.warn("Plex rejected the saved token. Signing out; please sign back in to get a new token.");
-      res.status(401).send(JSON.stringify([]));
+      log.warn("Plex rejected the saved token. Sign in to Lumunarr again to get a new token.");
+      // The pages show the Plex sign-in until the owner signs in again (backend/auth.js)
+      auth.markPlexSignInNeeded();
+      res.status(401).json({ error: "Plex rejected the saved sign-in. Sign in again." });
     } else {
       log.warn("Profile page data incomplete:", message.join("; "));
       res.status(403).send(JSON.stringify(message));

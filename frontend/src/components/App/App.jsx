@@ -21,6 +21,7 @@ import { default as axios } from "axios";
 import Moon from "bootstrap-icons/icons/moon-stars.svg";
 import Sun from "bootstrap-icons/icons/sun.svg";
 import Extern from "bootstrap-icons/icons/box-arrow-up-right.svg";
+import { SIGNED_OUT_EVENT } from "../../signedOut";
 import "./App.css";
 
 // URL base injected by the backend into index.html (see app.js); "/" in the dev server
@@ -43,86 +44,112 @@ export default class App extends Component {
     first: false,
     dismiss: false,
     announcement: true, //master key to show an announcement after version update
+    auth: {}, // backend/auth/status: whether this browser is let in, and the Plex sign-in client details
   };
 
   componentDidMount() {
-    var xhr = new XMLHttpRequest();
-    var state = false;
-    var online = true;
+    window.addEventListener(SIGNED_OUT_EVENT, this.handleSignedOut);
+    this.loadSettings();
+  }
 
-    xhr.addEventListener("readystatechange", async () => {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          // request successful
-          var response = xhr.responseText,
-            json = JSON.parse(response);
+  componentWillUnmount() {
+    window.removeEventListener(SIGNED_OUT_EVENT, this.handleSignedOut);
+  }
 
-          let url;
+  // A backend request was refused (session ended, Authentication changed, or Plex rejected the saved
+  // sign-in): back to the sign-in page
+  handleSignedOut = () => {
+    if (this.state.isLoggedIn) this.setState({ isLoggedIn: false });
+  };
 
-          if (json.branch === "dev") {
-            url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/develop/version.json?cb=${Date.now()}`;
+  // Newer version on GitHub? Dev builds compare with the develop branch, releases with main.
+  async checkForUpdate(info) {
+    let isUpdate = false;
+    let online = true;
+    if (info.branch === "dev") {
+      const url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/develop/version.json?cb=${Date.now()}`;
+      await axios
+        .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+        .then((response) => {
+          if (response.data.version !== info.version) isUpdate = true;
+        })
+        .catch(() => {
+          online = false;
+        });
+    } else {
+      const url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/main/version.json`;
+      await axios
+        .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
+        .then((response) => {
+          if (response.data.version !== info.version) isUpdate = true;
+        })
+        .catch(() => {});
+    }
+    return { online, isUpdate };
+  }
 
-            await axios
-              .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
-              .then(function (response) {
-                var data = response.data;
-                if (data.version !== json.version) {
-                  state = true;
-                }
-              })
-              .catch(function (error) {
-                online = false;
-              });
-          } else {
-            url = `https://raw.githubusercontent.com/chadwpalm/Lumunarr/main/version.json`;
+  // Reads a backend response as JSON; throws with `status` and the server's message on failure
+  async getJSON(url) {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = undefined;
+    }
+    if (!res.ok) {
+      const err = new Error(data?.error || text || `Request failed (${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
 
-            await axios
-              .get(url, { headers: { "Content-Type": "application/json;charset=UTF-8" } })
-              .then(function (response) {
-                var data = response.data;
+  async loadSettings() {
+    // First ask whether this browser may use the app (backend/auth.js); the sign-in page needs these details too
+    let auth;
+    try {
+      auth = await this.getJSON("backend/auth/status");
+    } catch (err) {
+      this.setState({ isLoaded: true, error: err.message });
+      return;
+    }
 
-                if (data.version !== json.version) {
-                  state = true;
-                }
-              })
-              .catch(function (error) {});
-          }
+    const { online, isUpdate } = await this.checkForUpdate(auth);
+    if (!online) {
+      this.setState({ isOnline: false });
+      return;
+    }
 
-          if (!online) {
-            this.setState({ isOnline: false });
-          } else {
-            this.setState({
-              isLoaded: true,
-              config: json,
-              thumb: json.thumb,
-            });
+    if (!auth.allowed) {
+      this.setState({ isLoaded: true, isLoggedIn: false, auth });
+      return;
+    }
 
-            if (state) this.setState({ isUpdate: true });
+    let json;
+    try {
+      json = await this.getJSON("backend/load");
+    } catch (err) {
+      if (err.status === 401) this.setState({ isLoaded: true, isLoggedIn: false, auth });
+      else this.setState({ isLoaded: true, error: err.message });
+      return;
+    }
 
-            if (json.token) this.setState({ isLoggedIn: true });
-
-            if (json.connected === "true") {
-              this.setState({ isConnected: true });
-            }
-
-            if (json.message) this.setState({ first: true });
-
-            this.setState({ isDarkMode: json.darkMode }, () => {
-              this.toggleBodyClass();
-            });
-          }
-        } else {
-          // error
-          this.setState({
-            isLoaded: true,
-            error: xhr.responseText,
-          });
-        }
-      }
-    });
-
-    xhr.open("GET", "backend/load", true);
-    xhr.send();
+    this.setState(
+      {
+        isLoaded: true,
+        config: json,
+        thumb: json.thumb,
+        isUpdate,
+        isLoggedIn: true,
+        auth,
+        isConnected: json.connected === "true",
+        first: !!json.message,
+        isDarkMode: json.darkMode,
+      },
+      this.toggleBodyClass,
+    );
   }
 
   toggleBodyClass = () => {
@@ -189,41 +216,14 @@ export default class App extends Component {
     }
   };
 
-  handleUpdateThumb = (thumb, token, username, email) => {
-    var temp = this.state.config;
-    temp.token = token;
-    temp.thumb = thumb;
-    temp.email = email;
-    temp.username = username;
-    this.setState({ config: temp });
-  };
-
-  handleLogout = () => {
-    var settings = { ...this.state.config };
-
-    delete settings["token"];
-    delete settings["thumb"];
-    delete settings["email"];
-    delete settings["username"];
-
-    var xhr = new XMLHttpRequest();
-
-    xhr.addEventListener("readystatechange", () => {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          this.setState({ isLoggedIn: false });
-        } else {
-          // error
-          this.setState({
-            error: xhr.responseText,
-          });
-        }
-      }
-    });
-
-    xhr.open("POST", "backend/save", true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify(settings));
+  // Ends this browser's session only (other browsers stay signed in)
+  handleLogout = async () => {
+    try {
+      await fetch("backend/auth/logout", { method: "POST" });
+    } catch {
+      // reload anyway
+    }
+    window.location.reload(false);
   };
 
   handleDark = () => {
@@ -345,10 +345,12 @@ export default class App extends Component {
                           ) : (
                             <></>
                           )}
-                          <NavDropdown.Item onClick={this.handleLogout} className="d-flex align-items-center">
-                            <img src={Logout} className="logout-icon" alt="" />
-                            &nbsp; Sign Out
-                          </NavDropdown.Item>
+                          {this.state.auth.signedIn && (
+                            <NavDropdown.Item onClick={this.handleLogout} className="d-flex align-items-center">
+                              <img src={Logout} className="logout-icon" alt="" />
+                              &nbsp; Sign Out
+                            </NavDropdown.Item>
+                          )}
                         </NavDropdown>
                       </Nav>
                     </Navbar.Collapse>
@@ -381,11 +383,7 @@ export default class App extends Component {
                     <b>App ID:</b>&nbsp; {this.state.config.appId}
                     <br />
                     <b>Docker:</b>&nbsp;
-                    <a
-                      href="https://hub.docker.com/r/chadwpalm/lumunarr"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href="https://hub.docker.com/r/chadwpalm/lumunarr" target="_blank" rel="noreferrer">
                       chadwpalm/lumunarr
                     </a>
                     &nbsp;&nbsp;
@@ -431,13 +429,7 @@ export default class App extends Component {
                       <>
                         <Route
                           path="/"
-                          element={
-                            <Device
-                              settings={this.state.config}
-                              logout={this.handleLogout}
-                              isDarkMode={this.state.isDarkMode}
-                            />
-                          }
+                          element={<Device settings={this.state.config} isDarkMode={this.state.isDarkMode} />}
                         />
                         <Route
                           path="/server"
@@ -445,7 +437,13 @@ export default class App extends Component {
                         />
                         <Route
                           path="/settings"
-                          element={<Settings settings={this.state.config} isDarkMode={this.state.isDarkMode} />}
+                          element={
+                            <Settings
+                              settings={this.state.config}
+                              auth={this.state.auth}
+                              isDarkMode={this.state.isDarkMode}
+                            />
+                          }
                         />
                         <Route path="*" element={<Navigate replace to="/" />} />
                       </>
@@ -460,16 +458,7 @@ export default class App extends Component {
             <Router basename={basePath}>
               <Routes>
                 <Route path="*" element={<Navigate replace to="/login" />} />
-                <Route
-                  path="/login"
-                  element={
-                    <Login
-                      handleLogin={this.handleLogin}
-                      handleUpdateThumb={this.handleUpdateThumb}
-                      settings={this.state.config}
-                    />
-                  }
-                />
+                <Route path="/login" element={<Login handleLogin={this.handleLogin} settings={this.state.auth} />} />
               </Routes>
             </Router>
           );

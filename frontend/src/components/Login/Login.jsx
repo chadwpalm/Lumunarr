@@ -5,29 +5,75 @@ import Button from "react-bootstrap/Button";
 import LoginIcon from "bootstrap-icons/icons/box-arrow-in-left.svg";
 import Logo from "../../images/Logo2.png";
 import Card from "react-bootstrap/Card";
-import Axios from "axios";
-import qs from "qs";
+
+// Browser and OS names for the Plex device details, e.g. "Firefox" 144.0 on "Linux"
+function describeBrowser() {
+  const ua = navigator.userAgent;
+  const match = (re) => ua.match(re)?.[1];
+  let browser = "Web";
+  let browserVersion = "Unknown";
+  for (const [name, re] of [
+    ["Microsoft Edge", /Edg\/([\d.]+)/],
+    ["Opera", /OPR\/([\d.]+)/],
+    ["Firefox", /Firefox\/([\d.]+)/],
+    ["Chrome", /Chrome\/([\d.]+)/],
+    ["Safari", /Version\/([\d.]+).*Safari/],
+  ]) {
+    const version = match(re);
+    if (version) {
+      browser = name;
+      browserVersion = version;
+      break;
+    }
+  }
+  const os = /Android/.test(ua)
+    ? "Android"
+    : /iPhone|iPad|iPod/.test(ua)
+      ? "iOS"
+      : /Windows/.test(ua)
+        ? "Windows"
+        : /Mac OS X/.test(ua)
+          ? "macOS"
+          : /Linux/.test(ua)
+            ? "Linux"
+            : "Unknown";
+  return { browser, browserVersion, os };
+}
+
+// fetch that returns parsed JSON, or throws an Error with `status` and `data` (the parsed body) on failure
+async function requestJSON(method, url, { body, headers, timeout } = {}) {
+  const options = { method, headers: { ...headers } };
+  if (body !== undefined) {
+    options.headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
+  }
+  if (timeout) options.signal = AbortSignal.timeout(timeout);
+  const res = await fetch(url, options);
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = undefined;
+  }
+  if (!res.ok) {
+    const err = new Error(data?.error || text || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
 
 export default class Login extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      gotURL: false,
-      gotToken: false,
-      url: "",
-      pin: null,
-      code: null,
-      ip: "",
-      port: "",
-      ssl: false,
-      saved: false,
-      openWindow: false,
       gettingToken: false,
-      gettingIPs: false,
-      isLoading: false,
       noInternet: false,
       error: null,
+      notOwner: null, // Plex account name when the server refused it (not the owner)
     };
 
     let version;
@@ -50,238 +96,192 @@ export default class Login extends Component {
     this.version = version;
   }
 
-  requestHostedLoginURL = async () => {
-    const url = "https://plex.tv/api/v2/pins";
-    const headers = {
+  // Sent with every plex.tv request and in the sign-in page address. With the full device details, Plex shows
+  // its confirmation page ("Lumunarr would like to sign in", with "Not you?") instead of approving silently
+  // with whatever account the browser is signed in to at plex.tv.
+  plexHeaders = () => {
+    const { browser, browserVersion, os } = describeBrowser();
+    return {
       Accept: "application/json",
-      "Content-Type": "application/json",
       "X-Plex-Product": "Lumunarr",
-      "X-Plex-Client-Identifier": this.props.settings.uuid,
-      "X-Plex-Device": this.props.settings.platform,
       "X-Plex-Version": this.version,
-      "X-Plex-Platform": "Web",
+      "X-Plex-Client-Identifier": this.props.settings.uuid,
+      "X-Plex-Model": "Plex OAuth",
+      "X-Plex-Platform": browser,
+      "X-Plex-Platform-Version": browserVersion,
+      "X-Plex-Device": os,
+      "X-Plex-Device-Name": `${browser} (Lumunarr)`,
+      "X-Plex-Device-Screen-Resolution": `${window.screen.width}x${window.screen.height}`,
+      "X-Plex-Language": "en",
     };
-
-    try {
-      const response = await Axios.post(url, { strong: true }, { headers });
-      return response.data;
-    } catch (error) {
-      console.error("Error", error.response?.data || error.message);
-      throw error;
-    }
   };
 
-  checkForAuthToken = async (pin) => {
-    const url = `https://plex.tv/api/v2/pins/${pin}`;
-    const headers = {
-      Accept: "application/json",
-      "X-Plex-Client-Identifier": this.props.settings.uuid,
-      "X-Plex-Device": this.props.settings.platform,
-      "X-Plex-Version": this.version,
-      "X-Plex-Platform": "Web",
-    };
+  requestPin = () => requestJSON("POST", "https://plex.tv/api/v2/pins?strong=true", { headers: this.plexHeaders() });
 
-    try {
-      const response = await Axios.get(url, { timeout: 5000, headers });
-      return response.data;
-    } catch (error) {
-      console.error("Error", error.response?.data || error.message);
-      throw error;
-    }
-  };
+  checkPin = (pinId) =>
+    requestJSON("GET", `https://plex.tv/api/v2/pins/${pinId}`, { timeout: 5000, headers: this.plexHeaders() });
 
   authAppUrl = (code) => {
-    return (
-      "https://app.plex.tv/auth#?" +
-      qs.stringify({
-        clientID: this.props.settings.uuid,
-        code: code,
-        forwardUrl: "",
-        context: {
-          device: {
-            product: "Lumunarr",
-            device: this.props.settings.platform,
-          },
-        },
-      })
-    );
+    const h = this.plexHeaders();
+    const params = new URLSearchParams({
+      clientID: h["X-Plex-Client-Identifier"],
+      "context[device][product]": h["X-Plex-Product"],
+      "context[device][version]": h["X-Plex-Version"],
+      "context[device][platform]": h["X-Plex-Platform"],
+      "context[device][platformVersion]": h["X-Plex-Platform-Version"],
+      "context[device][device]": h["X-Plex-Device"],
+      "context[device][deviceName]": h["X-Plex-Device-Name"],
+      "context[device][model]": h["X-Plex-Model"],
+      "context[device][screenResolution]": h["X-Plex-Device-Screen-Resolution"],
+      "context[device][layout]": "desktop",
+      code,
+    });
+    return `https://app.plex.tv/auth/#!?${params.toString()}`;
   };
 
-  componentDidMount() {
-    if (!this.state.gotURL) {
-      this.requestHostedLoginURL()
-        .then((data) => {
-          let hostedUILink = this.authAppUrl(data.code);
-          let pinId = data.id;
-          this.setState({ url: `${hostedUILink}`, pin: `${pinId}`, code: `${data.code}` });
-        })
-        .catch((err) => {
-          this.setState({ noInternet: true });
-          throw err;
-        });
-      this.setState({ gotURL: true });
-    }
+  componentWillUnmount() {
+    clearTimeout(this.pollTimer);
   }
 
-  executePoll = async () => {
-    try {
-      var token;
-      if (!this.state.pin) {
-        throw new Error("Unable to poll when pin is not initialized.");
-      }
-      await this.checkForAuthToken(this.state.pin)
-        .then((data) => {
-          token = data.authToken;
-        })
-        .catch((err) => {
-          throw err;
-        });
+  // Back to the Sign in button, with an optional message under the card
+  stopSignIn = (error = null, notOwner = null) => {
+    clearTimeout(this.pollTimer);
+    this.externalWindow?.close();
+    this.externalWindow = null;
+    this.setState({ gettingToken: false, error, notOwner });
+  };
 
-      if (token) {
-        this.setState({ gotToken: true });
-        this.handleGetThumb(token);
-        this.handleSaveToken(token);
-        this.externalWindow.close();
-      } else if (token === null && !this.externalWindow.closed) {
-        setTimeout(this.executePoll, 1000);
+  // Checks once a second whether the Plex sign-in finished, until the PIN expires or Cancel is pressed.
+  // (popup.closed isn't used: browsers can report the popup as closed once it is on app.plex.tv.)
+  executePoll = async (pinId, deadline) => {
+    let pin;
+    try {
+      pin = await this.checkPin(pinId);
+    } catch (err) {
+      if (err.status === 404 && Date.now() < deadline) {
+        this.pollTimer = setTimeout(() => this.executePoll(pinId, deadline), 1000);
       } else {
-        this.setState({ gettingToken: false });
-        throw new Error("Window closed without completing login");
+        this.stopSignIn("Could not reach plex.tv. Try again.");
       }
-    } catch (e) {
-      this.externalWindow.close();
+      return;
     }
+
+    if (pin?.authToken) {
+      this.externalWindow?.close();
+      this.externalWindow = null;
+      await this.handleSaveToken(pin.authToken);
+      return;
+    }
+    const expires = pin?.expiresAt ? Date.parse(pin.expiresAt) : deadline;
+    if (Date.now() >= Math.min(expires, deadline)) {
+      this.stopSignIn("The Plex sign-in timed out. Try again.");
+      return;
+    }
+    this.pollTimer = setTimeout(() => this.executePoll(pinId, deadline), 1000);
   };
 
   handlePlexAuth = async () => {
-    this.setState({ gettingToken: true });
-    const y = window.top.outerHeight / 2 + window.top.screenY - 300;
+    this.setState({ gettingToken: true, error: null, notOwner: null, noInternet: false });
+    const y = window.top.outerHeight / 2 + window.top.screenY - 350;
     const x = window.top.outerWidth / 2 + window.top.screenX - 300;
+    // Opened right away (during the click) so the browser doesn't block it; the Plex page loads once the PIN is ready
     this.externalWindow = window.open(
-      `${this.state.url}`,
       "",
-      `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=600, height=600, top=${y}, left=${x}`,
+      "",
+      `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=600, height=700, top=${y}, left=${x}`,
     );
 
-    await this.executePoll();
+    // A new PIN for every attempt: a PIN can only be used for one sign-in
+    let pin;
+    try {
+      pin = await this.requestPin();
+    } catch {
+      this.stopSignIn();
+      this.setState({ noInternet: true });
+      return;
+    }
+    if (!this.externalWindow || this.externalWindow.closed) {
+      this.stopSignIn("The Plex sign-in window was blocked. Allow pop-ups for this page and try again.");
+      return;
+    }
+    this.externalWindow.location.href = this.authAppUrl(pin.code);
+    this.executePoll(pin.id, Date.now() + 15 * 60 * 1000);
   };
 
-  handleSaveToken = (token) => {
-    var settings = { ...this.props.settings };
-
-    settings.token = token;
-    settings.thumb = this.thumb;
-    settings.email = this.email;
-    settings.username = this.username;
-
-    var xhr = new XMLHttpRequest();
-
-    xhr.addEventListener("readystatechange", () => {
-      if (xhr.readyState === 4) {
-        if (xhr.status !== 200) {
-          // error
-          this.setState({
-            error: xhr.responseText,
-          });
-        }
-      }
-    });
-
-    xhr.open("POST", "backend/save", false);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify(settings));
-
+  // The server checks the token with plex.tv and only lets the owner's account in (backend/auth.js)
+  handleSaveToken = async (token) => {
+    try {
+      await requestJSON("POST", "backend/auth/login", { body: { token } });
+    } catch (err) {
+      this.stopSignIn(err.message, err.status === 403 ? (err.data?.username ?? "") : null);
+      return;
+    }
     this.props.handleLogin();
-    this.props.handleUpdateThumb(this.thumb, token, this.username, this.email);
-  };
-
-  handleGetThumb = (token) => {
-    var data = {};
-    data.token = token;
-    var xhr = new XMLHttpRequest();
-    xhr.addEventListener("readystatechange", () => {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          // request successful
-          var response = xhr.responseText,
-            json = JSON.parse(response);
-
-          this.thumb = json.thumb;
-          this.email = json.email;
-          this.username = json.username;
-        } else {
-          // error
-        }
-      }
-    });
-    xhr.open("POST", "backend/thumb", false);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify(data));
   };
 
   render() {
-    if (this.state.gotURL) {
-      return (
-        <Container
-          fluid
-          style={{ backgroundImage: "linear-gradient(to bottom right, black, #5d36e9)", paddingTop: "30px" }}
+    return (
+      <Container
+        fluid
+        style={{ backgroundImage: "linear-gradient(to bottom right, black, #5d36e9)", paddingTop: "30px" }}
+      >
+        <Card
+          className="mx-auto"
+          style={{ width: "350px", paddingTop: "30px", paddingBottom: "30px", backgroundColor: "#fcfcfc" }}
         >
-          <Card
-            className="mx-auto"
-            style={{ width: "350px", paddingTop: "30px", paddingBottom: "30px", backgroundColor: "#fcfcfc" }}
-          >
-            <Row>
-              <div className="mx-auto" style={{ width: "125px" }}>
-                <img src={Logo} width="125px" alt="" />
-                <br />
-                <br />
-              </div>
-            </Row>
-            <Row style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "50px", color: "black" }}>
-                <b>Lumunarr</b>
-              </p>
-            </Row>
-            <Row style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "20px", color: "black" }}>Sign in to Plex account to continue</p>
-            </Row>
-            <Row>
-              <div className="mx-auto" style={{ width: "350px" }}>
-                {this.state.gettingToken ? (
-                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
-                    <div style={{ color: "#444" }}>
-                      <img src={LoginIcon} alt="" />
-                      &nbsp;&nbsp; Loading...
-                    </div>
-                  </Button>
-                ) : this.state.noInternet ? (
-                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth} disabled>
-                    <div style={{ color: "#444" }}>
-                      <img src={LoginIcon} alt="" />
-                      &nbsp;&nbsp; Sign in
-                    </div>
-                  </Button>
-                ) : (
-                  <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth}>
-                    <div style={{ color: "#444" }}>
-                      <img src={LoginIcon} alt="" />
-                      &nbsp;&nbsp; Sign in
-                    </div>
-                  </Button>
-                )}
-              </div>
-            </Row>
-          </Card>
-          <br />
-          {this.state.noInternet ? (
-            <div style={{ textAlign: "center", color: "#fff" }}>
-              You must have an internet connection to sign into Plex
+          <Row>
+            <div className="mx-auto" style={{ width: "125px" }}>
+              <img src={Logo} width="125px" alt="" />
+              <br />
+              <br />
             </div>
-          ) : (
-            <></>
-          )}
-        </Container>
-      );
-    }
+          </Row>
+          <Row style={{ textAlign: "center" }}>
+            <p style={{ fontSize: "50px", color: "black" }}>
+              <b>Lumunarr</b>
+            </p>
+          </Row>
+          <Row style={{ textAlign: "center" }}>
+            <p style={{ fontSize: "20px", color: "black" }}>Sign in to Plex account to continue</p>
+          </Row>
+          <Row>
+            <div className="mx-auto" style={{ width: "350px" }}>
+              {this.state.gettingToken ? (
+                <Button variant="secondary" style={{ width: "100%" }} onClick={() => this.stopSignIn()}>
+                  Waiting for Plex... (Cancel)
+                </Button>
+              ) : (
+                <Button variant="info" style={{ width: "100%" }} onClick={this.handlePlexAuth}>
+                  <div style={{ color: "#444" }}>
+                    <img src={LoginIcon} alt="" />
+                    &nbsp;&nbsp; Sign in
+                  </div>
+                </Button>
+              )}
+            </div>
+          </Row>
+        </Card>
+        <br />
+        {this.state.error && (
+          <div className="mx-auto" style={{ maxWidth: "350px", textAlign: "center", color: "#fff" }}>
+            {this.state.error}
+            {this.state.notOwner !== null && (
+              <>
+                <br />
+                <br />
+                To use a different Plex account, press Sign in again and choose "Not you?" on the Plex page.
+              </>
+            )}
+          </div>
+        )}
+        {this.state.noInternet ? (
+          <div style={{ textAlign: "center", color: "#fff" }}>
+            You must have an internet connection to sign into Plex
+          </div>
+        ) : (
+          <></>
+        )}
+      </Container>
+    );
   }
 }

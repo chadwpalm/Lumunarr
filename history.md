@@ -1,5 +1,28 @@
 # Lumunarr Version History
 
+## 1.7.1
+
+### Added
+
+- Sign-in security. The Plex sign-in is now checked by the server, not just the web page:
+  1. Only the Plex account that set up Lumunarr (the owner) can sign in. Other Plex accounts are refused. Existing installs recognize the owner from the saved sign-in automatically.
+  2. Each browser gets its own session (30 days, renewed while in use). Signing out only signs out that browser, and updates no longer sign everyone out.
+  3. Every page and API request needs a signed-in browser, except the Plex webhook.
+  4. New **Security** section in Settings with an **Authentication** setting: Required (default), Not required for local addresses, or Off (for reverse proxies that already require a login). Behind a reverse proxy, the client address is taken from X-Forwarded-For when the proxy is on the local network.
+  5. New `DISABLE_AUTH=true` environment variable turns sign-in off, and lets a different Plex account take over as owner on its next sign-in (for when the owner can't sign in any more).
+- The Plex sign-in window now shows Plex's confirmation page with "Not you?", so you can pick which Plex account to sign in with. Each attempt uses a new sign-in code, and a Cancel button stops waiting for Plex.
+
+### Changes
+
+- The Docker image is now multi-architecture: `latest` and each version tag run on both amd64 and arm64 (64-bit ARM, e.g. a Raspberry Pi with a 64-bit OS). The separate `-arm` tags are no longer published, and 32-bit ARM (arm/v7) is no longer supported.
+- The bridge monitor now searches for a moved bridge directly instead of sending an HTTP request to Lumunarr's own API.
+- Code that changes only some settings (bridge pairing, the bridge monitor, sign-in) now updates just those fields, so it can no longer undo edits saved in the meantime.
+
+### Fixes
+
+- Security fix: the settings, including the Plex token and Hue key, could be read and changed by anyone who could reach the port, without signing in. The Plex token and session details are no longer sent to the browser at all, and saving from a page can no longer change the Plex token or the signed-in account.
+- Fixed any Plex account being able to sign in and replace the owner's Plex token.
+
 ## 1.7.0
 
 ### Added

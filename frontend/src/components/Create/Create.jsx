@@ -221,7 +221,7 @@ export default class Create extends Component {
           });
           this.getLights(this.state.room);
         } else if (xhr.status === 401) {
-          this.props.logout();
+          // Signed out, or Plex rejected the saved sign-in: App shows the sign-in page (src/signedOut.js)
         } else {
           this.setState({ isError: true, errorRes: JSON.parse(xhr.responseText) });
         }
