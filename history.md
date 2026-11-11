@@ -9,7 +9,7 @@
   2. Each browser gets its own session (30 days, renewed while in use). Signing out only signs out that browser, and updates no longer sign everyone out.
   3. Every page and API request needs a signed-in browser, except the Plex webhook.
   4. New **Security** section in Settings with an **Authentication** setting: Required (default), Not required for local addresses, or Off (for reverse proxies that already require a login). Behind a reverse proxy, the client address is taken from X-Forwarded-For when the proxy is on the local network.
-  5. New `DISABLE_AUTH=true` environment variable turns sign-in off, and lets a different Plex account take over as owner on its next sign-in (for when the owner can't sign in any more).
+  5. New `DISABLE_AUTH=true` environment variable turns sign-in off, and lets a different Plex account take over as owner on its next sign-in (for when the owner can't sign in any more). While it is set, the account menu has a Sign In item that opens the sign-in page for this.
 - The Plex sign-in window now shows Plex's confirmation page with "Not you?", so you can pick which Plex account to sign in with. Each attempt uses a new sign-in code, and a Cancel button stops waiting for Plex.
 
 ### Changes
