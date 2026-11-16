@@ -51,6 +51,7 @@ export default class Settings extends Component {
       logLevel: s?.logLevel ?? "0",
       logSize: s?.logSize ?? "10",
       logFiles: s?.logFiles ?? "5",
+      authMode: s?.authMode ?? "required",
       host: null, // what the server is running with, from backend/host
       isSaved: false,
       error: null,
@@ -96,6 +97,7 @@ export default class Settings extends Component {
     settings.logLevel = this.state.logLevel;
     settings.logSize = String(parseInt(this.state.logSize, 10));
     settings.logFiles = String(parseInt(this.state.logFiles, 10));
+    settings.authMode = this.state.authMode;
 
     var xhr = new XMLHttpRequest();
 
@@ -120,7 +122,7 @@ export default class Settings extends Component {
     this.setState({ transition: e.target.value.toString(), isSaved: false });
   };
 
-  // startHour, startMin, startMed, endHour, endMin, endMed, latitude, longitude, appPort, baseURL
+  // startHour, startMin, startMed, endHour, endMin, endMed, latitude, longitude, appPort, baseURL, authMode
   handleField = (e) => {
     this.setState({ [e.target.name]: e.target.value.toString(), isSaved: false });
   };
@@ -139,6 +141,7 @@ export default class Settings extends Component {
   render() {
     const { host } = this.state;
     const errors = this.formErrors();
+    const authOverride = this.props.auth?.authModeSource === "DISABLE_AUTH";
     const portOverride =
       host && (host.portSource === "APP_PORT" || host.portSource === "PORT") ? host.portSource : null;
     const baseOverride = host && host.baseURLSource === "APP_BASE_URL";
@@ -391,6 +394,52 @@ export default class Settings extends Component {
                   <Form.Control.Feedback type="invalid">{errors.logFiles}</Form.Control.Feedback>
                 </Col>
               </Row>
+            </SettingsSection>
+
+            {/* Security */}
+            <SettingsSection title="Security" isDarkMode={this.props.isDarkMode}>
+              <InfoLabel
+                htmlFor="authMode"
+                tip={
+                  <>
+                    Who has to sign in with Plex to use Lumunarr. Only the Plex account that set up Lumunarr (the owner)
+                    can sign in.
+                    <br />
+                    <br />
+                    Required: every browser must sign in.
+                    <br />
+                    <br />
+                    Not required for local addresses: browsers on your local network (private addresses such as
+                    192.168.x.x) are let in without signing in. Behind a reverse proxy, the proxy must send the
+                    X-Forwarded-For header, otherwise every visitor looks local.
+                    <br />
+                    <br />
+                    Off: no sign-in. Only use this if something else, such as your reverse proxy, already requires a
+                    login. The DISABLE_AUTH environment variable also turns it off.
+                  </>
+                }
+              >
+                Authentication
+              </InfoLabel>
+              <Form.Select
+                value={authOverride ? "off" : this.state.authMode}
+                id="authMode"
+                name="authMode"
+                onChange={this.handleField}
+                disabled={authOverride}
+                size="sm"
+              >
+                <option value="required">Required</option>
+                <option value="local">Not required for local addresses</option>
+                <option value="off">Off</option>
+              </Form.Select>
+              <div className="footnote">
+                {authOverride
+                  ? "Turned off by the DISABLE_AUTH environment variable; this setting is ignored."
+                  : this.state.authMode === "off"
+                    ? "Anyone who can reach Lumunarr can use it and change its settings."
+                    : "Applies as soon as you save."}
+              </div>
             </SettingsSection>
 
             {/* Save */}

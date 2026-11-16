@@ -3,7 +3,8 @@ const log = require("./logger").tagged("MONITOR");
 const fs = require("fs");
 var https = require("https");
 var axios = require("axios").default;
-const { getInternalURL } = require("./config");
+const store = require("./settingsStore");
+const { findBridges } = require("./discover");
 
 var interval = 15; //bridge checking interval in minutes
 
@@ -17,18 +18,13 @@ log.info(`Bridge monitor active, checking every ${interval} minutes`);
 const jsonFilePath = SETTINGS_FILE;
 
 function writeToSettings(ip) {
-  var fileData = "";
   try {
-    fileData = fs.readFileSync(SETTINGS_FILE);
+    store.update((s) => {
+      s.bridge.ip = ip;
+    });
   } catch (error) {
-    log.error("Could not read settings file:", error);
-  }
-  var temp = JSON.parse(fileData);
-  temp.bridge.ip = ip;
-  try {
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(temp));
-  } catch (error) {
-    log.error("Could not write settings file:", error);
+    log.error("Could not save the new bridge IP:", error);
+    return;
   }
   log.info(`Saved new bridge IP ${ip} to settings`);
 }
@@ -53,18 +49,9 @@ async function checkResults(data) {
         if (error.request) {
           log.warn(`Bridge not reachable at ${data.bridge.ip}, searching the network for it`);
 
-          axios
-            .post(
-              getInternalURL("/backend/discover"),
-              {},
-              {
-                headers: { "Content-Type": "application/json;charset=UTF-8" },
-                timeout: 10000, // Set timeout to 2000 milliseconds (2 seconds)
-              },
-            )
-            .then(function (response) {
-              var discData = response.data;
-
+          // Called directly: an HTTP request to our own /backend/discover would need a signed-in session
+          findBridges()
+            .then(function (discData) {
               discData.forEach((element) => {
                 url = `https://${element.IP}/api/0/config`;
                 axios

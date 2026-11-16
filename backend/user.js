@@ -1,10 +1,9 @@
 var express = require("express");
-const { SETTINGS_FILE } = require("./paths");
 const log = require("./logger").tagged("PAIRING");
 var router = express.Router();
 var axios = require("axios").default;
 const { setTimeout: setTimeoutPromise } = require("timers/promises");
-var fs = require("fs");
+const { saveFromPage, isSettingsObject } = require("./save");
 var https = require("https");
 
 const httpsAgent = new https.Agent({
@@ -13,6 +12,9 @@ const httpsAgent = new https.Agent({
 
 router.post("/", async function (req, res, next) {
   var settings = req.body;
+  if (!isSettingsObject(settings) || !settings.bridge?.ip) {
+    return res.status(400).json({ error: "No bridge selected" });
+  }
 
   log.info(`Pairing with bridge at ${settings.bridge.ip}`);
   log.debug(`Hue application name: ${settings.appId}`);
@@ -42,23 +44,18 @@ router.post("/", async function (req, res, next) {
 
   if (!username) {
     log.info("Bridge link button not pressed yet, waiting...");
-  } else {
-    settings.connected = "true";
   }
-
-  if (!settings.bridge) {
-    settings.bridge = {};
-  }
-
-  settings.bridge.user = username;
-
-  var fileData = JSON.stringify(settings);
 
   try {
-    fs.writeFileSync(SETTINGS_FILE, fileData);
+    // The page's settings, keeping the sign-in fields only the server may change (backend/save.js)
+    saveFromPage(settings, (saved) => {
+      saved.bridge = { ...saved.bridge, user: username };
+      if (username) saved.connected = "true";
+    });
     log.debug("Settings file saved");
   } catch (err) {
-    if (err) throw err;
+    log.error("Could not save settings file:", err);
+    return next(err);
   }
 
   res.send(username);

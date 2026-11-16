@@ -106,6 +106,7 @@ Then open **http://localhost:3939**.
 | `CONFIG_DIR`    | Folder for settings and logs (default `/config`). `npm run dev` sets it to `./dev-config`. Relative paths are resolved from the folder you start Lumunarr in. |
 | `APP_PORT`      | Port to listen on (default 3939). Overrides the Port setting. `PORT` also works.                                                                              |
 | `APP_BASE_URL`  | URL base for reverse proxies, e.g. `/lumunarr`. Overrides the URL Base setting.                                                                               |
+| `DISABLE_AUTH`  | `true` turns off sign-in, and lets a different Plex account become the owner on its next sign-in. For recovery; overrides the Authentication setting.         |
 | `PUID` / `PGID` | Owner applied to the settings file (mainly for Docker).                                                                                                       |
 | `BUILD`         | Build number shown in the UI and logs (set by CI; defaults to `Native`).                                                                                      |
 | `BACKEND_URL`   | Frontend dev server only: where to forward API calls (default `http://localhost:3939`).                                                                       |
@@ -120,7 +121,9 @@ backend/
   config.js             Port and URL base (env vars and settings)
   logger.js             Logging: levels, tags, secret masking, log files
   paths.js              Config folder location (CONFIG_DIR, default /config)
-  load.js, save.js      Read and write settings.js in the config folder
+  load.js, save.js      Read and write settings.js in the config folder (for the pages)
+  settingsStore.js      Read/update settings.js from backend code (changes only the fields given)
+  auth.js               Sign-in: Plex owner check, session cookie, Authentication setting, access checks
   client.js             Data for the profile (Create) form: Plex users/clients/libraries, Hue scenes
   server.js             Data for the Server page: Hue rooms, zones, lights
   discover.js           Hue bridge discovery (mDNS, then the Hue Discovery service)
@@ -131,7 +134,10 @@ webhook/index.js        Receives Plex webhooks and runs the matching profile act
 frontend/               React app (Vite)
   src/components/       One folder per page or component
   src/components/Common Shared form pieces (labels with tooltips, time/schedule fields, sliders)
+  src/signedOut.js      Sends the page back to sign-in when the backend answers 401
 ```
+
+Every route under `/backend` (except `/backend/auth`) requires a signed-in browser (see [`backend/auth.js`](backend/auth.js) and [`app.js`](app.js)), so new routes there are protected automatically. The Plex webhook (`/webhook`) stays open. Backend code must not call its own `/backend` routes over HTTP (they would be refused); call the function directly instead, as `monitor.js` does with `discover.js`. In a fresh `dev-config`, the first Plex account you sign in with becomes the owner. To sign in with a different account, delete `ownerId` from `dev-config/settings.js` or start with `DISABLE_AUTH=true`. Settings the browser must never see or change (the Plex token, `ownerId`, `sessionSecret`) are listed in `SERVER_ONLY` in [`backend/load.js`](backend/load.js).
 
 Backend modules log through a tagged logger:
 

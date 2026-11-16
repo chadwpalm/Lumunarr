@@ -11,13 +11,16 @@ var load = require("./backend/load");
 var save = require("./backend/save");
 var user = require("./backend/user.js");
 var discover = require("./backend/discover");
-var thumb = require("./backend/thumb");
 var client = require("./backend/client");
 var server = require("./backend/server");
 var host = require("./backend/host");
+var auth = require("./backend/auth");
 require("./backend/monitor.js");
 
 var app = express();
+
+// Believe X-Forwarded-For/-Proto only from proxies on the local network (client address, HTTPS detection)
+app.set("trust proxy", auth.TRUST_PROXY);
 
 // URL base for reverse proxies, e.g. "/lumunarr" ("" = root). Everything is mounted under it.
 const base = getBaseURL();
@@ -51,11 +54,15 @@ var routes = express.Router();
 
 routes.use(express.static(frontendDir, { index: false }));
 
+// Sign-in endpoints are public; everything else under /backend needs a signed-in (or allowed) browser.
+// /webhook stays open: Plex can't sign in (it only reacts to playback events).
+routes.use("/backend/auth", auth.router);
+routes.use("/backend", auth.requireAuth);
+
 routes.use("/backend/load", load);
 routes.use("/backend/save", save);
 routes.use("/backend/user", user);
 routes.use("/backend/discover", discover);
-routes.use("/backend/thumb", thumb);
 routes.use("/backend/client", client);
 routes.use("/backend/server", server);
 routes.use("/backend/host", host);

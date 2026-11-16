@@ -225,7 +225,6 @@ export default class Device extends Component {
               saved={this.handleSaveCreate}
               uid={this.state.uid}
               isEdit={this.state.isEdit}
-              logout={this.props.logout}
               isDarkMode={this.props.isDarkMode}
             />
           ) : (
