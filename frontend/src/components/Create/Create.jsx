@@ -417,9 +417,9 @@ export default class Create extends Component {
                 .filter((client) => client._attributes.provides !== "server")
                 .map(({ _attributes: c }) => (
                   <option key={c.clientIdentifier} value={c.clientIdentifier}>
-                    {c.name} ({c.platform}) {"  -  "} {c.product}
-                    {", version: "}
-                    {c.productVersion} ({c.device}){" - created: "}
+                    {c.name} ({c.platform}) {"  -  "} {c.product} ({c.device}) {", ID: "}
+                    {c.clientIdentifier.length > 6 ? `${c.clientIdentifier.slice(0, 6)}...` : c.clientIdentifier}{" "}
+                    {" - created: "}
                     {this.relativeTime(c.createdAt)}
                   </option>
                 ))}
@@ -650,11 +650,7 @@ export default class Create extends Component {
             <br />
             <br />
             See{" "}
-            <a
-              href="https://lumunarr.org/docs/Reference/Profile_Tips"
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href="https://lumunarr.org/docs/Reference/Profile_Tips" target="_blank" rel="noreferrer">
               Lumunarr documentation
             </a>{" "}
             for more information.

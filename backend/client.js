@@ -276,17 +276,10 @@ router.post("/", async function (req, res, next) {
     .then(function (response) {
       log.debug("Retrieving Plex Clients");
 
-      let list = parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Device;
+      let list = [].concat(parser.xml2js(response.data, { compact: true, spaces: 4 }).MediaContainer.Device || []);
 
-      list.sort((a, b) => (a.lastSeenAt < b.lastSeenAt ? 1 : b.lastSeenAt < a.lastSeenAt ? -1 : 0));
-      var i = 0;
-      while (i < list.length) {
-        if (list[i].name === "") {
-          list.splice(i, 1);
-        } else {
-          ++i;
-        }
-      }
+      list.sort((a, b) => Number(b._attributes.lastSeenAt) - Number(a._attributes.lastSeenAt));
+      list = list.filter((d) => d._attributes.name !== "");
 
       log.debug(`${list.length} total Plex client(s) retrieved`);
 

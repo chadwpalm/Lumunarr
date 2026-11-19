@@ -1,5 +1,11 @@
 # Lumunarr Version History
 
+## 1.7.2
+
+### Changes
+
+- Added the first 6 digits of the client ID to help distinguish between clients with the same name. Removed the client version as that is not relevant to the functionality of the app.
+
 ## 1.7.1
 
 ### Added
